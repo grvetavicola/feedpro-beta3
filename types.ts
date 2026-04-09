@@ -154,3 +154,24 @@ export interface GroupFormulationResult {
   totalCost: number;
   ingredientsUsage: Record<string, number>; // Total used per ingredient across all products
 }
+
+export interface IngredientDelta {
+  price?: number;
+  stock?: number;
+  isBlocked?: boolean;
+}
+
+export interface ClientWorkspace {
+  clientId: string;
+  ingredientOverrides: Record<string, IngredientDelta>;
+  productConstraintsOverrides: Record<string, ProductConstraint[]>;
+}
+
+export interface GlobalState {
+  ingredients: Ingredient[];
+  nutrients: Nutrient[];
+  products: Product[];
+  clients: Client[];
+  workspaces: Record<string, ClientWorkspace>;
+  activeClientId?: string;
+}

@@ -193,15 +193,20 @@ export const OptimizationResults: React.FC<OptimizationResultsProps> = ({ result
                              )}
                         </div>
                         {result.nutrientAnalysis.filter(n => n.value > 0 || n.min > 0).map(c => {
-                            const nut = nutrients.find(n => n.id === c.nutrientId);
-                            const localC = localConstraints.find(lc => lc.nutrientId === c.nutrientId);
-                            const minVal = localC ? localC.min : c.min;
-                            const maxVal = localC ? localC.max : c.max;
-                            
-                            return (
+                             const nut = nutrients.find(n => n.id === c.nutrientId);
+                             const localC = localConstraints.find(lc => lc.nutrientId === c.nutrientId);
+                             const minVal = localC ? localC.min : c.min;
+                             const maxVal = localC ? localC.max : c.max;
+                             
+                             return (
                                 <div key={c.nutrientId} className="flex flex-col gap-1.5 p-2.5 rounded bg-gray-800/30 hover:bg-gray-700/50 transition-colors border border-transparent hover:border-gray-600">
                                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                                        <span className="text-gray-300 font-bold text-xs">{nut?.name}</span>
+                                        <div className="flex flex-col">
+                                            <span className="text-gray-300 font-bold text-xs">{nut?.name}</span>
+                                            {c.shadowPrice !== undefined && c.shadowPrice !== 0 && (
+                                                <span className="text-[9px] text-orange-400 font-bold">Precio Sombra: ${c.shadowPrice.toFixed(4)}</span>
+                                            )}
+                                        </div>
                                         <div className="flex items-center gap-2">
                                             <div className="flex items-center gap-1 bg-gray-900 rounded p-0.5 border border-gray-700 focus-within:border-cyan-500">
                                                 <span className="text-[9px] text-gray-500 pl-1 uppercase font-bold">Mín</span>

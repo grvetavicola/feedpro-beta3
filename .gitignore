@@ -29,3 +29,5 @@ dist-exe
 *.sln
 *.sw?
 
+
+.vercel
