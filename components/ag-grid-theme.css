@@ -1,0 +1,40 @@
+/* AG Grid FeedPro 360 Custom Theme (Extreme Density) */
+.ag-theme-quartz-dark.feedpro-grid {
+    --ag-grid-size: 2px;
+    --ag-list-item-height: 20px;
+    --ag-row-height: 28px;
+    --ag-header-height: 30px;
+    --ag-font-size: 11px;
+    --ag-font-family: 'Inter', system-ui, sans-serif;
+    --ag-background-color: transparent;
+    --ag-header-background-color: rgba(17, 24, 39, 0.85); /* gray-900 with opacity */
+    --ag-odd-row-background-color: rgba(31, 41, 55, 0.3); /* gray-800 low opacity */
+    --ag-row-border-color: rgba(55, 65, 81, 0.5); /* gray-700 */
+    --ag-header-column-separator-display: block;
+    --ag-header-column-separator-color: rgba(55, 65, 81, 0.8);
+    --ag-header-foreground-color: #9ca3af; /* gray-400 */
+    --ag-cell-horizontal-padding: 6px;
+}
+
+/* Tabular numbers for all numeric columns */
+.ag-theme-quartz-dark.feedpro-grid .ag-cell-numeric {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Conditional Semantic Classes */
+.cell-zero-usage {
+    background-color: rgba(8, 145, 178, 0.2) !important; /* cyan-600 low opacity */
+    color: #67e8f9 !important; /* cyan-300 */
+}
+.cell-limit-reached {
+    background-color: rgba(30, 58, 138, 0.4) !important; /* blue-900 */
+    color: #93c5fd !important; /* blue-300 */
+    font-weight: bold;
+}
+.cell-optimal-usage {
+    background-color: rgba(16, 185, 129, 0.1) !important; /* emerald-500 */
+    color: #34d399 !important;
+}
