@@ -138,6 +138,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
     const { t } = useTranslations();
     const [selectedProductId, setSelectedProductId] = useState<string | null>(products[0]?.id || null);
     const [newProductName, setNewProductName] = useState('');
+    const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set([products[0]?.category || 'Sin Categoría']));
     
     const currentProduct = useMemo(() => products.find(p => p.id === selectedProductId), [products, selectedProductId]);
 
@@ -221,20 +222,84 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
             <div className="flex-1 grid grid-cols-12 gap-3 min-h-0">
                 {/* List */}
                 <div className="col-span-3 bg-gray-800/40 rounded border border-gray-700 flex flex-col overflow-hidden">
-                    <div className="p-2 bg-gray-800 border-b border-gray-700 font-bold text-[10px] uppercase tracking-wider text-gray-400">Productos Disponibles</div>
-                    <div className="flex-1 overflow-y-auto space-y-0.5 p-1 custom-scrollbar">
-                        {products.map(p => (
-                            <div key={p.id} onClick={() => setSelectedProductId(p.id)} className={`p-2 rounded cursor-pointer transition-colors group flex justify-between items-center ${p.id === selectedProductId ? 'bg-cyan-900/30 border border-cyan-500/50' : 'hover:bg-gray-700/50 border border-transparent'}`}>
-                                <div className="truncate">
-                                    <div className={`text-[13px] font-black ${p.id === selectedProductId ? 'text-cyan-300' : 'text-white'}`}>{p.name}</div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-[10px] text-gray-400 font-black font-mono">#{p.code}</span>
-                                        {p.category && <span className="text-[9px] text-emerald-500 font-black uppercase tracking-tighter bg-emerald-500/10 px-1 rounded">{p.category}</span>}
+                    <div className="p-2 bg-gray-800 border-b border-gray-700 font-black text-[10px] uppercase tracking-widest text-gray-500 flex justify-between items-center px-3">
+                        <span>Productos Disponibles</span>
+                        <span className="bg-gray-900 border border-gray-700 px-1.5 py-0.5 rounded text-[9px] text-cyan-400">{products.length}</span>
+                    </div>
+                    <div className="flex-1 overflow-y-auto space-y-2 p-2 custom-scrollbar bg-gray-950/20">
+                        {(() => {
+                            const grouped = products.reduce((acc, p) => {
+                                const cat = p.category || 'Sin Categoría';
+                                if (!acc[cat]) acc[cat] = [];
+                                acc[cat].push(p);
+                                return acc;
+                            }, {} as Record<string, Product[]>);
+
+                            const categories = Object.keys(grouped).sort((a, b) => a === 'Sin Categoría' ? 1 : b === 'Sin Categoría' ? -1 : a.localeCompare(b));
+
+                            return categories.map((cat, catIdx) => {
+                                const isOpen = expandedCategories.has(cat);
+                                const items = grouped[cat];
+                                const catColors = [
+                                    'border-emerald-500/30 bg-emerald-500/5 text-emerald-400',
+                                    'border-cyan-500/30 bg-cyan-500/5 text-cyan-400',
+                                    'border-blue-500/30 bg-blue-500/5 text-blue-400',
+                                    'border-indigo-500/30 bg-indigo-500/5 text-indigo-400',
+                                    'border-purple-500/30 bg-purple-500/5 text-purple-400'
+                                ];
+                                const colorClass = cat === 'Sin Categoría' ? 'border-gray-700 bg-gray-800/40 text-gray-400' : catColors[catIdx % catColors.length];
+
+                                return (
+                                    <div key={cat} className="space-y-1">
+                                        <button 
+                                            onClick={() => {
+                                                const newSet = new Set(expandedCategories);
+                                                if (newSet.has(cat)) newSet.delete(cat);
+                                                else newSet.add(cat);
+                                                setExpandedCategories(newSet);
+                                            }}
+                                            className={`w-full flex items-center justify-between p-2.5 rounded-xl border font-black text-[11px] uppercase tracking-wider transition-all shadow-sm ${colorClass} hover:brightness-125 active:scale-[0.98] outline-none`}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-1.5 h-1.5 rounded-full ${cat === 'Sin Categoría' ? 'bg-gray-600' : 'bg-current pulse'}`}></div>
+                                                {cat}
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <span className="opacity-40 text-[9px]">{items.length}</span>
+                                                <ChevronDownIcon className={`w-3 h-3 transition-transform duration-300 ${isOpen ? '' : '-rotate-90'}`} />
+                                            </div>
+                                        </button>
+
+                                        {isOpen && (
+                                            <div className="space-y-1 ml-1 pl-2 border-l border-gray-800/50 animate-fade-in-down">
+                                                {items.map(p => (
+                                                    <div 
+                                                        key={p.id} 
+                                                        onClick={() => setSelectedProductId(p.id)} 
+                                                        className={`p-2.5 rounded-xl cursor-pointer transition-all group flex justify-between items-center border ${p.id === selectedProductId ? 'bg-cyan-500/10 border-cyan-500/50 shadow-lg shadow-cyan-900/10' : 'hover:bg-gray-800/60 border-transparent hover:border-gray-700'}`}
+                                                    >
+                                                        <div className="truncate flex-1">
+                                                            <div className={`text-[13px] font-black leading-tight ${p.id === selectedProductId ? 'text-cyan-300' : 'text-gray-100'}`}>{p.name}</div>
+                                                            <div className="flex items-center gap-2 mt-0.5">
+                                                                <span className="text-[10px] text-gray-500 font-black font-mono tracking-tighter">REF-{p.code}</span>
+                                                                {p.category && <span className="text-[9px] text-emerald-500/60 font-black uppercase tracking-tighter">CAT: {p.category}</span>}
+                                                            </div>
+                                                        </div>
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); setProducts(prev => prev.filter(x => x.id !== p.id)); }} 
+                                                            className="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-500/10 rounded-lg"
+                                                            title="Eliminar Dieta"
+                                                        >
+                                                            <TrashIcon className="w-3.5 h-3.5"/>
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
-                                </div>
-                                <button onClick={(e) => { e.stopPropagation(); setProducts(prev => prev.filter(x => x.id !== p.id)); }} className="text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100"><TrashIcon className="w-3 h-3"/></button>
-                            </div>
-                        ))}
+                                );
+                            });
+                        })()}
                     </div>
                 </div>
 
