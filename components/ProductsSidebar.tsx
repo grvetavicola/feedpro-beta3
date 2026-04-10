@@ -10,6 +10,10 @@ interface ProductsSidebarProps {
   onSelectProduct: (product: Product) => void;
   selectedDietIds: string[];
   onToggleDietSelection: (ids: string[], isSelected: boolean) => void;
+  onEditProduct?: (id: string) => void;
+  onDeleteProduct?: (id: string) => void;
+  onEditCategory?: (category: string) => void;
+  onDeleteCategory?: (category: string) => void;
   onNavigate: (view: ViewState) => void;
   activeView: ViewState;
 }
@@ -22,30 +26,73 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
   onSelectProduct,
   selectedDietIds,
   onToggleDietSelection,
+  onEditProduct,
+  onDeleteProduct,
+  onEditCategory,
+  onDeleteCategory,
   onNavigate,
   activeView
 }) => {
   const filteredProducts = products.filter(p => !selectedClientId || p.clientId === selectedClientId);
   
+  const [localLogoData, setLocalLogoData] = React.useState<string | null>(null);
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => setLocalLogoData(event.target?.result as string);
+          reader.readAsDataURL(file);
+      }
+  };
+
+  const attemptDeleteProduct = (e: React.MouseEvent, id: string) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if(window.confirm("¿Estás seguro de que deseas eliminar esta dieta? Esta acción no se puede deshacer.")) {
+          onDeleteProduct?.(id);
+      }
+  };
+
+  const attemptDeleteCategory = (e: React.MouseEvent, cat: string) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if(window.confirm("¿Estás seguro de que deseas eliminar la categoría completa? Esta acción no se puede deshacer.")) {
+          onDeleteCategory?.(cat);
+      }
+  };
+  
   return (
     <aside className="w-[240px] bg-gray-950 border-r border-gray-800 flex flex-col h-full overflow-hidden">
-      {/* Client Selector Section (Logo moved to Header) */}
-      <div className="p-4 border-b border-gray-800 flex flex-col items-center pt-2">
-        <label className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 block w-full text-center">
+      {/* Client Selector Section (Interactive Avatar + Dropdown) */}
+      <div className="p-4 border-b border-gray-800 flex flex-col items-center pt-6 pb-5">
+        <label className="cursor-pointer relative group flex justify-center items-center w-20 h-20 bg-gray-900 border border-gray-700 hover:border-cyan-500 transition-colors rounded-full overflow-hidden shadow-lg mb-4">
+            {localLogoData ? (
+                <img src={localLogoData} alt="Client Logo" className="w-full h-full object-cover" />
+            ) : (
+                <Users className="w-8 h-8 text-gray-500 group-hover:text-cyan-400 transition-colors" />
+            )}
+            <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span className="text-[9px] font-bold text-white uppercase text-center leading-tight">Subir<br/>Logo</span>
+            </div>
+        </label>
+        
+        <label className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 block w-full text-center">
           Portfolio de Consultoría
         </label>
-        <div className="relative group">
+        <div className="relative group w-full px-2">
           <select 
             value={selectedClientId} 
             onChange={(e) => onSelectClient(e.target.value)}
-            className="w-full bg-gray-900 border border-gray-700 rounded-lg py-2 px-3 text-sm font-medium text-cyan-400 appearance-none focus:ring-1 focus:ring-cyan-500 outline-none transition-all"
+            className="w-full bg-gray-900 border border-gray-800 rounded-md py-1.5 px-2 text-[11px] font-medium text-cyan-400 appearance-none focus:ring-1 focus:ring-cyan-500 outline-none transition-all text-center"
           >
             {clients.map(c => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
-          <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none group-hover:text-cyan-400">
-            <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse mr-2"></span>
+          <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none group-hover:text-cyan-400">
+            <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
           </div>
         </div>
       </div>
@@ -118,8 +165,8 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
 
                     return (
                       <div key={category} className="space-y-1">
-                        <div className="flex items-center gap-2 px-1 mb-1 justify-between group">
-                          <label className="flex items-center gap-2 cursor-pointer relative z-10 w-full">
+                        <div className="flex items-center gap-2 px-1 mb-1 justify-between group/cat">
+                          <label className="flex items-center gap-2 cursor-pointer relative z-10 flex-1">
                             <input 
                               type="checkbox" 
                               className="w-3 h-3 appearance-none border border-emerald-500/50 rounded bg-gray-900 checked:bg-emerald-500 checked:border-emerald-500 transition-colors shrink-0" 
@@ -129,19 +176,24 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                             />
                             {allSelected && <svg className="w-2.5 h-2.5 text-black absolute left-px pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
                             
-                            <span className="text-[11px] font-black text-emerald-400 uppercase tracking-wider">{category}</span>
+                            <span className="text-[11px] font-black text-emerald-400 uppercase tracking-wider truncate">{category}</span>
                           </label>
-                          <span className="text-[9px] text-gray-600 font-bold shrink-0">{items.length}</span>
+
+                          <div className="flex items-center gap-1 opacity-0 group-hover/cat:opacity-100 transition-opacity">
+                              <button onClick={(e) => { e.stopPropagation(); onEditCategory?.(category); }} className="p-0.5 text-gray-500 hover:text-cyan-400"><Settings size={10} /></button>
+                              <button onClick={(e) => attemptDeleteCategory(e, category)} className="p-0.5 text-gray-500 hover:text-red-400"><Plus size={10} className="rotate-45" /></button>
+                          </div>
+                          <span className="text-[9px] text-gray-600 font-bold shrink-0 ml-1 group-hover/cat:hidden">{items.length}</span>
                         </div>
                         <div className="space-y-1 ml-2 pl-2 border-l border-gray-800/50">
                           {items.map(product => {
                             const isSelected = selectedDietIds.includes(product.id);
                             return (
-                              <label
+                              <div
                                 key={product.id}
-                                className={`w-full flex items-center justify-between group px-2 py-1.5 rounded-lg border transition-all text-left cursor-pointer ${isSelected ? 'border-cyan-500/50 bg-cyan-900/10' : 'border-transparent hover:border-gray-800 hover:bg-gray-900/50'}`}
+                                className={`w-full flex items-center justify-between group/item px-2 py-1.5 rounded-lg border transition-all text-left ${isSelected ? 'border-cyan-500/50 bg-cyan-900/10' : 'border-transparent hover:border-gray-800 hover:bg-gray-900/50'}`}
                               >
-                                <div className="flex items-center gap-2 overflow-hidden w-full">
+                                <label className="flex items-center gap-2 overflow-hidden flex-1 cursor-pointer">
                                   <div className="relative shrink-0 flex items-center justify-center">
                                     <input 
                                         type="checkbox"
@@ -152,11 +204,19 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                                     {isSelected && <svg className="w-2.5 h-2.5 text-black absolute pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
                                   </div>
                                   <div className="overflow-hidden flex-1">
-                                    <p className={`text-[13px] font-bold truncate transition-colors ${isSelected ? 'text-cyan-300' : 'text-gray-100 group-hover:text-white'}`}>{product.name}</p>
+                                    <p className={`text-[13px] font-bold truncate transition-colors ${isSelected ? 'text-cyan-300' : 'text-gray-100 group-hover/item:text-white'}`}>{product.name}</p>
                                     <p className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">REF-{product.code}</p>
                                   </div>
+                                </label>
+                                <div className="flex items-center gap-2 opacity-0 group-hover/item:opacity-100 transition-opacity shrink-0 ml-2">
+                                  <button onClick={(e) => { e.stopPropagation(); onEditProduct?.(product.id); }} className="text-gray-500 hover:text-cyan-400 transition-colors">
+                                    <Settings size={12} />
+                                  </button>
+                                  <button onClick={(e) => attemptDeleteProduct(e, product.id)} className="text-gray-500 hover:text-red-400 transition-colors">
+                                    <Plus size={12} className="rotate-45" />
+                                  </button>
                                 </div>
-                              </label>
+                              </div>
                             );
                           })}
                         </div>
@@ -183,12 +243,17 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
       </div>
 
       {/* Footer Info */}
-      <div className="p-4 bg-gray-900/30 border-t border-gray-800">
-        <div className="flex items-center gap-2 mb-1">
-          <div className="w-2 h-2 rounded-full bg-green-500"></div>
-          <p className="text-[10px] font-black text-gray-300 uppercase">Sistema Operativo</p>
+      <div className="p-4 flex flex-col gap-3 bg-gray-900/30 border-t border-gray-800 shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">FeedPro 360 v1.1.0</p>
         </div>
-        <p className="text-[9px] text-gray-500 italic">FeedPro 360 v1.1.0 • Standalone</p>
+        <div className="text-[8px] leading-tight text-gray-600 font-medium">
+            <p className="mb-1">© 2026 FeedPro 360.</p>
+            <p>Todos los derechos reservados bajo la marca AVICULTURA 360.</p>
+            <p className="mt-1">Propiedad Intelectual e Industrial pertenece a Gabriel Rivera Chamy.</p>
+            <p className="mt-1 hover:text-cyan-500 transition-colors cursor-pointer break-all">Contacto: grvet.avicola@gmail.com</p>
+        </div>
       </div>
     </aside>
   );

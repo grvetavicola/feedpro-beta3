@@ -2,6 +2,7 @@ import React from 'react';
 import { Product, Ingredient, SavedFormula, Client, ViewState, User } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
 import { TruckIcon, StarIcon, TrendingUpIcon, ShoppingCartIcon, ClockIcon, ArrowRightIcon, AIIcon, ProductsIcon, IngredientsIcon, FormulateIcon, NutrientsIcon, DatabaseIcon, FlaskIcon, CalculatorIcon } from './icons';
+import { APP_NAME, APP_VERSION } from '../constants';
 
 interface DashboardProps {
   products: Product[];
@@ -35,7 +36,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
         <div className="relative z-10 flex items-center justify-between gap-3">
           <div className="space-y-1 max-w-xl">
             <div className="flex items-center gap-2 text-cyan-400 font-bold text-[10px] uppercase tracking-wider">
-              <StarIcon className="w-3 h-3"/> FeedPro 360 v5.3 (BETA3)
+              <StarIcon className="w-3 h-3"/> {APP_NAME} {APP_VERSION}
             </div>
             <h1 className="text-2xl font-black text-white leading-tight">Optimización Nutricional <span className="text-cyan-400">Sin Compromisos.</span></h1>
             <p className="text-gray-100 font-bold text-[14px] leading-snug">Motor táctico de formulación agropecuaria sincronizado.</p>

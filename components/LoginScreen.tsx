@@ -137,8 +137,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
             </button>
         </form>
         
-        <div className="mt-6 text-[10px] text-gray-600">
-            Feed Pro System &copy; 2024
+        <div className="mt-6 text-[10px] text-gray-600 space-y-1">
+            <p>FeedPro 360 &copy; 2026</p>
+            <p>Todos los derechos reservados. Contacto: grvet.avicola@gmail.com</p>
         </div>
       </div>
     </div>
