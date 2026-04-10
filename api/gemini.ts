@@ -13,7 +13,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        const ai = new GoogleGenAI(API_KEY);
+        const ai = new GoogleGenAI({ apiKey: API_KEY });
         const { action, payload } = req.body;
 
         if (action === 'chatWithAssistant') {

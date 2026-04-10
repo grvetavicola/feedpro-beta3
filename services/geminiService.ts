@@ -1,37 +1,41 @@
-import { GoogleGenAI } from "@google/genai";
 import { FormulationResult, Product, Ingredient, Nutrient, ChatMessage } from '../types';
 import { getAssistantPrompt } from '../lib/i18n/translations';
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-
-if (!API_KEY) {
-  console.warn("VITE_GEMINI_API_KEY no encontrada. Las funciones de IA estarán deshabilitadas.");
-}
-
-const ai = API_KEY ? new GoogleGenAI(API_KEY) : null;
-
 const getDisabledMessage = (language: string) => {
-    if (language === 'en') return "AI functionality is disabled because the API key was not provided.";
-    if (language === 'pt') return "A funcionalidade de IA está desabilitada porque a chave da API não foi fornecida.";
-    if (language === 'ru') return "Функциональность ИИ отключена, так как ключ API не был предоставлен.";
-    return "La funcionalidad de IA está deshabilitada porque la API key no fue proporcionada.";
+    if (language === 'en') return "AI functionality is temporarily unavailable or disabled by the server.";
+    if (language === 'pt') return "A funcionalidade IA está temporariamente indisponível.";
+    if (language === 'ru') return "Функции ИИ временно недоступны.";
+    return "La funcionalidad de IA está temporalmente deshabilitada por el servidor.";
 }
 
 const getErrorMessage = (language: string) => {
     if (language === 'en') return "There was an error communicating with the AI. Please check the console for more details.";
     if (language === 'pt') return "Houve um erro ao comunicar com a IA. Por favor, verifique o console para mais detalhes.";
     if (language === 'ru') return "Произошла ошибка при связи с ИИ. Пожалуйста, проверьте консоль для получения дополнительной информации.";
-    return "Hubo un error al comunicarse con la IA. Por favor, revisa la consola para más detalles.";
+    return "Hubo un error al comunicarse con la IA en la nube. Por favor, revisa la consola para más detalles.";
 }
+
+const callServerlessAI = async (action: string, payload: any): Promise<string> => {
+    const res = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, payload })
+    });
+    
+    if (!res.ok) {
+        throw new Error(`Serverless Error: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    return data.text || '';
+};
+
 
 
 export const analyzeFormulaWithGemini = async (result: FormulationResult, product: Product, language: string): Promise<string> => {
-  if (!ai) return getDisabledMessage(language);
-  
   const model = 'gemini-1.5-flash';
 
   const ingredientsText = result.items.map(f => {
-      // We don't have ingredientName directly in result.items anymore, we have ingredientId
       return `- Ingrediente ID ${f.ingredientId}: ${f.percentage.toFixed(2)}% (${f.weight.toFixed(2)} kg)`;
   }).join('\n');
   
@@ -56,13 +60,9 @@ export const analyzeFormulaWithGemini = async (result: FormulationResult, produc
   `;
 
   try {
-    const response = await ai.models.generateContent({
-        model: model,
-        contents: prompt,
-    });
-    return response.text || "";
+    return await callServerlessAI('analyzeFormula', { prompt, model });
   } catch (error) {
-    console.error("Error contacting Gemini API:", error);
+    console.error("Error contacting Serverless Gemini API:", error);
     return getErrorMessage(language);
   }
 };
@@ -75,8 +75,6 @@ export const chatWithAssistant = async (
     language: string,
     image?: { mimeType: string; data: string }
 ): Promise<string> => {
-    if (!ai) return getDisabledMessage(language);
-
     const model = 'gemini-3-flash-preview';
 
     const contextText = `
@@ -95,30 +93,13 @@ export const chatWithAssistant = async (
     });
 
     try {
-        const parts: any[] = [{ text: prompt }];
-        if (image) {
-            parts.unshift({
-                inlineData: {
-                    mimeType: image.mimeType,
-                    data: image.data
-                }
-            });
-        }
-        
-        const contents = image ? { parts } : prompt;
-
-        const response = await ai.models.generateContent({
-            model: model,
-            contents: contents,
-        });
-        return response.text || "";
+        return await callServerlessAI('chatWithAssistant', { prompt, model, image });
     } catch (error) {
-        console.error("Error contacting Gemini API:", error);
+        console.error("Error contacting Serverless Gemini API:", error);
         return getErrorMessage(language);
     }
 };
 
-// Función para analizar requerimientos de PRODUCTO desde archivo
 export const parseRequirementsWithGemini = async (
   inputData: { type: 'text' | 'image', data: string, mimeType?: string },
   nutrients: Nutrient[]
@@ -126,8 +107,6 @@ export const parseRequirementsWithGemini = async (
     nutrientConstraints: { [key: string]: { min?: number, max?: number } }, 
     productName?: string 
 }> => {
-  if (!ai) throw new Error("API Key missing");
-
   const model = 'gemini-3-flash-preview';
 
   const nutrientMap = nutrients.map(n => `${n.id}: ${n.name} (${n.unit})`).join('\n');
@@ -172,18 +151,8 @@ export const parseRequirementsWithGemini = async (
   }
 
   try {
-      const response = await ai.models.generateContent({
-          model: model,
-          contents: { parts },
-          config: {
-              systemInstruction: systemInstruction,
-              responseMimeType: "application/json"
-          }
-      });
-
-      const text = response.text;
+      const text = await callServerlessAI('parseRequirements', { systemInstruction, parts, model });
       if (!text) return { nutrientConstraints: {} };
-      
       return JSON.parse(text);
   } catch (error) {
       console.error("Error parsing requirements:", error);
@@ -191,7 +160,6 @@ export const parseRequirementsWithGemini = async (
   }
 };
 
-// Nueva función para analizar INGREDIENTES desde archivo (Excel, PDF, Imagen)
 export const parseIngredientsWithGemini = async (
     inputData: { type: 'text' | 'file', data: string, mimeType?: string },
     nutrients: Nutrient[]
@@ -199,8 +167,6 @@ export const parseIngredientsWithGemini = async (
       ingredients: { name: string; price?: number; nutrients: { [nutrientId: string]: number } }[],
       newNutrients: { tempId: string; name: string; unit: string }[]
   }> => {
-    if (!ai) throw new Error("API Key missing");
-  
     const model = 'gemini-3-flash-preview';
   
     const nutrientMap = nutrients.map(n => `ID: ${n.id} = ${n.name} (${n.unit})`).join('\n');
@@ -260,18 +226,8 @@ export const parseIngredientsWithGemini = async (
     }
   
     try {
-        const response = await ai.models.generateContent({
-            model: model,
-            contents: { parts },
-            config: {
-                systemInstruction: systemInstruction,
-                responseMimeType: "application/json"
-            }
-        });
-  
-        const text = response.text;
+        const text = await callServerlessAI('parseIngredients', { systemInstruction, parts, model });
         if (!text) return { ingredients: [], newNutrients: [] };
-        
         return JSON.parse(text);
     } catch (error) {
         console.error("Error parsing ingredients:", error);
