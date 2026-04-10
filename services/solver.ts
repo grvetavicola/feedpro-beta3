@@ -153,7 +153,7 @@ export const solveFeedFormulation = (
 };
 
 export const solveGroupFormulation = (
-    assignments: { product: Product, batchSize: number }[],
+    assignments: { id: string, product: Product, batchSize: number }[],
     ingredients: Ingredient[],
     nutrients: Nutrient[],
     isDynamicMatrix: boolean = false,
@@ -168,15 +168,15 @@ export const solveGroupFormulation = (
     };
 
     // 1. Create constraints for each product
-    assignments.forEach(({ product, batchSize }, pIdx) => {
-        const pId = product.id;
+    assignments.forEach(({ id, product, batchSize }) => {
+        const aId = id;
         
         // Sum of weight for this product = 100%
-        model.constraints[`totalWeight_${pId}`] = { equal: 100 };
+        model.constraints[`totalWeight_${aId}`] = { equal: 100 };
 
         // Nutrients for this product
         product.constraints.forEach(c => {
-            const constraintKey = `nut_${pId}_${c.nutrientId}`;
+            const constraintKey = `nut_${aId}_${c.nutrientId}`;
             const constraintObj: any = {};
             if (c.min > 0) constraintObj.min = c.min;
             if (c.max < 999) constraintObj.max = c.max;
@@ -187,8 +187,8 @@ export const solveGroupFormulation = (
 
         // Add Relationship Constraints for this product
         product.relationships.forEach(rel => {
-            if (rel.min > 0) model.constraints[`rel_${pId}_${rel.id}_min`] = { min: 0 };
-            if (rel.max < 999) model.constraints[`rel_${pId}_${rel.id}_max`] = { max: 0 };
+            if (rel.min > 0) model.constraints[`rel_${aId}_${rel.id}_min`] = { min: 0 };
+            if (rel.max < 999) model.constraints[`rel_${aId}_${rel.id}_max`] = { max: 0 };
         });
     });
 
@@ -203,21 +203,20 @@ export const solveGroupFormulation = (
 
     // 3. Variables: Ingredient_Per_Product
     ingredients.forEach(ing => {
-        assignments.forEach(({ product, batchSize }) => {
-            const pId = product.id;
-            const varName = `${ing.id}_${pId}`;
+        assignments.forEach(({ id, product, batchSize }) => {
+            const aId = id;
+            const varName = `${ing.id}_${aId}`;
             
             const variable: any = {
-                // Cost is proportional to the actual weight used in the batch
                 // Cost = Price * (Percentage/100 * BatchSize)
                 cost: ing.price * (batchSize / 100),
                 
                 // Contributes to product weight
-                [`totalWeight_${pId}`]: 1,
+                [`totalWeight_${aId}`]: 1,
                 
                 // Contributes to product nutrients (scaled)
                 ...Object.entries((isDynamicMatrix && Object.keys(ing.dynamicNutrients || {}).length > 0) ? (ing.dynamicNutrients as Record<string, number>) : ing.nutrients).reduce((acc, [nutId, val]) => {
-                    acc[`nut_${pId}_${nutId}`] = val;
+                    acc[`nut_${aId}_${nutId}`] = val;
                     return acc;
                 }, {} as any),
 
@@ -227,11 +226,11 @@ export const solveGroupFormulation = (
 
             // Contributes to relationships
             product.relationships.forEach(rel => {
-                const actNuts = (isDynamicMatrix && Object.keys(ing.dynamicNutrients || {}).length > 0) ? ing.dynamicNutrients! : ing.nutrients;
+                const actNuts = (isDynamicMatrix && Object.keys(ing.dynamicNutrients || {}).length > 0) ? (ing.dynamicNutrients as Record<string, number>) : ing.nutrients;
                 const valA = actNuts[rel.nutrientAId] || 0;
                 const valB = actNuts[rel.nutrientBId] || 0;
-                if (rel.min > 0) variable[`rel_${pId}_${rel.id}_min`] = valA - (rel.min * valB);
-                if (rel.max < 999) variable[`rel_${pId}_${rel.id}_max`] = valA - (rel.max * valB);
+                if (rel.min > 0) variable[`rel_${aId}_${rel.id}_min`] = valA - (valB * rel.min);
+                if (rel.max < 999) variable[`rel_${aId}_${rel.id}_max`] = valA - (valB * rel.max);
             });
 
             model.variables[varName] = variable;

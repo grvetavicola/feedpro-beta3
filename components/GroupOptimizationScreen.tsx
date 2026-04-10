@@ -20,13 +20,13 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     onOpenInNewWindow
 }) => {
     const { t } = useTranslations();
-    const [selectedAssignments, setSelectedAssignments] = useState<{ productId: string, batchSize: number }[]>([]);
+    const [selectedAssignments, setSelectedAssignments] = useState<{ id: string, productId: string, batchSize: number }[]>([]);
     const [isOptimizing, setIsOptimizing] = useState(false);
     const [useStock, setUseStock] = useState(true);
 
     const handleAddProduct = () => {
         if (products.length > 0) {
-            setSelectedAssignments([...selectedAssignments, { productId: products[0].id, batchSize: 1000 }]);
+            setSelectedAssignments([...selectedAssignments, { id: `as-${Date.now()}-${Math.random().toString(36).substr(2,5)}`, productId: products[0].id, batchSize: 1000 }]);
         }
     };
 
@@ -46,6 +46,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
         
         // Preparation
         const assignments = selectedAssignments.map(a => ({
+            id: a.id,
             product: products.find(p => p.id === a.productId)!,
             batchSize: a.batchSize
         }));

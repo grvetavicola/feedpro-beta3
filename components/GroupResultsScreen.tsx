@@ -6,7 +6,7 @@ import { solveFeedFormulation } from '../services/solver';
 
 interface GroupResultsScreenProps {
     results: any; // Global solver run
-    assignments: { product: Product, batchSize: number }[];
+    assignments: { id: string, product: Product, batchSize: number }[];
     products: Product[];
     ingredients: Ingredient[];
     nutrients: Nutrient[];
@@ -66,6 +66,8 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
     
     // Custom Local State for Tracking Re-Optimizations
     type LocalResult = {
+        id: string; // Assignment ID
+        productId: string; // Product ID
         isSuccessful: boolean;
         currentCost: number;
         prevCost: number | null;
@@ -86,7 +88,7 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
         
         assignments.forEach(assign => {
             const productItems = Object.entries(results || {})
-                .filter(([key, val]) => key.endsWith(`_${assign.product.id}`) && typeof val === 'number' && val > 0.0001)
+                .filter(([key, val]) => key.endsWith(`_${assign.id}`) && typeof val === 'number' && val > 0.0001)
                 .map(([key, val]) => {
                      const ingId = key.split('_')[0];
                      const percentage = val as number;
@@ -105,10 +107,12 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
                  return acc + ((item.weight) * (ing?.price || 0));
             }, 0);
 
-            newLocal[assign.product.id] = {
+            newLocal[assign.id] = {
+                id: assign.id,
+                productId: assign.product.id,
                 isSuccessful: productItems.length > 0,
                 currentCost: costOfItems,
-                prevCost: null, // No prev cost strictly on first load
+                prevCost: null, 
                 totalBatch: assign.batchSize,
                 items: productItems
             };
@@ -118,10 +122,10 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
     }, [results, assignments, ingredients]);
 
 
-    const handleLocalReoptimize = async (productId: string) => {
-        const prod = products.find(p => p.id === productId);
-        const assign = assignments.find(a => a.product.id === productId);
-        if(!prod || !assign) return;
+    const handleLocalReoptimize = async (assignId: string) => {
+        const assign = assignments.find(a => a.id === assignId);
+        if(!assign) return;
+        const prod = assign.product;
 
         setIsOptimizingLocal(true);
         try {
@@ -131,7 +135,7 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
             const individualResult = solveFeedFormulation(prod, ingredients, nutrients, assign.batchSize, isDynamicMatrix);
             
             setLocalSolutions(prev => {
-                const oldState = prev[prod.id];
+                const oldState = prev[assignId];
                 const newCost = individualResult.totalCost;
                 
                 const newItems = individualResult.items.map(it => {
@@ -145,7 +149,9 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
 
                 return {
                     ...prev,
-                    [prod.id]: {
+                    [assignId]: {
+                        id: assignId,
+                        productId: prod.id,
                         isSuccessful: newItems.length > 0,
                         currentCost: newCost,
                         prevCost: oldState?.currentCost || null,
@@ -209,7 +215,7 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
             <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 flex-1 ${drawerProduct ? 'pr-[45%]' : ''} transition-all duration-500`}>
                 {assignments.map((assign, i) => {
                     const product = assign.product;
-                    const solution = localSolutions[assign.product.id];
+                    const solution = localSolutions[assign.id];
                     
                     if (!product || !solution) return null;
 
