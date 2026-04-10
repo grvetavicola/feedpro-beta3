@@ -9,26 +9,26 @@
 body {
   background-color: rgb(3, 7, 18);
   /* bg-gray-950 */
-  color: rgb(243, 244, 246);
-  /* text-gray-100 */
+  color: rgb(255, 255, 255);
+  /* text-white */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "ss01", "ss02", "cv01", "cv02";
   letter-spacing: -0.01em;
   margin: 0;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 /* Responsive Scaling for High Resolution */
 @media (min-width: 1600px) {
   html {
-    font-size: 14px;
+    font-size: 16px;
   }
 }
 
 @media (min-width: 2000px) {
   html {
-    font-size: 15px;
+    font-size: 18px;
   }
 }
 

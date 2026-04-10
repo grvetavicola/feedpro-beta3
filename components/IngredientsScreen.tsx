@@ -208,20 +208,20 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredient
 
                                     return (
                                         <tr key={ing.id} className="hover:bg-gray-800/40 transition-colors group">
-                                            <td className="px-3 py-3 font-mono text-gray-500 text-[11px]">{ing.code}</td>
+                                            <td className="px-3 py-3 font-mono text-gray-300 font-black text-[12px]">{ing.code}</td>
                                             <td className="px-3 py-3">
                                                 <div className="flex flex-col">
-                                                    <span className="font-bold text-gray-100 group-hover:text-cyan-400 transition-colors">{ing.name}</span>
-                                                    {ing.code && <span className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">REF-ING-{ing.code}</span>}
+                                                    <span className="font-black text-white text-[15px] group-hover:text-cyan-400 transition-colors">{ing.name}</span>
+                                                    {ing.code && <span className="text-[10px] text-gray-100 font-black uppercase tracking-tighter">REF-ING-{ing.code}</span>}
                                                 </div>
                                             </td>
                                             <td className="px-3 py-3">
                                                 <div className="flex flex-col gap-1">
-                                                    <span className={`text-[9px] px-1.5 py-0.5 rounded border fit-content w-fit font-black uppercase tracking-widest ${catStyle}`}>
+                                                    <span className={`text-[10px] px-2 py-1 rounded border fit-content w-fit font-black uppercase tracking-widest ${catStyle}`}>
                                                         {ing.category || 'Macro'}
                                                     </span>
                                                     {ing.subcategory && (
-                                                        <span className="text-[11px] text-gray-500 font-medium ml-1">
+                                                        <span className="text-[12px] text-white font-black ml-1 uppercase tracking-tighter">
                                                             {ing.subcategory}
                                                         </span>
                                                     )}
@@ -229,24 +229,24 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredient
                                             </td>
                                             <td className="px-3 py-3">
                                                 <div className="flex flex-col">
-                                                    <span className={`font-mono font-bold text-sm ${(!ing.stock || ing.stock < 1000) ? 'text-red-400' : 'text-blue-300'}`}>
+                                                    <span className={`font-mono font-black text-lg ${(!ing.stock || ing.stock < 1000) ? 'text-red-400' : 'text-blue-300'}`}>
                                                         {ing.stock?.toLocaleString() || 0}
                                                     </span>
-                                                    <div className="h-1 w-12 bg-gray-700 rounded-full mt-1 overflow-hidden">
+                                                    <div className="h-1.5 w-16 bg-gray-900 rounded-full mt-1 overflow-hidden">
                                                         <div className={`h-full ${(!ing.stock || ing.stock < 1000) ? 'bg-red-500 w-1/4' : 'bg-blue-500 w-3/4'}`}></div>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-3 py-3">
                                                 <div className="flex flex-col">
-                                                    <span className="font-mono text-gray-200 text-sm font-bold">${ing.price.toFixed(2)}</span>
-                                                    <span className="text-[9px] text-gray-600 uppercase font-black">por kg</span>
+                                                    <span className="font-mono text-white text-lg font-black">${ing.price.toFixed(2)}</span>
+                                                    <span className="text-[10px] text-gray-100 uppercase font-black">por kg</span>
                                                 </div>
                                             </td>
-                                            <td className="px-3 py-3">
+                                            <td className="px-3 py-3 text-center">
                                                 <div className="flex justify-center items-center gap-1">
-                                                    <button onClick={() => setEditingIngredient(ing)} className="p-2 hover:bg-cyan-500/10 text-gray-500 hover:text-cyan-400 rounded-lg transition-all"><PencilIcon className="w-4 h-4"/></button>
-                                                    <button onClick={() => handleDelete(ing.id)} className="p-2 hover:bg-red-500/10 text-gray-500 hover:text-red-400 rounded-lg transition-all"><TrashIcon className="w-4 h-4"/></button>
+                                                    <button onClick={() => setEditingIngredient(ing)} className="p-2.5 hover:bg-cyan-500/10 text-white hover:text-cyan-400 rounded-lg transition-all"><PencilIcon className="w-5 h-5"/></button>
+                                                    <button onClick={() => handleDelete(ing.id)} className="p-2.5 hover:bg-red-500/10 text-white hover:text-red-400 rounded-lg transition-all"><TrashIcon className="w-5 h-5"/></button>
                                                 </div>
                                             </td>
                                         </tr>

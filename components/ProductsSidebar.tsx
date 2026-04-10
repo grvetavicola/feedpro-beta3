@@ -74,14 +74,14 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                   <button 
                     key={item.id}
                     onClick={() => onNavigate(item.id as ViewState)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${
+                    className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl transition-all duration-300 group ${
                         isActive 
-                        ? 'bg-gray-800/80 border border-gray-700 shadow-lg shadow-black/20' 
+                        ? 'bg-gray-800 border-2 border-cyan-500/50 shadow-lg shadow-cyan-900/20' 
                         : `border border-transparent ${item.bg}`
                     }`}
                   >
-                    <item.icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${isActive ? item.color : 'text-gray-500 group-hover:' + item.color}`} />
-                    <span className={`text-[11px] font-black uppercase tracking-[0.15em] transition-colors ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}`}>
+                    <item.icon className={`w-6 h-6 transition-transform group-hover:scale-110 ${isActive ? item.color : 'text-gray-100 group-hover:' + item.color}`} />
+                    <span className={`text-[12px] font-black uppercase tracking-[0.2em] transition-colors ${isActive ? 'text-white' : 'text-white/70 group-hover:text-white'}`}>
                         {item.label}
                     </span>
                   </button>
@@ -113,12 +113,12 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                     className="w-full flex items-center justify-between group px-3 py-2.5 rounded-lg border border-transparent hover:border-gray-800 hover:bg-gray-900/50 transition-all text-left"
                   >
                     <div className="flex items-center gap-3 overflow-hidden">
-                      <div className="w-8 h-8 rounded bg-gray-800 flex items-center justify-center shrink-0 group-hover:bg-cyan-500/20 transition-colors">
-                        <FileText size={14} className="group-hover:text-cyan-400" />
+                      <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center shrink-0 group-hover:bg-cyan-500/20 transition-colors border border-gray-700 group-hover:border-cyan-500/50">
+                        <FileText size={18} className="group-hover:text-cyan-400 text-gray-400" />
                       </div>
                       <div className="overflow-hidden">
-                        <p className="text-xs font-bold text-gray-200 truncate">{product.name}</p>
-                        <p className="text-[9px] text-gray-500 uppercase tracking-tighter">Banda: {product.code}</p>
+                        <p className="text-[14px] font-black text-white truncate">{product.name}</p>
+                        <p className="text-[10px] text-cyan-400 font-black uppercase tracking-tighter">Banda: {product.code}</p>
                       </div>
                     </div>
                     <ChevronRight size={14} className="text-gray-600 group-hover:text-cyan-400/50" />

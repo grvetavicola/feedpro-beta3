@@ -37,8 +37,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
             <div className="flex items-center gap-2 text-cyan-400 font-bold text-[10px] uppercase tracking-wider">
               <StarIcon className="w-3 h-3"/> FeedPro 360 v5.3 (BETA3)
             </div>
-            <h1 className="text-lg font-bold text-white leading-tight">Optimización Nutricional <span className="text-cyan-400">Sin Compromisos.</span></h1>
-            <p className="text-gray-400 text-[13px] leading-snug">Motor táctico de formulación agropecuaria sincronizado.</p>
+            <h1 className="text-2xl font-black text-white leading-tight">Optimización Nutricional <span className="text-cyan-400">Sin Compromisos.</span></h1>
+            <p className="text-gray-100 font-bold text-[14px] leading-snug">Motor táctico de formulación agropecuaria sincronizado.</p>
             
             {user?.trialEndsAt && user.trialEndsAt < (Date.now() + 1000 * 365 * 24 * 60 * 60 * 1.5) && (
                 (() => {
@@ -75,10 +75,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
           <div className="flex items-center gap-2">
               <DatabaseIcon className={isDynamicMatrix ? "text-cyan-400 w-4 h-4" : "text-gray-500 w-4 h-4"} />
               <div>
-                  <h3 className="text-[13px] font-bold text-white leading-none">
+                  <h3 className="text-[14px] font-black text-white leading-none">
                       {isDynamicMatrix ? "Matriz Dinámica Activada" : "Matriz Estándar (Referencias)"}
                   </h3>
-                  <p className="text-[11px] text-gray-500 mt-0.5 leading-none">
+                  <p className="text-[12px] text-gray-300 font-bold mt-0.5 leading-none">
                       Sobrescribe valores teóricos con datos de laboratorio al formular.
                   </p>
               </div>
@@ -92,15 +92,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
       </div>
 
       {/* Stats Matrix (Compact) */}
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-4 gap-3">
           {stats.map((stat, i) => (
-             <div key={i} className="bg-gray-800/30 border border-gray-700/30 p-2 rounded flex items-center justify-between hover:border-cyan-500/30 transition-colors">
-                <div className="space-y-0">
-                    <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-tight">{stat.label}</p>
-                    <p className="text-base font-bold text-white leading-none">{stat.value}</p>
+             <div key={i} className="bg-gray-800 border border-gray-700 p-3 rounded-xl flex items-center justify-between hover:border-cyan-500/50 transition-colors shadow-lg">
+                <div className="space-y-1">
+                    <p className="text-[11px] text-white font-black uppercase tracking-wider">{stat.label}</p>
+                    <p className="text-2xl font-black text-white leading-none">{stat.value}</p>
                 </div>
-                <div className={`${stat.bg} p-1.5 rounded transition-transform`}>
-                    <stat.icon className={`w-4 h-4 ${stat.color}`}/>
+                <div className={`${stat.bg} p-2 rounded-lg transition-transform`}>
+                    <stat.icon className={`w-6 h-6 ${stat.color}`}/>
                 </div>
              </div>
           ))}
@@ -125,17 +125,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
                         <table className="w-full text-left">
                             <thead className="bg-gray-950/20 text-[10px] uppercase font-semibold text-gray-500">
                                 <tr>
-                                    <th className="px-3 py-1.5">Fórmula / Producto</th>
-                                    <th className="px-3 py-1.5">Fecha</th>
-                                    <th className="px-3 py-1.5 text-right">Costo / kg</th>
+                                    <th className="px-4 py-2 font-black text-white">Fórmula / Producto</th>
+                                    <th className="px-4 py-2 font-black text-white">Fecha</th>
+                                    <th className="px-4 py-2 font-black text-white text-right">Costo / kg</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-700/20">
                                 {savedFormulas.slice(-5).map(f => (
-                                    <tr key={f.id} className="hover:bg-gray-700/10 transition-colors h-[32px]">
-                                        <td className="px-3 py-1 text-[13px] font-medium text-gray-200">{f.name}</td>
-                                        <td className="px-3 py-1 text-[11px] text-gray-500 font-mono">{new Date(f.date).toLocaleDateString()}</td>
-                                        <td className="px-3 py-1 text-right font-mono text-green-400 font-bold text-[13px]">${(f.result.totalCost / 1000).toFixed(4)}</td>
+                                    <tr key={f.id} className="hover:bg-gray-700/30 transition-colors h-[40px] border-b border-gray-800/50">
+                                        <td className="px-4 py-2 text-[14px] font-bold text-white">{f.name}</td>
+                                        <td className="px-4 py-2 text-[12px] text-gray-200 font-black font-mono">{new Date(f.date).toLocaleDateString()}</td>
+                                        <td className="px-4 py-2 text-right font-mono text-emerald-400 font-black text-[15px]">${(f.result.totalCost / 1000).toFixed(4)}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -150,8 +150,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
                 <div className="flex items-center gap-2">
                     <AIIcon className="w-5 h-5 text-indigo-400"/>
                     <div>
-                        <h3 className="text-[13px] font-bold text-white">Asistente AI</h3>
-                        <p className="text-gray-500 text-[10px] leading-tight">Diagnóstico proactivo</p>
+                        <h3 className="text-[15px] font-black text-white uppercase tracking-tight">Asistente AI</h3>
+                        <p className="text-indigo-200 text-[11px] font-bold leading-tight uppercase">Diagnóstico proactivo</p>
                     </div>
                 </div>
                 <button 
@@ -166,10 +166,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
                 <h4 className="text-[11px] font-semibold text-gray-500 uppercase">Almacén Crítico</h4>
                 <div className="space-y-2">
                     {ingredients.slice(0, 3).map(ing => (
-                        <div key={ing.id} className="space-y-1">
-                            <div className="flex justify-between text-[11px]">
-                                <span className="text-gray-300">{ing.name}</span>
-                                <span className="text-gray-500 font-mono">{ing.stock.toLocaleString()} kg</span>
+                        <div key={ing.id} className="space-y-1 py-1">
+                            <div className="flex justify-between text-[12px] font-bold">
+                                <span className="text-white">{ing.name}</span>
+                                <span className="text-emerald-400 font-black font-mono">{ing.stock.toLocaleString()} kg</span>
                             </div>
                             <div className="h-0.5 bg-gray-900 rounded-full overflow-hidden">
                                 <div className="h-full bg-cyan-500/50" style={{width: `${Math.min(100, (ing.stock / 50000) * 100)}%`}}></div>
