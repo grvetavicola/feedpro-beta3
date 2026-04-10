@@ -6,7 +6,7 @@ import { solveFeedFormulation } from '../services/solver';
 
 interface GroupResultsScreenProps {
     results: any; // Global solver run
-    assignments: { productId: string, batchSize: number }[];
+    assignments: { product: Product, batchSize: number }[];
     products: Product[];
     ingredients: Ingredient[];
     nutrients: Nutrient[];
@@ -86,7 +86,7 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
         
         assignments.forEach(assign => {
             const productItems = Object.entries(results || {})
-                .filter(([key, val]) => key.endsWith(`_${assign.productId}`) && typeof val === 'number' && val > 0.0001)
+                .filter(([key, val]) => key.endsWith(`_${assign.product.id}`) && typeof val === 'number' && val > 0.0001)
                 .map(([key, val]) => {
                      const ingId = key.split('_')[0];
                      const percentage = val as number;
@@ -105,7 +105,7 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
                  return acc + ((item.weight) * (ing?.price || 0));
             }, 0);
 
-            newLocal[assign.productId] = {
+            newLocal[assign.product.id] = {
                 isSuccessful: productItems.length > 0,
                 currentCost: costOfItems,
                 prevCost: null, // No prev cost strictly on first load
@@ -120,7 +120,7 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
 
     const handleLocalReoptimize = async (productId: string) => {
         const prod = products.find(p => p.id === productId);
-        const assign = assignments.find(a => a.productId === productId);
+        const assign = assignments.find(a => a.product.id === productId);
         if(!prod || !assign) return;
 
         setIsOptimizingLocal(true);
@@ -208,8 +208,8 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
             {/* Mosaico de Tarjetas */}
             <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 flex-1 ${drawerProduct ? 'pr-[45%]' : ''} transition-all duration-500`}>
                 {assignments.map((assign, i) => {
-                    const product = products.find(p => p.id === assign.productId);
-                    const solution = localSolutions[assign.productId];
+                    const product = assign.product;
+                    const solution = localSolutions[assign.product.id];
                     
                     if (!product || !solution) return null;
 

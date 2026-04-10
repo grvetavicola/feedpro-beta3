@@ -22,9 +22,8 @@ export const solveFeedFormulation = (
     // 2. Add Nutrient Constraints from Product
     product.constraints.forEach(c => {
         const constraintObj: any = {};
-        // Scaling by 100 for higher floating point precision in solver
-        if (c.min > 0) constraintObj.min = c.min * 100;
-        if (c.max < 999) constraintObj.max = c.max * 100; 
+        if (c.min > 0) constraintObj.min = c.min;
+        if (c.max < 999) constraintObj.max = c.max; 
         
         if (Object.keys(constraintObj).length > 0) {
             model.constraints[c.nutrientId] = constraintObj;
@@ -178,8 +177,8 @@ export const solveGroupFormulation = (
         product.constraints.forEach(c => {
             const constraintKey = `nut_${pId}_${c.nutrientId}`;
             const constraintObj: any = {};
-            if (c.min > 0) constraintObj.min = c.min * 100;
-            if (c.max < 999) constraintObj.max = c.max * 100;
+            if (c.min > 0) constraintObj.min = c.min;
+            if (c.max < 999) constraintObj.max = c.max;
             if (Object.keys(constraintObj).length > 0) {
                 model.constraints[constraintKey] = constraintObj;
             }
