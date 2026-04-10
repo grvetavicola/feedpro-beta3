@@ -3,6 +3,14 @@ import { GoogleGenAI } from '@google/genai';
 
 const API_KEY = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
@@ -31,7 +39,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             
             const response = await ai.models.generateContent({
                 model: model || 'gemini-3-flash-preview',
-                contents: image ? { parts } : prompt,
+                contents: parts,
             });
             return res.status(200).json({ text: response.text });
         }
@@ -49,7 +57,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const { systemInstruction, parts, model } = payload;
             const response = await ai.models.generateContent({
                 model: model || 'gemini-3-flash-preview',
-                contents: { parts },
+                contents: parts,
                 config: {
                     systemInstruction: systemInstruction,
                     responseMimeType: "application/json"
