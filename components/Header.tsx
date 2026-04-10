@@ -33,8 +33,17 @@ export const Header: React.FC<HeaderProps> = ({
     return (
         <header className="shrink-0 h-14 bg-gray-950 border-b border-gray-800 z-50 flex items-center px-4 gap-6 relative">
             {/* Nav Title (Instead of logo) */}
-            <div className="flex items-center shrink-0 pr-4 border-r border-gray-800 h-8">
-                 <span className="text-xs font-black text-emerald-500 uppercase tracking-[0.2em] opacity-80">FeedPro Executive</span>
+            <div className="flex items-center shrink-0 pr-6 border-r border-gray-800 h-10">
+                 <div className="relative group px-3 py-1 bg-gray-900/40 rounded-2xl border border-gray-700/50 shadow-lg overflow-hidden flex items-center justify-center">
+                    {/* Soft Glow Background */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity blur-xl"></div>
+                    
+                    <img 
+                        src="/feedpro.png" 
+                        alt="FeedPro" 
+                        className="h-6 object-contain brightness-0 invert opacity-80 group-hover:opacity-100 transition-all duration-500 relative z-10 [mask-image:linear-gradient(to_right,transparent,black_15%,black_85%,transparent)]" 
+                    />
+                 </div>
             </div>
             
             <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth flex-1">
