@@ -30,39 +30,15 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
     const { t } = useTranslations();
 
-    const navItems: { id: ViewState; label: string; icon: any; color: string }[] = [
-        { id: 'DASHBOARD', label: 'Inicio', icon: BeakerIcon, color: 'text-blue-400' },
-        { id: 'INGREDIENTS', label: 'Insumos', icon: IngredientsIcon, color: 'text-green-400' },
-        { id: 'NUTRIENTS', label: 'Nutrientes', icon: NutrientsIcon, color: 'text-purple-400' },
-        { id: 'PRODUCTS', label: 'Productos', icon: ProductsIcon, color: 'text-indigo-400' },
-        { id: 'OPTIMIZATION', label: 'Optimización', icon: FormulateIcon, color: 'text-cyan-400' },
-        { id: 'GROUP_OPTIMIZATION', label: 'Opt. Grupal', icon: DatabaseIcon, color: 'text-emerald-400' },
-        { id: 'SIMULATION', label: 'Simular', icon: TruckIcon, color: 'text-yellow-400' },
-        { id: 'SETTINGS', label: 'Ajustes', icon: GlobeIcon, color: 'text-gray-400' },
-    ];
-
     return (
         <header className="shrink-0 h-14 bg-gray-950 border-b border-gray-800 z-50 flex items-center px-4 gap-6 relative">
             {/* Nav Title (Instead of logo) */}
             <div className="flex items-center shrink-0 pr-4 border-r border-gray-800 h-8">
-                 <span className="text-xs font-black text-gray-500 uppercase tracking-[0.2em]">Workspace</span>
+                 <span className="text-xs font-black text-emerald-400 uppercase tracking-[0.2em]">Workflow</span>
             </div>
-
-            {/* Main Navigation */}
+            
             <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth flex-1">
-                {navItems.map(item => {
-                    const isActive = activeView === item.id && !activeTaskId;
-                    return (
-                        <button
-                            key={item.id}
-                            onClick={() => { onSelectTask(null); onViewChange(item.id); }}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all whitespace-nowrap ${isActive ? 'bg-gray-800 text-cyan-400 border border-gray-700' : 'text-gray-400 hover:bg-gray-900 hover:text-gray-200'}`}
-                        >
-                            <item.icon className={`w-4 h-4 ${isActive ? item.color : 'text-gray-500'}`} />
-                            <span className="text-[11px] font-black uppercase tracking-widest">{item.label}</span>
-                        </button>
-                    );
-                })}
+
 
                 {/* Divider if tasks exist */}
                 {activeTasks.length > 0 && <div className="h-6 w-px bg-gray-800 mx-2 shrink-0"></div>}

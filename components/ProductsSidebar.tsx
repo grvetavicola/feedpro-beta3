@@ -1,6 +1,6 @@
 import React from 'react';
 import { Client, Product, ViewState } from '../types';
-import { Users, FileText, ChevronRight, LayoutGrid, Calculator } from 'lucide-react';
+import { Users, FileText, ChevronRight, LayoutGrid, Calculator, FlaskConical, Beaker, Package, Settings, PlayCircle } from 'lucide-react';
 
 interface ProductsSidebarProps {
   clients: Client[];
@@ -64,13 +64,43 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                 onClick={() => onNavigate('DASHBOARD')}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${activeView === 'DASHBOARD' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:bg-gray-900'}`}
               >
-                <LayoutGrid size={16} /> Dashboard
+                <LayoutGrid size={16} /> Inicio
+              </button>
+              <button 
+                onClick={() => onNavigate('INGREDIENTS')}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${activeView === 'INGREDIENTS' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:bg-gray-900'}`}
+              >
+                <Beaker size={16} /> Insumos
+              </button>
+              <button 
+                onClick={() => onNavigate('NUTRIENTS')}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${activeView === 'NUTRIENTS' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:bg-gray-900'}`}
+              >
+                <FlaskConical size={16} /> Nutrientes
+              </button>
+               <button 
+                onClick={() => onNavigate('PRODUCTS')}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${activeView === 'PRODUCTS' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:bg-gray-900'}`}
+              >
+                <Package size={16} /> Productos
               </button>
               <button 
                 onClick={() => onNavigate('GROUP_OPTIMIZATION')}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${activeView === 'GROUP_OPTIMIZATION' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:bg-gray-900'}`}
               >
                 <Calculator size={16} /> Optimización Grupal
+              </button>
+              <button 
+                onClick={() => onNavigate('SIMULATION')}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${activeView === 'SIMULATION' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:bg-gray-900'}`}
+              >
+                <PlayCircle size={16} /> Simular
+              </button>
+              <button 
+                onClick={() => onNavigate('SETTINGS')}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${activeView === 'SETTINGS' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:bg-gray-900'}`}
+              >
+                <Settings size={16} /> Ajustes
               </button>
             </div>
           </div>

@@ -77,7 +77,7 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
     const [localSolutions, setLocalSolutions] = useState<Record<string, LocalResult>>({});
     
     // UI State
-    const [drawerProduct, setDrawerProduct] = useState<Product | null>(null);
+    const [activeAssignmentId, setActiveAssignmentId] = useState<string | null>(null);
     const [isOptimizingLocal, setIsOptimizingLocal] = useState(false);
 
     // Initialize local states from the global `results` payload
@@ -161,6 +161,9 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
                 }
             });
             
+            // Auto-close drawer on success as requested
+            setActiveAssignmentId(null);
+            
         } catch(e) {
             console.error(e);
         }
@@ -212,7 +215,7 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
             </div>
 
             {/* Mosaico de Tarjetas */}
-            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 flex-1 ${drawerProduct ? 'pr-[45%]' : ''} transition-all duration-500`}>
+            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 flex-1 ${activeAssignmentId ? 'pr-[45%]' : ''} transition-all duration-500`}>
                 {assignments.map((assign, i) => {
                     const product = assign.product;
                     const solution = localSolutions[assign.id];
@@ -280,7 +283,7 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
                                         <span className="text-[10px] font-black uppercase tracking-widest">{isSuccessful ? 'ÓPTIMO' : 'FALLIDO'}</span>
                                     </div>
                                     <button 
-                                        onClick={() => setDrawerProduct(product)}
+                                        onClick={() => setActiveAssignmentId(assign.id)}
                                         className="flex-1 p-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-400 text-[10px] font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-1 shadow-lg shadow-indigo-900/50">
                                         <SettingsIcon className="w-3 h-3" /> Ajustar 
                                     </button>
@@ -292,23 +295,28 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
             </div>
 
             {/* OFF-CANVAS DRAWER para "Agile Optimization Workspace" */}
-            {drawerProduct && (
-                <>
-                    {/* Backdrop */}
-                    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40" onClick={() => setDrawerProduct(null)}></div>
-                    
-                    {/* Right-Side Panel */}
-                    <div className="fixed inset-y-4 right-4 w-full max-w-[45%] bg-gray-800 border border-gray-600 rounded-3xl shadow-2xl z-50 flex flex-col animate-slide-left overflow-hidden">
-                        {/* Header */}
-                        <div className="bg-gray-900 border-b border-gray-700 p-5 flex items-center justify-between shadow-md">
-                            <div>
-                                <h3 className="text-[11px] text-gray-400 font-black uppercase tracking-[0.2em] mb-1">Espacio de Iteración Ágil</h3>
-                                <h2 className="text-2xl text-white font-black uppercase leading-none">{drawerProduct.name}</h2>
+            {activeAssignmentId && (() => {
+                const assign = assignments.find(a => a.id === activeAssignmentId);
+                const product = assign?.product;
+                if (!product) return null;
+
+                return (
+                    <>
+                        {/* Backdrop */}
+                        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40" onClick={() => setActiveAssignmentId(null)}></div>
+                        
+                        {/* Right-Side Panel */}
+                        <div className="fixed inset-y-4 right-4 w-full max-w-[45%] bg-gray-800 border border-gray-600 rounded-3xl shadow-2xl z-50 flex flex-col animate-slide-left overflow-hidden">
+                            {/* Header */}
+                            <div className="bg-gray-900 border-b border-gray-700 p-5 flex items-center justify-between shadow-md">
+                                <div>
+                                    <h3 className="text-[11px] text-gray-400 font-black uppercase tracking-[0.2em] mb-1">Espacio de Iteración Ágil</h3>
+                                    <h2 className="text-2xl text-white font-black uppercase leading-none">{product.name}</h2>
+                                </div>
+                                <button onClick={() => setActiveAssignmentId(null)} className="p-2 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded-full transition-colors">
+                                    <XIcon className="w-6 h-6" />
+                                </button>
                             </div>
-                            <button onClick={() => setDrawerProduct(null)} className="p-2 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded-full transition-colors">
-                                <XIcon className="w-6 h-6" />
-                            </button>
-                        </div>
                         
                         {/* Body - Advanced Data Grid */}
                         <div className="flex-1 p-5 overflow-y-auto custom-scrollbar bg-gray-800/50">
@@ -326,7 +334,7 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
                                     </thead>
                                     <tbody className="text-[13px] text-white">
                                         {nutrients.map(nut => {
-                                            const con = drawerProduct.constraints.find(c => c.nutrientId === nut.id) || { min: 0, max: 999 };
+                                            const con = product.constraints.find(c => c.nutrientId === nut.id) || { min: 0, max: 999 };
                                             // Mock Shadow Price visual logic (normally returned by advanced solver)
                                             const isConstrained = con.min > 0 || con.max < 999;
                                             
@@ -340,14 +348,14 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
                                                         <SmartInput 
                                                             value={con.min} 
                                                             isMax={false} 
-                                                            onChange={(v) => handleConstraintChange(drawerProduct.id, nut.id, 'min', v)} 
+                                                            onChange={(v) => handleConstraintChange(product.id, nut.id, 'min', v)} 
                                                         />
                                                     </td>
                                                     <td className="py-1.5 px-2 text-center">
                                                         <SmartInput 
                                                             value={con.max} 
                                                             isMax={true} 
-                                                            onChange={(v) => handleConstraintChange(drawerProduct.id, nut.id, 'max', v)} 
+                                                            onChange={(v) => handleConstraintChange(product.id, nut.id, 'max', v)} 
                                                         />
                                                     </td>
                                                     <td className="py-1.5 px-3 text-right font-mono text-amber-500/50 text-[11px] bg-gray-950/20">
@@ -366,11 +374,11 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
                             <div className="flex flex-col">
                                 <span className="text-[10px] text-gray-500 uppercase font-black">Costo (Pre-Iteración)</span>
                                 <span className="text-lg font-mono font-bold text-gray-300">
-                                    ${localSolutions[drawerProduct.id]?.currentCost.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) || "0.00"}
+                                    ${localSolutions[activeAssignmentId]?.currentCost.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) || "0.00"}
                                 </span>
                             </div>
                             <button 
-                                onClick={() => handleLocalReoptimize(drawerProduct.id)}
+                                onClick={() => handleLocalReoptimize(activeAssignmentId)}
                                 disabled={isOptimizingLocal}
                                 className={`px-8 py-3 rounded-xl font-black uppercase tracking-widest text-[12px] flex items-center gap-2 transition-all shadow-lg ${isOptimizingLocal ? 'bg-indigo-900 text-indigo-400 cursor-not-allowed border border-indigo-800' : 'bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-400 hover:shadow-indigo-500/30 hover:scale-[1.02]'}`}>
                                 {isOptimizingLocal ? (
@@ -381,8 +389,10 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
                             </button>
                         </div>
                     </div>
-                </>
-            )}
+                        </>
+                    );
+                })()}
+            {/* Fin OFF-CANVAS DRAWER */}
             
         </div>
     );
