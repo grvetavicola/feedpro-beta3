@@ -1,18 +1,58 @@
 import React from 'react';
 import { useTranslations } from '../lib/i18n/LangContext';
-import { GlobeIcon, MonitorIcon, DatabaseIcon, ShieldCheckIcon, SaveIcon } from './icons';
+import { GlobeIcon, MonitorIcon, DatabaseIcon, ShieldCheckIcon, SaveIcon, PlusIcon } from './icons';
+import { Client } from '../types';
 
-export const SettingsScreen: React.FC = () => {
+interface SettingsScreenProps {
+    clients: Client[];
+    setClients: React.Dispatch<React.SetStateAction<Client[]>>;
+}
+
+export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClients }) => {
     const { t, language, setLanguage } = useTranslations();
+    const [newClientName, setNewClientName] = React.useState('');
+    
+    const handleAddClient = () => {
+        if (!newClientName) return;
+        const newClient = { id: `c${Date.now()}`, name: newClientName };
+        setClients([...clients, newClient]);
+        setNewClientName('');
+        alert(`✓ Cliente "${newClientName}" registrado correctamente.`);
+    };
     
     return (
-        <div className="p-3 space-y-4 animate-fade-in max-w-4xl mx-auto">
+        <div className="p-3 space-y-4 animate-fade-in max-w-4xl mx-auto h-full overflow-y-auto custom-scrollbar pb-10">
             <div>
                 <h2 className="text-xl font-bold text-white uppercase tracking-tight">Ajustes <span className="text-cyan-400">Globales</span></h2>
                 <p className="text-gray-500 font-semibold uppercase tracking-widest text-[10px]">Configuración del Motor FeedPro 360</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Client Management Section */}
+                <div className="md:col-span-2 bg-gray-900 shadow-2xl border border-gray-700 p-6 rounded-2xl space-y-4">
+                    <div className="flex items-center gap-3 border-b border-gray-800 pb-4">
+                        <DatabaseIcon className="w-6 h-6 text-emerald-400" />
+                        <div>
+                             <h3 className="text-lg font-bold text-white leading-none">Gestión de Clientes y Fábricas</h3>
+                             <p className="text-xs text-gray-500 mt-1 uppercase font-bold tracking-tighter">Expandir portafolio del sistema</p>
+                        </div>
+                    </div>
+                    <div className="flex gap-4">
+                         <input 
+                            value={newClientName}
+                            onChange={(e) => setNewClientName(e.target.value)}
+                            placeholder="Nombre de la nueva fábrica o cliente..."
+                            className="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:border-cyan-500 outline-none"
+                         />
+                         <button 
+                            onClick={handleAddClient}
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-xl flex items-center gap-2 transition-all shadow-lg"
+                         >
+                             <PlusIcon className="w-5 h-5" /> Registrar Cliente
+                         </button>
+                    </div>
+                </div>
+
                 {/* Language Section */}
                 <div className="bg-gray-800/40 border border-gray-700/50 p-4 rounded-xl space-y-4">
                     <div className="flex items-center gap-2 mb-4 border-b border-gray-700/50 pb-2">

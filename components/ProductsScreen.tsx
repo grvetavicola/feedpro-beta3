@@ -202,22 +202,28 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
                                 
                                 {/* Segment: Nutrients */}
                                 <div>
-                                    <div className="flex justify-between items-center mb-2 border-b border-gray-700/50 pb-1">
-                                        <h3 className="font-semibold text-[13px] text-gray-200 flex items-center gap-1.5"><FlaskIcon className="w-3 h-3 text-indigo-400"/> Requerimientos</h3>
-                                        <div className="w-48"><SelectionModal title="Seleccionar Nutrientes" triggerLabel="+ Añadir Nutriente" options={nutrients.map(n => ({id: n.id, name: n.name, sub: n.unit, code: n.code}))} onAdd={addNutrients} /></div>
+                                    <div className="flex justify-between items-center mb-3 bg-indigo-900/40 p-3 rounded-xl border border-indigo-500/30 shadow-md">
+                                        <h3 className="font-black text-[15px] text-indigo-300 flex items-center gap-2 uppercase tracking-wide"><FlaskIcon className="w-5 h-5 text-indigo-400"/> Requerimientos Nutricionales</h3>
+                                        <div className="w-56"><SelectionModal title="Seleccionar Nutrientes" triggerLabel="+ Añadir Nutriente" options={nutrients.map(n => ({id: n.id, name: n.name, sub: n.unit, code: n.code}))} onAdd={addNutrients} /></div>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                         {currentProduct.constraints.map((c, idx) => {
                                             const nut = nutrients.find(n => n.id === c.nutrientId);
                                             return (
-                                                <div key={idx} className="bg-gray-900/50 p-2 rounded border border-gray-700 group flex flex-col gap-1">
-                                                    <div className="flex justify-between items-start">
-                                                        <div className="truncate leading-tight"><div className="text-[11px] font-bold text-gray-100">{nut?.name}</div><div className="text-[9px] text-gray-500">{nut?.unit}</div></div>
-                                                        <button onClick={() => handleUpdate(p => ({...p, constraints: p.constraints.filter((_, i) => i !== idx)}))} className="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100"><TrashIcon className="w-3 h-3"/></button>
+                                                <div key={idx} className="bg-gray-800 p-3 rounded-xl border border-gray-700 hover:border-indigo-500/50 transition-colors group flex flex-col gap-2 shadow-sm">
+                                                    <div className="flex justify-between items-start mb-1 border-b border-gray-700/50 pb-2">
+                                                        <div className="truncate leading-tight"><div className="text-[13px] font-black text-white">{nut?.name}</div><div className="text-[10px] uppercase font-bold text-gray-400 mt-0.5">{nut?.unit}</div></div>
+                                                        <button onClick={() => handleUpdate(p => ({...p, constraints: p.constraints.filter((_, i) => i !== idx)}))} className="text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 p-1.5 rounded-lg"><TrashIcon className="w-3.5 h-3.5"/></button>
                                                     </div>
-                                                    <div className="flex gap-1.5">
-                                                        <div className="flex-1 group/field"><label className="text-[8px] text-gray-500 uppercase font-semibold block mb-0.5">Mínimo</label><input type="number" value={c.min} onChange={e => handleUpdate(p => ({...p, constraints: p.constraints.map((x, i) => i === idx ? {...x, min: parseFloat(e.target.value) || 0} : x)}))} className="w-full bg-gray-800 border border-gray-600 rounded p-1 text-[11px] text-cyan-400 focus:border-cyan-500 outline-none text-right font-mono" /></div>
-                                                        <div className="flex-1 group/field"><label className="text-[8px] text-gray-500 uppercase font-semibold block mb-0.5">Máximo</label><input type="number" value={c.max} onChange={e => handleUpdate(p => ({...p, constraints: p.constraints.map((x, i) => i === idx ? {...x, max: parseFloat(e.target.value) || 0} : x)}))} className="w-full bg-gray-800 border border-gray-600 rounded p-1 text-[11px] text-cyan-400 focus:border-cyan-500 outline-none text-right font-mono" /></div>
+                                                    <div className="flex gap-2">
+                                                        <div className="flex-1 group/field">
+                                                            <label className="text-[9px] text-gray-400 uppercase font-bold block mb-1">Mínimo</label>
+                                                            <input type="number" step="0.01" onFocus={e => e.target.select()} value={c.min === 0 ? '' : c.min} placeholder="0" onChange={e => handleUpdate(p => ({...p, constraints: p.constraints.map((x, i) => i === idx ? {...x, min: parseFloat(e.target.value) || 0} : x)}))} className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 text-[14px] text-indigo-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 outline-none text-right font-mono font-bold transition-all" />
+                                                        </div>
+                                                        <div className="flex-1 group/field">
+                                                            <label className="text-[9px] text-gray-400 uppercase font-bold block mb-1">Máximo</label>
+                                                            <input type="number" step="0.01" onFocus={e => e.target.select()} value={c.max === 999 ? '' : c.max} placeholder="Máx" onChange={e => handleUpdate(p => ({...p, constraints: p.constraints.map((x, i) => i === idx ? {...x, max: parseFloat(e.target.value) || 999} : x)}))} className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 text-[14px] text-indigo-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 outline-none text-right font-mono font-bold transition-all" />
+                                                        </div>
                                                     </div>
                                                 </div>
                                             );

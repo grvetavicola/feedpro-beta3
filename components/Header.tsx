@@ -15,7 +15,7 @@ interface HeaderProps {
     activeTaskId: string | null;
     onSelectTask: (id: string | null) => void;
     onCloseTask: (id: string) => void;
-    onLogout?: () => void;
+    onManageProfile?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
@@ -26,7 +26,7 @@ export const Header: React.FC<HeaderProps> = ({
     activeTaskId,
     onSelectTask,
     onCloseTask,
-    onLogout
+    onManageProfile
 }) => {
     const { t } = useTranslations();
 
@@ -35,7 +35,7 @@ export const Header: React.FC<HeaderProps> = ({
         { id: 'INGREDIENTS', label: 'Insumos', icon: IngredientsIcon, color: 'text-green-400' },
         { id: 'NUTRIENTS', label: 'Nutrientes', icon: NutrientsIcon, color: 'text-purple-400' },
         { id: 'PRODUCTS', label: 'Productos', icon: ProductsIcon, color: 'text-indigo-400' },
-        { id: 'OPTIMIZATION', label: 'Formular', icon: FormulateIcon, color: 'text-cyan-400' },
+        { id: 'OPTIMIZATION', label: 'Optimización', icon: FormulateIcon, color: 'text-cyan-400' },
         { id: 'GROUP_OPTIMIZATION', label: 'Opt. Grupal', icon: DatabaseIcon, color: 'text-emerald-400' },
         { id: 'SIMULATION', label: 'Simular', icon: TruckIcon, color: 'text-yellow-400' },
         { id: 'SETTINGS', label: 'Ajustes', icon: GlobeIcon, color: 'text-gray-400' },
@@ -43,10 +43,9 @@ export const Header: React.FC<HeaderProps> = ({
 
     return (
         <header className="shrink-0 h-14 bg-gray-950 border-b border-gray-800 z-50 flex items-center px-4 gap-6 relative">
-            {/* Logo */}
-            <div className="flex items-center shrink-0 pr-4">
-                <img src="/feedpro.png" alt="FeedPro 360" className="h-10 object-contain drop-shadow-md hidden sm:block" />
-                <img src="/feedpro.png" alt="FeedPro 360" className="h-10 object-cover w-10 drop-shadow-md sm:hidden object-left" />
+            {/* Nav Title (Instead of logo) */}
+            <div className="flex items-center shrink-0 pr-4 border-r border-gray-800 h-8">
+                 <span className="text-xs font-black text-gray-500 uppercase tracking-[0.2em]">Workspace</span>
             </div>
 
             {/* Main Navigation */}
@@ -96,11 +95,11 @@ export const Header: React.FC<HeaderProps> = ({
                     <p className="text-[9px] text-yellow-500 font-bold uppercase tracking-tighter">Pro Plan</p>
                 </div>
                 <button 
-                    onClick={onLogout}
-                    title="Cerrar sesión"
-                    className="w-8 h-8 rounded-lg bg-gray-800 hover:bg-red-900 border border-gray-700 hover:border-red-500 transition-colors flex items-center justify-center cursor-pointer group"
+                    onClick={onManageProfile}
+                    title="Gestión de Perfil e Intercambio"
+                    className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 hover:from-cyan-900 hover:to-indigo-900 border border-gray-700 hover:border-cyan-500 transition-all flex items-center justify-center cursor-pointer group shadow-lg"
                 >
-                    <UserIcon className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
+                    <UserIcon className="w-5 h-5 text-gray-400 group-hover:text-cyan-400 transition-colors" />
                 </button>
             </div>
         </header>

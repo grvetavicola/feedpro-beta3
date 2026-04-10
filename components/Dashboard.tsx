@@ -41,10 +41,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
           </div>
           <div className="flex gap-2 shrink-0">
              <button onClick={() => onNavigate('OPTIMIZATION')} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-4 py-1.5 rounded flex items-center gap-2 transition-all text-[13px]">
-                <CalculatorIcon className="w-3 h-3"/> FORMULAR
+                <CalculatorIcon className="w-3 h-3"/> OPTIMIZACIÓN
              </button>
              <button onClick={() => onNavigate('GROUP_OPTIMIZATION')} className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-1.5 rounded flex items-center gap-2 transition-all text-[13px] shadow-[0_0_15px_rgba(16,185,129,0.3)] border border-emerald-500/50">
-                <DatabaseIcon className="w-3 h-3"/> MASA DE FÓRMULAS
+                <DatabaseIcon className="w-3 h-3"/> OPTIMIZACIÓN GRUPAL
              </button>
              <button onClick={() => onNavigate('PRODUCTS')} className="bg-gray-800 hover:bg-gray-700 text-white font-semibold px-4 py-1.5 rounded border border-gray-700 transition-all text-[13px] hidden sm:block">
                 Configurar

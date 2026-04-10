@@ -43,6 +43,9 @@ export default function App() {
   // Multi-Tasking State
   const [activeTasks, setActiveTasks] = useState<ActiveTask[]>([]);
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+  
+  // UI Interaction States
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   // Initialize Data
   useEffect(() => {
@@ -122,6 +125,29 @@ export default function App() {
 
   const currentActiveTask = activeTasks.find(t => t.id === activeTaskId);
 
+  // Cross-Client Replicator Logic
+  const replicateClientData = (fromId: string, toId: string, options: { matrix?: boolean, products?: boolean }) => {
+      if (fromId === toId) return;
+      
+      // logic here to clone products or workspaces overrides
+      if (options.products) {
+          const fromProducts = products.filter(p => p.clientId === fromId);
+          const clonedProducts = fromProducts.map(p => ({ ...p, id: `p_${Date.now()}_${Math.random()}`, clientId: toId }));
+          setProducts(prev => [...prev, ...clonedProducts]);
+      }
+      
+      if (options.matrix && workspaces[fromId]) {
+          setWorkspaces(prev => ({
+              ...prev,
+              [toId]: { 
+                  ...prev[fromId], 
+                  clientId: toId 
+              }
+          }));
+      }
+      alert("✓ Datos replicados exitosamente entre clientes.");
+  };
+
   return (
     <div className="flex h-screen bg-gray-950 text-white overflow-hidden font-sans">
       <ProductsSidebar 
@@ -151,7 +177,7 @@ export default function App() {
               setActiveTasks(prev => prev.filter(t => t.id !== id));
               if (activeTaskId === id) setActiveTaskId(null);
           }}
-          onLogout={() => setUser(null)}
+          onManageProfile={() => setShowProfileModal(true)}
         />
         <main className="flex-1 relative flex flex-col bg-[radial-gradient(circle_at_50%_0%,rgba(6,182,212,0.05),transparent_50%)] overflow-hidden">
             <div className="flex-1 relative overflow-hidden flex flex-col">
@@ -188,8 +214,8 @@ export default function App() {
                                         </div>;
                                     }
                                     return <ClientsScreen clients={clients} setClients={setClients} selectedClientId={selectedClientId} setSelectedClientId={setSelectedClientId} />;
-                                case 'ASSISTANT': return <AIAssistant user={user} ingredients={effectiveIngredients} nutrients={nutrients} products={products} />;
-                                case 'SETTINGS': return <SettingsScreen />;
+                                case 'ASSISTANT': return <AIAssistant user={user} ingredients={ingredients} nutrients={nutrients} products={products} />;
+                                case 'SETTINGS': return <SettingsScreen clients={clients} setClients={setClients} />;
                                 default: return <Dashboard products={products} ingredients={effectiveIngredients} savedFormulas={savedFormulas} clients={clients} onNavigate={setView} isDynamicMatrix={isDynamicMatrix} setIsDynamicMatrix={setIsDynamicMatrix} />;
                             }
                         })()
@@ -208,6 +234,91 @@ export default function App() {
             </div>
         </main>
       </div>
+
+      {/* --- PROFILE & EXCHANGE MODAL --- */}
+      {showProfileModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-950/90 backdrop-blur-md animate-fade-in">
+              <div className="bg-gray-900 border border-gray-700 w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+                  <div className="p-6 bg-gradient-to-r from-cyan-900/40 to-indigo-900/40 border-b border-gray-800 flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-2xl bg-cyan-600 flex items-center justify-center shadow-lg shadow-cyan-900/20">
+                              <span className="text-white font-black text-xl italic">FP</span>
+                          </div>
+                          <div>
+                              <h3 className="text-lg font-bold text-white uppercase tracking-tight leading-none">{user.name}</h3>
+                              <p className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest mt-1">Gestión de Fábrica e Intercambio</p>
+                          </div>
+                      </div>
+                      <button onClick={() => setShowProfileModal(false)} className="text-gray-500 hover:text-white transition-colors">
+                          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                  </div>
+                  
+                  <div className="p-8 space-y-8 overflow-y-auto custom-scrollbar">
+                      {/* Section 1: Switch Focus */}
+                      <section className="space-y-4">
+                          <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-800 pb-2">Selección Rápida de Fábrica</h4>
+                          <div className="grid grid-cols-2 gap-2">
+                              {clients.map(c => (
+                                  <button 
+                                    key={c.id} 
+                                    onClick={() => { setSelectedClientId(c.id); setShowProfileModal(false); }}
+                                    className={`p-3 rounded-xl border text-sm font-bold transition-all text-left ${selectedClientId === c.id ? 'bg-cyan-500 border-cyan-400 text-white shadow-lg' : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-500'}`}
+                                  >
+                                      {c.name}
+                                  </button>
+                              ))}
+                          </div>
+                      </section>
+
+                      {/* Section 2: Data Exchange (Replica) */}
+                      <section className="space-y-4 bg-gray-800/20 p-4 rounded-2xl border border-gray-800">
+                          <h4 className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em]">Intercambio y Replicación Táctica</h4>
+                          <p className="text-[11px] text-gray-500">Copia productos o matrices de nutrientes del cliente actual a otro destino.</p>
+                          
+                          <div className="flex flex-col gap-3">
+                               <div className="flex items-center gap-2">
+                                   <label className="text-[10px] text-gray-400 uppercase font-black w-14">Destino:</label>
+                                   <select id="replic_target" className="flex-1 bg-gray-950 border border-gray-800 rounded-lg p-2 text-xs text-white outline-none focus:border-cyan-500">
+                                       <option value="">Seleccione destino...</option>
+                                       {clients.filter(c => c.id !== selectedClientId).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                   </select>
+                               </div>
+                               <div className="flex gap-2">
+                                   <button 
+                                      onClick={() => {
+                                          const target = (document.getElementById('replic_target') as HTMLSelectElement)?.value;
+                                          if (target && selectedClientId) replicateClientData(selectedClientId, target, { products: true });
+                                      }}
+                                      className="flex-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 p-2.5 rounded-xl text-[10px] font-black uppercase text-gray-300 transition-all"
+                                   >
+                                       Copiar Productos
+                                   </button>
+                                   <button 
+                                      onClick={() => {
+                                          const target = (document.getElementById('replic_target') as HTMLSelectElement)?.value;
+                                          if (target && selectedClientId) replicateClientData(selectedClientId, target, { matrix: true });
+                                      }}
+                                      className="flex-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 p-2.5 rounded-xl text-[10px] font-black uppercase text-gray-300 transition-all"
+                                   >
+                                       Copiar Matriz Delta
+                                   </button>
+                               </div>
+                          </div>
+                      </section>
+                  </div>
+
+                  <div className="p-4 bg-gray-950/20 border-t border-gray-800 flex justify-between items-center gap-4">
+                      <button onClick={() => setUser(null)} className="flex items-center gap-2 text-xs text-red-500 hover:text-red-400 font-bold uppercase tracking-widest transition-colors px-4 py-2 hover:bg-red-500/10 rounded-lg">
+                          Cerrar Sesión Pro
+                      </button>
+                      <button onClick={() => setShowProfileModal(false)} className="bg-gray-800 hover:bg-gray-700 text-white font-bold px-6 py-2 rounded-xl text-xs transition-all uppercase">
+                          Regresar
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )}
     </div>
   );
 }
