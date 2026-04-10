@@ -24,18 +24,49 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
     
     // Simular un retraso en la red para una experiencia de usuario mas premium
     setTimeout(() => {
-        const account = AUTHORIZED_ACCOUNTS.find(a => a.username === username && a.password === password);
+        let account = AUTHORIZED_ACCOUNTS.find(a => a.username === username && a.password === password);
         
+        // Soporte para 5,000 cuentas dinamicas UserPro (Patrón: X+Cpro_)
+        if (!account && username === 'UserPro') {
+            const proMatch = password.match(/^(\d+)\+Cpro_$/);
+            if (proMatch) {
+                const proId = proMatch[1];
+                const proNum = parseInt(proId);
+                if (proNum >= 1 && proNum <= 5000) {
+                     // Recuperar o Crear fecha de primer inicio de sesion (Licencia 1 año)
+                     const storageKey = `feedpro_license_start_${password}`;
+                     let firstLogin = localStorage.getItem(storageKey);
+                     const now = Date.now();
+                     
+                     if (!firstLogin) {
+                         firstLogin = now.toString();
+                         localStorage.setItem(storageKey, firstLogin);
+                     }
+                     
+                     const oneYearMs = 365 * 24 * 60 * 60 * 1000;
+                     const expiry = parseInt(firstLogin) + oneYearMs;
+
+                     account = {
+                         username: 'UserPro',
+                         password: password,
+                         email: `pro_${proId}@feedpro-cloud.com`,
+                         assignedClientId: `pro_${proId}`,
+                         trialEndsAt: expiry
+                     };
+                }
+            }
+        }
+
         if (account) {
             onLogin({
-                name: account.username,
+                name: account.username === 'UserPro' ? `Profesional #${password.split('+')[0]}` : account.username,
                 subscription: 'pro',
                 email: account.email,
                 assignedClientId: account.assignedClientId,
                 trialEndsAt: account.trialEndsAt
             });
         } else {
-            setErrorMsg('Credenciales inválidas. Por favor verifique el usuario y contraseña.');
+            setErrorMsg('Credenciales inválidas o rango fuera de límite (1-5000).');
             setIsAuthenticating(false);
         }
     }, 1200);

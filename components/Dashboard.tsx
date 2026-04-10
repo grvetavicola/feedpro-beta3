@@ -1,5 +1,5 @@
 import React from 'react';
-import { Product, Ingredient, SavedFormula, Client, ViewState } from '../types';
+import { Product, Ingredient, SavedFormula, Client, ViewState, User } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
 import { TruckIcon, StarIcon, TrendingUpIcon, ShoppingCartIcon, ClockIcon, ArrowRightIcon, AIIcon, ProductsIcon, IngredientsIcon, FormulateIcon, NutrientsIcon, DatabaseIcon, FlaskIcon, CalculatorIcon } from './icons';
 
@@ -14,7 +14,7 @@ interface DashboardProps {
   user?: User | null;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, savedFormulas, clients, onNavigate, isDynamicMatrix, setIsDynamicMatrix }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, savedFormulas, clients, onNavigate, isDynamicMatrix, setIsDynamicMatrix, user }) => {
   const { t } = useTranslations();
 
   const lastOp = savedFormulas.length > 0 ? new Date(savedFormulas[savedFormulas.length - 1].date).toLocaleDateString() : 'N/A';
@@ -40,11 +40,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
             <h1 className="text-lg font-bold text-white leading-tight">Optimización Nutricional <span className="text-cyan-400">Sin Compromisos.</span></h1>
             <p className="text-gray-400 text-[13px] leading-snug">Motor táctico de formulación agropecuaria sincronizado.</p>
             
-            {user?.trialEndsAt && user.trialEndsAt < (Date.now() + 1000 * 365 * 24 * 60 * 60) && (
-                <div className="mt-2 inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 px-2 py-0.5 rounded text-[10px] font-bold text-yellow-500 uppercase tracking-tighter">
-                   <ClockIcon className="w-3 h-3"/> 
-                   LICENCIA DE PRUEBA: {Math.max(0, Math.ceil((user.trialEndsAt - Date.now()) / (1000 * 60 * 60 * 24)))} DÍAS RESTANTES
-                </div>
+            {user?.trialEndsAt && user.trialEndsAt < (Date.now() + 1000 * 365 * 24 * 60 * 60 * 1.5) && (
+                (() => {
+                    const days = Math.ceil((user.trialEndsAt - Date.now()) / (1000 * 60 * 60 * 24));
+                    const isProfessional = user.name.includes('Profesional');
+                    const label = isProfessional ? 'LICENCIA PROFESIONAL' : 'LICENCIA DE PRUEBA';
+                    const isClosing = days <= 30;
+                    
+                    return (
+                        <div className={`mt-2 inline-flex items-center gap-2 border px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tighter transition-all ${isClosing ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500 animate-pulse' : 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400'}`}>
+                           <ClockIcon className="w-3 h-3"/> 
+                           {label}: {Math.max(0, days)} DÍAS RESTANTES {isClosing && '⚠️ ¡RENOVAR PRONTO!'}
+                        </div>
+                    );
+                })()
             )}
           </div>
           <div className="flex gap-2 shrink-0">
