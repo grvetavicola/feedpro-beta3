@@ -50,6 +50,10 @@ export default function App() {
   
   // UI Interaction States
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
+  const [showDirtyModal, setShowDirtyModal] = useState(false);
+  const [pendingClientId, setPendingClientId] = useState<string | null>(null);
+  const [isLoadingFactory, setIsLoadingFactory] = useState(false);
 
   // Initialize Data
   useEffect(() => {
@@ -145,6 +149,29 @@ export default function App() {
     setActiveTaskId(id);
   };
 
+  const handleSwitchClientRequest = (id: string) => {
+    if (id === selectedClientId) return;
+    if (isDirty) {
+        setPendingClientId(id);
+        setShowDirtyModal(true);
+    } else {
+        performClientSwitch(id);
+    }
+  };
+
+  const performClientSwitch = (id: string) => {
+    setIsLoadingFactory(true);
+    setShowProfileModal(false);
+    setShowDirtyModal(false);
+    setIsDirty(false);
+    
+    // Simulate data fetch for the new factory
+    setTimeout(() => {
+        setSelectedClientId(id);
+        setIsLoadingFactory(false);
+    }, 800);
+  };
+
   const handleToggleDietSelection = (ids: string[], isSelected: boolean) => {
       setSelectedDietIds(prev => {
           const set = new Set(prev);
@@ -204,7 +231,7 @@ export default function App() {
           products={products}
           selectedClientId={selectedClientId}
           activeView={view}
-          onSelectClient={setSelectedClientId}
+          onSelectClient={handleSwitchClientRequest}
           onSelectProduct={(p) => {
               setView('OPTIMIZATION');
           }}
@@ -222,7 +249,6 @@ export default function App() {
           }}
           onEditProduct={(id) => {
               setView('PRODUCTS');
-              // Optionally handled in ProductsScreen if selected, but simply navigating to PRODUCTS allows editing.
           }}
           onEditCategory={(cat) => {
               setView('PRODUCTS');
@@ -249,11 +275,11 @@ export default function App() {
                         (() => {
                             switch (view) {
                                 case 'DASHBOARD': return <Dashboard products={products} ingredients={effectiveIngredients} savedFormulas={savedFormulas} clients={clients} onNavigate={setView} isDynamicMatrix={isDynamicMatrix} setIsDynamicMatrix={setIsDynamicMatrix} user={user} />;
-                                case 'INGREDIENTS': return <IngredientsScreen ingredients={ingredients} setIngredients={setIngredients} nutrients={nutrients} setNutrients={setNutrients} />;
+                                case 'INGREDIENTS': return <IngredientsScreen ingredients={ingredients} setIngredients={setIngredients} nutrients={nutrients} setNutrients={setNutrients} setIsDirty={setIsDirty} />;
                                 case 'NUTRIENTS': return <NutrientsScreen nutrients={nutrients} setNutrients={setNutrients} />;
-                                case 'PRODUCTS': return <ProductsScreen products={products} setProducts={setProducts} ingredients={effectiveIngredients} nutrients={nutrients} onOpenInNewWindow={(data, name) => handleOpenTask('OPTIMIZATION', name, data)} />;
-                                case 'OPTIMIZATION': return <GroupOptimizationScreen products={products} ingredients={effectiveIngredients} nutrients={nutrients} isDynamicMatrix={isDynamicMatrix} selectedDietIds={selectedDietIds} onOpenInNewWindow={(data, name) => handleOpenTask('GROUP_OPTIMIZATION', name, data)} onUpdateProduct={(updatedProduct) => setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p))} />;
-                                case 'GROUP_OPTIMIZATION': return <GroupOptimizationScreen products={products} ingredients={effectiveIngredients} nutrients={nutrients} isDynamicMatrix={isDynamicMatrix} selectedDietIds={selectedDietIds} onOpenInNewWindow={(data, name) => handleOpenTask('GROUP_OPTIMIZATION', name, data)} onUpdateProduct={(updatedProduct) => setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p))} />;
+                                case 'PRODUCTS': return <ProductsScreen products={products} setProducts={setProducts} ingredients={effectiveIngredients} nutrients={nutrients} onOpenInNewWindow={(data, name) => handleOpenTask('OPTIMIZATION', name, data)} setIsDirty={setIsDirty} />;
+                                case 'OPTIMIZATION': return <GroupOptimizationScreen products={products} ingredients={effectiveIngredients} nutrients={nutrients} isDynamicMatrix={isDynamicMatrix} selectedDietIds={selectedDietIds} onOpenInNewWindow={(data, name) => handleOpenTask('GROUP_OPTIMIZATION', name, data)} onUpdateProduct={(updatedProduct) => setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p))} setIsDirty={setIsDirty} />;
+                                case 'GROUP_OPTIMIZATION': return <GroupOptimizationScreen products={products} ingredients={effectiveIngredients} nutrients={nutrients} isDynamicMatrix={isDynamicMatrix} selectedDietIds={selectedDietIds} onOpenInNewWindow={(data, name) => handleOpenTask('GROUP_OPTIMIZATION', name, data)} onUpdateProduct={(updatedProduct) => setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p))} setIsDirty={setIsDirty} />;
                                 case 'SIMULATION': return <SimulationScreen ingredients={effectiveIngredients} setIngredients={setIngredients} nutrients={nutrients} />;
                                 case 'CLIENTS': 
                                     if (user.assignedClientId && user.assignedClientId !== 'ALL') {
@@ -312,7 +338,7 @@ export default function App() {
                               {clients.map(c => (
                                   <button 
                                     key={c.id} 
-                                    onClick={() => { setSelectedClientId(c.id); setShowProfileModal(false); }}
+                                    onClick={() => handleSwitchClientRequest(c.id)}
                                     className={`p-3 rounded-xl border text-sm font-bold transition-all text-left ${selectedClientId === c.id ? 'bg-cyan-500 border-cyan-400 text-white shadow-lg' : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-500'}`}
                                   >
                                       {c.name}
@@ -366,6 +392,54 @@ export default function App() {
                           Regresar
                       </button>
                   </div>
+              </div>
+          </div>
+      )}
+      {/* --- DIRTY GUARD MODAL --- */}
+      {showDirtyModal && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-gray-950/80 backdrop-blur-sm animate-fade-in">
+              <div className="bg-gray-900 border border-red-500/30 w-full max-w-md rounded-2xl shadow-2xl p-6 space-y-6 text-center">
+                  <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto">
+                      <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                  </div>
+                  <div>
+                      <h3 className="text-xl font-bold text-white uppercase tracking-tight">Cambios sin guardar</h3>
+                      <p className="text-sm text-gray-400 mt-2">Estás a punto de cambiar de fábrica. Tienes cambios sin guardar en <span className="text-white font-bold">{clients.find(c => c.id === selectedClientId)?.name}</span>.</p>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                       <button 
+                         onClick={() => {
+                             // Logic to save before switching (here we just switch for now as a mock)
+                             performClientSwitch(pendingClientId!);
+                         }}
+                         className="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-3 rounded-xl font-bold transition-all"
+                       >
+                           GUARDAR Y CAMBIAR
+                       </button>
+                       <button 
+                         onClick={() => performClientSwitch(pendingClientId!)}
+                         className="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 py-3 rounded-xl font-bold border border-gray-700 transition-all"
+                       >
+                           DESCARTAR CAMBIOS
+                       </button>
+                       <button 
+                         onClick={() => { setShowDirtyModal(false); setPendingClientId(null); }}
+                         className="w-full text-gray-500 hover:text-white py-2 text-xs font-bold uppercase tracking-widest"
+                       >
+                           CANCELAR
+                       </button>
+                  </div>
+              </div>
+          </div>
+      )}
+
+      {/* --- LOADING OVERLAY --- */}
+      {isLoadingFactory && (
+          <div className="fixed inset-0 z-[300] bg-gray-950/90 flex flex-col items-center justify-center space-y-4">
+              <div className="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+              <div className="text-center">
+                  <p className="text-cyan-400 font-black uppercase tracking-[0.3em] text-sm italic animate-pulse">Sincronizando Entorno</p>
+                  <p className="text-gray-500 text-xs mt-1">Cargando datos de fábrica y matrices exclusivas...</p>
               </div>
           </div>
       )}

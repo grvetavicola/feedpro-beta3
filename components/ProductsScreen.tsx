@@ -11,6 +11,7 @@ interface ProductsScreenProps {
   nutrients: Nutrient[];
   bases?: NutritionalBase[];
   onOpenInNewWindow?: (data: any, name: string) => void;
+  setIsDirty?: (dirty: boolean) => void;
 }
 
 // --- SMART INPUT FOR NUMBERS ---
@@ -134,7 +135,7 @@ const SelectionModal = ({
     );
 };
 
-export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setProducts, ingredients, nutrients, bases = [], onOpenInNewWindow }) => {
+export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setProducts, ingredients, nutrients, bases = [], onOpenInNewWindow, setIsDirty }) => {
     const { t } = useTranslations();
     const [selectedProductId, setSelectedProductId] = useState<string | null>(products[0]?.id || null);
     const [newProductName, setNewProductName] = useState('');
@@ -145,6 +146,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
     const handleUpdate = (updater: (p: Product) => Product) => {
         if (!selectedProductId) return;
         setProducts(prev => prev.map(p => p.id === selectedProductId ? updater(p) : p));
+        setIsDirty?.(true);
     };
 
     const addNutrients = (ids: string[]) => {

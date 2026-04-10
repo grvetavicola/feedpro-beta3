@@ -16,6 +16,7 @@ interface IngredientsScreenProps {
   setIngredients: React.Dispatch<React.SetStateAction<Ingredient[]>>;
   nutrients: Nutrient[];
   setNutrients?: React.Dispatch<React.SetStateAction<Nutrient[]>>;
+  setIsDirty?: (dirty: boolean) => void;
 }
 
 interface ParsedIngredient {
@@ -32,7 +33,7 @@ interface ParsedNewNutrient {
 
 // Shared components moved to EditIngredientModal.tsx
 
-export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredients, setIngredients, nutrients, setNutrients }) => {
+export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredients, setIngredients, nutrients, setNutrients, setIsDirty }) => {
     const { t } = useTranslations();
     const [editingIngredient, setEditingIngredient] = useState<Ingredient | null>(null);
     const [viewMode, setViewMode] = useState<'list' | 'matrix'>('list');
@@ -51,6 +52,7 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredient
     const handleSaveIngredient = (updatedIngredient: Ingredient) => {
         setIngredients(ingredients.map(i => i.id === updatedIngredient.id ? updatedIngredient : i));
         setEditingIngredient(null);
+        setIsDirty?.(true);
     };
     
     const handleAddNew = () => {
@@ -71,6 +73,7 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredient
     const handleDelete = (id: string) => {
         if (window.confirm(t('ingredients.deleteConfirm'))) {
             setIngredients(ingredients.filter(i => i.id !== id));
+            setIsDirty?.(true);
         }
     };
 

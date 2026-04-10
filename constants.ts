@@ -4,8 +4,8 @@ export const APP_NAME = "FeedPro 360";
 export const APP_VERSION = "v1.1.0";
 
 export const INITIAL_CLIENTS: Client[] = [
-  { id: 'c1', name: 'Cliente General' },
-  { id: 'c2', name: 'Granja Avícola El Sol' }
+  { id: 'c1', name: 'Cliente General', logo: 'https://cdn-icons-png.flaticon.com/512/2662/2662503.png' },
+  { id: 'c2', name: 'Granja Avícola El Sol', logo: 'https://cdn-icons-png.flaticon.com/512/3248/3248141.png' }
 ];
 
 export const INITIAL_NUTRIENTS: Nutrient[] = [

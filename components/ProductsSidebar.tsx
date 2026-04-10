@@ -35,65 +35,73 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
   activeView
 }) => {
   const filteredProducts = products.filter(p => !selectedClientId || p.clientId === selectedClientId);
-  
+
   const [localLogoData, setLocalLogoData] = React.useState<string | null>(null);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) {
-          const reader = new FileReader();
-          reader.onload = (event) => setLocalLogoData(event.target?.result as string);
-          reader.readAsDataURL(file);
-      }
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => setLocalLogoData(event.target?.result as string);
+      reader.readAsDataURL(file);
+    }
   };
 
   const attemptDeleteProduct = (e: React.MouseEvent, id: string) => {
-      e.stopPropagation();
-      e.preventDefault();
-      if(window.confirm("¿Estás seguro de que deseas eliminar esta dieta? Esta acción no se puede deshacer.")) {
-          onDeleteProduct?.(id);
-      }
+    e.stopPropagation();
+    e.preventDefault();
+    if (window.confirm("¿Estás seguro de que deseas eliminar esta dieta? Esta acción no se puede deshacer.")) {
+      onDeleteProduct?.(id);
+    }
   };
 
   const attemptDeleteCategory = (e: React.MouseEvent, cat: string) => {
-      e.stopPropagation();
-      e.preventDefault();
-      if(window.confirm("¿Estás seguro de que deseas eliminar la categoría completa? Esta acción no se puede deshacer.")) {
-          onDeleteCategory?.(cat);
-      }
+    e.stopPropagation();
+    e.preventDefault();
+    if (window.confirm("¿Estás seguro de que deseas eliminar la categoría completa? Esta acción no se puede deshacer.")) {
+      onDeleteCategory?.(cat);
+    }
   };
-  
+
   return (
     <aside className="w-[240px] bg-gray-950 border-r border-gray-800 flex flex-col h-full overflow-hidden">
-      {/* Client Selector Section (Interactive Avatar + Dropdown) */}
-      <div className="p-4 border-b border-gray-800 flex flex-col items-center pt-6 pb-5">
-        <label className="cursor-pointer relative group flex justify-center items-center w-20 h-20 bg-gray-900 border border-gray-700 hover:border-cyan-500 transition-colors rounded-full overflow-hidden shadow-lg mb-4">
-            {localLogoData ? (
-                <img src={localLogoData} alt="Client Logo" className="w-full h-full object-cover" />
-            ) : (
-                <Users className="w-8 h-8 text-gray-500 group-hover:text-cyan-400 transition-colors" />
-            )}
-            <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <span className="text-[9px] font-bold text-white uppercase text-center leading-tight">Subir<br/>Logo</span>
-            </div>
-        </label>
-        
-        <label className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 block w-full text-center">
-          Portfolio de Consultoría
-        </label>
-        <div className="relative group w-full px-2">
-          <select 
-            value={selectedClientId} 
+      {/* Premium Branding Section */}
+      <div className="p-6 border-b border-gray-800">
+        <div className="flex flex-col gap-0.5 mb-6">
+          <h1 className="text-[18px] font-black text-white italic tracking-tighter leading-none">{APP_NAME}</h1>
+          <p className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] leading-none opacity-80">EXECUTIVE</p>
+        </div>
+
+        {/* Current Factory Logo - Dynamic Refresh */}
+        <div className="flex items-center gap-3 p-3 bg-gray-900/50 rounded-xl border border-gray-800 mb-4 animate-fade-in">
+          <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-700 shrink-0 shadow-inner">
+            {(() => {
+                const currentClient = clients.find(c => c.id === selectedClientId);
+                return currentClient?.logo ? (
+                    <img src={currentClient.logo} alt="Factory" className="w-full h-full object-cover" />
+                ) : (
+                    <Users className="w-5 h-5 text-gray-500" />
+                );
+            })()}
+          </div>
+          <div className="overflow-hidden">
+            <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest leading-tight mb-0.5">Sincronizado</p>
+            <p className="text-[11px] font-black text-white truncate uppercase tracking-tight">{clients.find(c => c.id === selectedClientId)?.name || 'Sin Cliente'}</p>
+          </div>
+        </div>
+
+        <div className="relative group w-full">
+          <select
+            value={selectedClientId}
             onChange={(e) => onSelectClient(e.target.value)}
-            className="w-full bg-gray-900 border border-gray-800 rounded-md py-1.5 px-2 text-[11px] font-medium text-cyan-400 appearance-none focus:ring-1 focus:ring-cyan-500 outline-none transition-all text-center"
+            className="w-full bg-gray-900 border border-gray-800 rounded-lg py-1.5 px-3 text-[11px] font-black text-cyan-400 appearance-none focus:ring-1 focus:ring-cyan-500 outline-none transition-all cursor-pointer hover:border-cyan-500/50"
           >
             {clients.map(c => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
-          <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none group-hover:text-cyan-400">
-            <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+          <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-600 group-hover:text-cyan-400">
+             <ChevronRight className="w-3 h-3 rotate-90" />
           </div>
         </div>
       </div>
@@ -118,18 +126,17 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
               ].map(item => {
                 const isActive = activeView === item.id;
                 return (
-                  <button 
+                  <button
                     key={item.id}
                     onClick={() => onNavigate(item.id as ViewState)}
-                    className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl transition-all duration-300 group ${
-                        isActive 
-                        ? 'bg-gray-800 border-2 border-cyan-500/50 shadow-lg shadow-cyan-900/20' 
+                    className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl transition-all duration-300 group ${isActive
+                        ? 'bg-gray-800 border-2 border-cyan-500/50 shadow-lg shadow-cyan-900/20'
                         : `border border-transparent ${item.bg}`
-                    }`}
+                      }`}
                   >
                     <item.icon className={`w-6 h-6 transition-transform group-hover:scale-110 ${isActive ? item.color : 'text-gray-100 group-hover:' + item.color}`} />
                     <span className={`text-[12px] font-black uppercase tracking-[0.2em] transition-colors ${isActive ? 'text-white' : 'text-white/70 group-hover:text-white'}`}>
-                        {item.label}
+                      {item.label}
                     </span>
                   </button>
                 );
@@ -149,7 +156,7 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                 </span>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               {filteredProducts.length > 0 ? (
                 (() => {
@@ -168,21 +175,21 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                       <div key={category} className="space-y-1">
                         <div className="flex items-center gap-2 px-1 mb-1 justify-between group/cat">
                           <label className="flex items-center gap-2 cursor-pointer relative z-10 flex-1">
-                            <input 
-                              type="checkbox" 
-                              className="w-3 h-3 appearance-none border border-emerald-500/50 rounded bg-gray-900 checked:bg-emerald-500 checked:border-emerald-500 transition-colors shrink-0" 
+                            <input
+                              type="checkbox"
+                              className="w-3 h-3 appearance-none border border-emerald-500/50 rounded bg-gray-900 checked:bg-emerald-500 checked:border-emerald-500 transition-colors shrink-0"
                               checked={allSelected}
                               ref={input => { if (input) input.indeterminate = someSelected; }}
                               onChange={(e) => onToggleDietSelection(items.map(i => i.id), e.target.checked)}
                             />
                             {allSelected && <svg className="w-2.5 h-2.5 text-black absolute left-px pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
-                            
+
                             <span className="text-[11px] font-black text-emerald-400 uppercase tracking-wider truncate">{category}</span>
                           </label>
 
                           <div className="flex items-center gap-1 opacity-0 group-hover/cat:opacity-100 transition-opacity">
-                              <button onClick={(e) => { e.stopPropagation(); onEditCategory?.(category); }} className="p-0.5 text-gray-500 hover:text-cyan-400"><Settings size={10} /></button>
-                              <button onClick={(e) => attemptDeleteCategory(e, category)} className="p-0.5 text-gray-500 hover:text-red-400"><Plus size={10} className="rotate-45" /></button>
+                            <button onClick={(e) => { e.stopPropagation(); onEditCategory?.(category); }} className="p-0.5 text-gray-500 hover:text-cyan-400"><Settings size={10} /></button>
+                            <button onClick={(e) => attemptDeleteCategory(e, category)} className="p-0.5 text-gray-500 hover:text-red-400"><Plus size={10} className="rotate-45" /></button>
                           </div>
                           <span className="text-[9px] text-gray-600 font-bold shrink-0 ml-1 group-hover/cat:hidden">{items.length}</span>
                         </div>
@@ -196,11 +203,11 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                               >
                                 <label className="flex items-center gap-2 overflow-hidden flex-1 cursor-pointer">
                                   <div className="relative shrink-0 flex items-center justify-center">
-                                    <input 
-                                        type="checkbox"
-                                        checked={isSelected}
-                                        onChange={(e) => onToggleDietSelection([product.id], e.target.checked)}
-                                        className="w-3.5 h-3.5 appearance-none border border-gray-600 rounded bg-gray-900 checked:bg-cyan-500 checked:border-cyan-500 cursor-pointer transition-colors"
+                                    <input
+                                      type="checkbox"
+                                      checked={isSelected}
+                                      onChange={(e) => onToggleDietSelection([product.id], e.target.checked)}
+                                      className="w-3.5 h-3.5 appearance-none border border-gray-600 rounded bg-gray-900 checked:bg-cyan-500 checked:border-cyan-500 cursor-pointer transition-colors"
                                     />
                                     {isSelected && <svg className="w-2.5 h-2.5 text-black absolute pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
                                   </div>
@@ -227,12 +234,12 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                 })()
               ) : (
                 <div className="py-8 flex flex-col items-center justify-center text-center px-4 bg-gray-900/20 rounded-xl border border-dashed border-gray-800">
-                    <Package className="w-6 h-6 text-gray-700 mb-2 opacity-20" />
-                    <p className="text-[11px] text-gray-600 font-bold uppercase tracking-tighter">No hay dietas registradas</p>
+                  <Package className="w-6 h-6 text-gray-700 mb-2 opacity-20" />
+                  <p className="text-[11px] text-gray-600 font-bold uppercase tracking-tighter">No hay dietas registradas</p>
                 </div>
               )}
 
-              <button 
+              <button
                 onClick={() => onNavigate('PRODUCTS')}
                 className="w-full mt-2 py-3 border-2 border-dashed border-gray-800/10 rounded-xl text-gray-500 text-[11px] font-black uppercase tracking-widest hover:border-cyan-500/30 hover:text-cyan-400 hover:bg-cyan-500/5 transition-all flex items-center justify-center gap-2 group"
               >
@@ -243,19 +250,6 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
         </div>
       </div>
 
-      {/* Footer Info */}
-      <div className="p-4 flex flex-col gap-3 bg-gray-900/30 border-t border-gray-800 shrink-0">
-        <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{APP_NAME} {APP_VERSION}</p>
-        </div>
-        <div className="text-[8px] leading-tight text-gray-600 font-medium">
-            <p className="mb-1">© 2026 {APP_NAME}.</p>
-            <p>Todos los derechos reservados bajo la marca AVICULTURA 360.</p>
-            <p className="mt-1">Propiedad Intelectual e Industrial pertenece a Gabriel Rivera Chamy.</p>
-            <p className="mt-1 hover:text-cyan-500 transition-colors cursor-pointer break-all">Contacto: grvet.avicola@gmail.com</p>
-        </div>
-      </div>
     </aside>
   );
 };

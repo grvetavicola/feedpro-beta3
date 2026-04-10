@@ -13,6 +13,7 @@ interface GroupOptimizationScreenProps {
   selectedDietIds: string[];
   onOpenInNewWindow?: (data: any, name: string) => void;
   onUpdateProduct?: (p: Product) => void;
+  setIsDirty?: (dirty: boolean) => void;
 }
 
 export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = ({ 
@@ -22,7 +23,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     isDynamicMatrix,
     selectedDietIds,
     onOpenInNewWindow,
-    onUpdateProduct
+    onUpdateProduct,
+    setIsDirty
 }) => {
     const { t } = useTranslations();
     const [isOptimizing, setIsOptimizing] = useState(false);
@@ -98,7 +100,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                         <div className="flex flex-col text-right">
                             <span className="text-[9px] font-black text-gray-300 uppercase leading-none">Restringir Stock</span>
                         </div>
-                        <button onClick={() => setUseStock(!useStock)} className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors ${useStock ? 'bg-emerald-500' : 'bg-gray-600'}`}>
+                        <button onClick={() => { setUseStock(!useStock); setIsDirty?.(true); }} className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors ${useStock ? 'bg-emerald-500' : 'bg-gray-600'}`}>
                             <span className={`inline-block h-2.5 w-2.5 transform rounded-full bg-white transition-transform ${useStock ? 'translate-x-4' : 'translate-x-1'}`} />
                         </button>
                     </div>
@@ -110,7 +112,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                         <div className="flex flex-col text-right">
                             <span className="text-[9px] font-black text-gray-300 uppercase leading-none">Matriz Dinámica</span>
                         </div>
-                        <button onClick={() => setMatrixMode(matrixMode === 'dynamic' ? 'general' : 'dynamic')} className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors ${matrixMode === 'dynamic' ? 'bg-indigo-500' : 'bg-gray-600'}`}>
+                        <button onClick={() => { setMatrixMode(matrixMode === 'dynamic' ? 'general' : 'dynamic'); setIsDirty?.(true); }} className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors ${matrixMode === 'dynamic' ? 'bg-indigo-500' : 'bg-gray-600'}`}>
                             <span className={`inline-block h-2.5 w-2.5 transform rounded-full bg-white transition-transform ${matrixMode === 'dynamic' ? 'translate-x-4' : 'translate-x-1'}`} />
                         </button>
                     </div>
