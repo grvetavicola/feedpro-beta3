@@ -4,6 +4,7 @@ import { useTranslations } from '../lib/i18n/LangContext';
 import { SparklesIcon, CalculatorIcon, PrintIcon, SaveIcon, FolderIcon, TrashIcon, ExclamationIcon, ClockIcon, SearchIcon, ChevronDownIcon, EyeIcon, DuplicateIcon, MenuIcon } from './icons';
 import { solveFeedFormulation } from '../services/solver';
 import { OptimizationResults } from './OptimizationResults';
+import { EditIngredientModal } from './EditIngredientModal';
 
 interface FormulationScreenProps {
   products: Product[];
@@ -19,6 +20,7 @@ interface FormulationScreenProps {
   isDynamicMatrix: boolean;
   onOpenInNewWindow?: (result: FormulationResult, name: string) => void;
   forceResult?: FormulationResult;
+  setIngredients: React.Dispatch<React.SetStateAction<Ingredient[]>>;
 }
 
 const LoadingSpinner: React.FC = () => (
@@ -38,9 +40,11 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
     setSavedFormulas,
     isDynamicMatrix,
     onOpenInNewWindow,
-    forceResult
+    forceResult,
+    setIngredients
 }) => {
-  const { t } = useTranslations();
+    const { t } = useTranslations();
+    const [editingIngredient, setEditingIngredient] = useState<Ingredient | null>(null);
   const [batchSize, setBatchSize] = useState<number>(1000);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(products[0]?.id || null);
@@ -132,16 +136,36 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
               </div>
               <div className="flex-1 overflow-y-auto p-1.5 space-y-0.5 custom-scrollbar">
                   {sortedIngredients.map(ing => (
-                      <div key={ing.id} onClick={() => {
-                          const ns = new Set(availableIngredientIds);
-                          if (ns.has(ing.id)) ns.delete(ing.id); else ns.add(ing.id);
-                          setAvailableIngredientIds(ns);
-                      }} className={`group flex items-center justify-between p-1.5 px-2 rounded cursor-pointer border transition-all ${availableIngredientIds.has(ing.id) ? 'bg-cyan-900/30 border-cyan-500/50' : 'bg-gray-900/20 border-transparent opacity-50 grayscale'}`}>
-                          <div className="flex items-center gap-2">
+                      <div key={ing.id} className={`group flex items-center justify-between p-1.5 px-2 rounded border transition-all ${availableIngredientIds.has(ing.id) ? 'bg-cyan-900/30 border-cyan-500/50' : 'bg-gray-900/20 border-transparent opacity-50 grayscale'}`}>
+                          <div className="flex items-center gap-2 cursor-pointer" onClick={() => {
+                              const ns = new Set(availableIngredientIds);
+                              if (ns.has(ing.id)) ns.delete(ing.id); else ns.add(ing.id);
+                              setAvailableIngredientIds(ns);
+                          }}>
                               <div className={`w-3.5 h-3.5 rounded-sm border flex items-center justify-center transition-colors ${availableIngredientIds.has(ing.id) ? 'bg-cyan-600 border-cyan-500' : 'bg-gray-800 border-gray-700'}`}>{availableIngredientIds.has(ing.id) && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}</div>
-                              <div className="font-medium text-gray-200 text-[13px]">{ing.name}</div>
+                              <div 
+                                onClick={(e) => { e.stopPropagation(); setEditingIngredient(ing); }}
+                                className="font-medium text-gray-200 text-[13px] hover:text-cyan-400 hover:underline decoration-cyan-500/30 underline-offset-4"
+                                title="Click para editar composición completa"
+                              >
+                                  {ing.name}
+                              </div>
                           </div>
-                          <div className="font-mono text-cyan-400 font-bold text-[13px]">${ing.price} <span className="text-[10px] text-gray-600 font-normal">/ kg</span></div>
+                          <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] text-gray-600 font-normal uppercase">$</span>
+                              <input 
+                                  type="number" 
+                                  step="0.001"
+                                  value={ing.price}
+                                  onChange={(e) => {
+                                      const newPrice = parseFloat(e.target.value) || 0;
+                                      setIngredients(prev => prev.map(i => i.id === ing.id ? { ...i, price: newPrice } : i));
+                                  }}
+                                  className="bg-gray-900/80 text-cyan-400 font-mono font-bold text-[13px] w-14 text-right rounded border border-cyan-500/10 focus:border-cyan-500/50 outline-none p-0.5"
+                                  title="Editar precio directamente"
+                              />
+                              <span className="text-[10px] text-gray-600 font-normal">/ kg</span>
+                          </div>
                       </div>
                   ))}
               </div>
@@ -226,6 +250,18 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
             }}
             ingredients={ingredients}
             nutrients={nutrients}
+          />
+      )}
+
+      {editingIngredient && (
+          <EditIngredientModal 
+            ingredient={editingIngredient}
+            nutrients={nutrients}
+            onSave={(updated) => {
+                setIngredients(prev => prev.map(i => i.id === updated.id ? updated : i));
+                setEditingIngredient(null);
+            }}
+            onClose={() => setEditingIngredient(null)}
           />
       )}
     </div>

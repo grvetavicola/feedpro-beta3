@@ -205,7 +205,7 @@ export default function App() {
                         (() => {
                             switch (currentActiveTask.view) {
                                 case 'OPTIMIZATION': 
-                                    return <FormulationScreen products={products} setProducts={setProducts} ingredients={effectiveIngredients} nutrients={nutrients} clients={clients} selectedClientId={selectedClientId} savedFormulas={savedFormulas} setSavedFormulas={setSavedFormulas} isDynamicMatrix={isDynamicMatrix} forceResult={currentActiveTask.data} />;
+                                    return <FormulationScreen products={products} setProducts={setProducts} ingredients={effectiveIngredients} setIngredients={setIngredients} nutrients={nutrients} clients={clients} selectedClientId={selectedClientId} savedFormulas={savedFormulas} setSavedFormulas={setSavedFormulas} isDynamicMatrix={isDynamicMatrix} forceResult={currentActiveTask.data} />;
                                 case 'GROUP_OPTIMIZATION':
                                     return <GroupResultsScreen results={currentActiveTask.data.result} assignments={currentActiveTask.data.assignments} products={products} ingredients={effectiveIngredients} nutrients={nutrients} isDynamicMatrix={isDynamicMatrix} onUpdateProduct={(updatedProduct) => setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p))} />;
                                 case 'SIMULATION':
@@ -220,7 +220,7 @@ export default function App() {
                                 case 'INGREDIENTS': return <IngredientsScreen ingredients={ingredients} setIngredients={setIngredients} nutrients={nutrients} setNutrients={setNutrients} />;
                                 case 'NUTRIENTS': return <NutrientsScreen nutrients={nutrients} setNutrients={setNutrients} />;
                                 case 'PRODUCTS': return <ProductsScreen products={products} setProducts={setProducts} ingredients={effectiveIngredients} nutrients={nutrients} onOpenInNewWindow={(data, name) => handleOpenTask('OPTIMIZATION', name, data)} />;
-                                case 'OPTIMIZATION': return <FormulationScreen products={products} setProducts={setProducts} ingredients={effectiveIngredients} nutrients={nutrients} clients={clients} selectedClientId={selectedClientId} savedFormulas={savedFormulas} setSavedFormulas={setSavedFormulas} isDynamicMatrix={isDynamicMatrix} onOpenInNewWindow={(data, name) => handleOpenTask('OPTIMIZATION', name, data)} />;
+                                case 'OPTIMIZATION': return <FormulationScreen products={products} setProducts={setProducts} ingredients={effectiveIngredients} setIngredients={setIngredients} nutrients={nutrients} clients={clients} selectedClientId={selectedClientId} savedFormulas={savedFormulas} setSavedFormulas={setSavedFormulas} isDynamicMatrix={isDynamicMatrix} onOpenInNewWindow={(data, name) => handleOpenTask('OPTIMIZATION', name, data)} />;
                                 case 'GROUP_OPTIMIZATION': return <GroupOptimizationScreen products={products} ingredients={effectiveIngredients} nutrients={nutrients} isDynamicMatrix={isDynamicMatrix} onOpenInNewWindow={(data, name) => handleOpenTask('GROUP_OPTIMIZATION', name, data)} />;
                                 case 'SIMULATION': return <SimulationScreen ingredients={effectiveIngredients} setIngredients={setIngredients} nutrients={nutrients} />;
                                 case 'CLIENTS': 
