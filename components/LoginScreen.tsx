@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { User } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
 import { DatabaseIcon, UserIcon, LockClosedIcon, RefreshIcon } from './icons';
-import { AUTHORIZED_ACCOUNTS } from '../constants';
+import { AUTHORIZED_ACCOUNTS, APP_VERSION } from '../constants';
 
 interface LoginScreenProps {
   onLogin: (user: User) => void;
@@ -81,7 +81,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
         <div className="flex flex-col items-center justify-center mb-8 mt-4">
           <div className="mb-6 animate-pulse flex flex-col items-center">
             <img src="/feedpro.png" alt="FeedPro 360" className="h-14 object-contain drop-shadow-md mb-2" />
-            <p className="text-cyan-400/80 text-xs font-bold uppercase tracking-[0.2em] font-mono">Formulation Engine v5.2</p>
+            <p className="text-cyan-400/80 text-xs font-bold uppercase tracking-[0.2em] font-mono">{APP_VERSION}</p>
           </div>
         </div>
 

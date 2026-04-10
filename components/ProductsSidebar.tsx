@@ -1,6 +1,6 @@
 import React from 'react';
 import { Client, Product, ViewState } from '../types';
-import { Users, FileText, ChevronRight, LayoutGrid, Calculator, FlaskConical, Beaker, Package, Settings, PlayCircle, Plus } from 'lucide-react';
+import { Users, FileText, ChevronRight, LayoutGrid, Calculator, FlaskConical, Beaker, Package, Settings, PlayCircle, Plus, Edit2, Trash2 } from 'lucide-react';
 import { APP_NAME, APP_VERSION } from '../constants';
 
 interface ProductsSidebarProps {
@@ -56,51 +56,50 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
 
   return (
     <aside className="w-[240px] bg-gray-950 border-r border-gray-800 flex flex-col h-full overflow-hidden">
-      {/* Nivel 1, 2 y 3: Identidad y Selección */}
-      <div className="p-6 border-b border-gray-800 flex flex-col gap-4">
+      {/* Nivel 1 y 2: Identidad y Cliente */}
+      <div className="flex flex-col border-b border-gray-800">
         
-        {/* Nivel 1: Marca (Clickable) */}
-        <button 
-          onClick={onManageProfile}
-          className="flex flex-col items-start gap-1 group text-left outline-none transition-transform active:scale-95"
-          title="Gestión de Fábrica"
-        >
-          <h1 className="text-[18px] font-black text-white italic tracking-tighter leading-none group-hover:text-cyan-400 transition-colors">
+        {/* Nivel 1: Marca (Compacta) */}
+        <div className="px-5 py-4 flex flex-col items-start gap-0.5 group text-left">
+          <h1 className="text-[18px] font-black text-white tracking-tighter leading-none group-hover:text-cyan-400 transition-colors">
             {APP_NAME}
           </h1>
-          <p className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] leading-none opacity-80 decoration-none">
+          <p className="text-[10px] font-black text-cyan-500 uppercase tracking-widest leading-none opacity-80">
             EXECUTIVE
           </p>
-        </button>
+        </div>
 
-        {/* Nivel 2: Logo del Cliente Activo */}
-        <div className="flex justify-start items-center">
-            <div className="w-16 h-16 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center overflow-hidden shadow-inner group/logo hover:border-cyan-500/30 transition-all">
+        {/* Nivel 2: Contenedor Cliente */}
+        <div className="px-4 pb-5 flex flex-col gap-3">
+            <div className="w-full h-32 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center overflow-hidden shadow-inner group/logo hover:border-cyan-500/50 transition-all p-2">
                 {(() => {
                     const currentClient = clients.find(c => c.id === selectedClientId);
                     return currentClient?.logo ? (
-                        <img src={currentClient.logo} alt="Factory" className="w-full h-full object-contain p-1" />
+                        <img src={currentClient.logo} alt="Factory" className="w-full h-full object-contain drop-shadow-md" />
                     ) : (
-                        <Users className="w-6 h-6 text-gray-700" />
+                        <Users className="w-10 h-10 text-gray-700" />
                     );
                 })()}
             </div>
-        </div>
-
-        {/* Nivel 3: Acción/Selector (Dropdown) */}
-        <div className="relative group w-full">
-          <select
-            value={selectedClientId}
-            onChange={(e) => onSelectClient(e.target.value)}
-            className="w-full bg-gray-900 border border-gray-800 rounded-lg py-2 px-3 text-[12px] font-black text-white appearance-none focus:ring-1 focus:ring-cyan-500 outline-none transition-all cursor-pointer hover:border-cyan-500/50"
-          >
-            {clients.map(c => (
-              <option key={c.id} value={c.id} className="bg-gray-900 font-bold">{c.name}</option>
-            ))}
-          </select>
-          <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-cyan-400">
-             <ChevronRight className="w-3.5 h-3.5 rotate-90" />
-          </div>
+            
+            <div className="flex flex-col gap-2">
+                <h3 className="text-[12px] font-bold text-center text-white truncate px-1">{clients.find(c => c.id === selectedClientId)?.name || "Cliente General"}</h3>
+                
+                <div className="relative group w-full">
+                  <select
+                    value={selectedClientId}
+                    onChange={(e) => onSelectClient(e.target.value)}
+                    className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg py-2 pl-3 pr-8 text-[11px] font-black text-white appearance-none focus:ring-1 focus:ring-cyan-500 outline-none transition-all cursor-pointer text-center uppercase tracking-widest"
+                  >
+                    {clients.map(c => (
+                      <option key={c.id} value={c.id} className="bg-gray-900 font-bold normal-case text-left">{c.name}</option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400 group-hover:text-cyan-400">
+                     <ChevronRight className="w-4 h-4 rotate-90" />
+                  </div>
+                </div>
+            </div>
         </div>
       </div>
 
@@ -186,8 +185,8 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                           </label>
 
                           <div className="flex items-center gap-1 opacity-0 group-hover/cat:opacity-100 transition-opacity">
-                            <button onClick={(e) => { e.stopPropagation(); onEditCategory?.(category); }} className="p-0.5 text-gray-500 hover:text-cyan-400"><Settings size={10} /></button>
-                            <button onClick={(e) => attemptDeleteCategory(e, category)} className="p-0.5 text-gray-500 hover:text-red-400"><Plus size={10} className="rotate-45" /></button>
+                            <button onClick={(e) => { e.stopPropagation(); onEditCategory?.(category); }} className="p-1.5 text-gray-500 hover:text-cyan-400 bg-gray-900 hover:bg-gray-800 rounded-md"><Edit2 size={10} /></button>
+                            <button onClick={(e) => attemptDeleteCategory(e, category)} className="p-1.5 text-gray-500 hover:text-red-400 bg-gray-900 hover:bg-gray-800 rounded-md"><Trash2 size={10} /></button>
                           </div>
                           <span className="text-[9px] text-gray-600 font-bold shrink-0 ml-1 group-hover/cat:hidden">{items.length}</span>
                         </div>
@@ -214,12 +213,12 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                                     <p className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">REF-{product.code}</p>
                                   </div>
                                 </label>
-                                <div className="flex items-center gap-2 opacity-0 group-hover/item:opacity-100 transition-opacity shrink-0 ml-2">
-                                  <button onClick={(e) => { e.stopPropagation(); onEditProduct?.(product.id); }} className="text-gray-500 hover:text-cyan-400 transition-colors">
-                                    <Settings size={12} />
+                                <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity shrink-0 ml-2">
+                                  <button onClick={(e) => { e.stopPropagation(); onEditProduct?.(product.id); }} className="p-1.5 text-gray-500 hover:text-cyan-400 bg-gray-950 hover:bg-gray-800 rounded-md transition-colors">
+                                    <Edit2 size={12} />
                                   </button>
-                                  <button onClick={(e) => attemptDeleteProduct(e, product.id)} className="text-gray-500 hover:text-red-400 transition-colors">
-                                    <Plus size={12} className="rotate-45" />
+                                  <button onClick={(e) => attemptDeleteProduct(e, product.id)} className="p-1.5 text-gray-500 hover:text-red-400 bg-gray-950 hover:bg-gray-800 rounded-md transition-colors">
+                                    <Trash2 size={12} />
                                   </button>
                                 </div>
                               </div>
@@ -248,6 +247,12 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
         </div>
       </div>
 
+      {/* Copyright Footer */}
+      <div className="p-3 border-t border-gray-800 shrink-0 text-center">
+          <p className="text-[9px] text-gray-600 uppercase tracking-widest font-black leading-tight">
+              &copy; 2026 {APP_NAME}.<br/>Todos los derechos reservados.
+          </p>
+      </div>
     </aside>
   );
 };

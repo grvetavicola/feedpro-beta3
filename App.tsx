@@ -223,6 +223,7 @@ export default function App() {
             if (activeTaskId === id) setActiveTaskId(null);
         }}
         onManageProfile={() => setShowProfileModal(true)}
+        client={clients.find(c => c.id === selectedClientId)}
       />
 
       <div className="flex flex-1 overflow-hidden">
@@ -405,7 +406,7 @@ export default function App() {
                   </div>
                   <div>
                       <h3 className="text-xl font-bold text-white uppercase tracking-tight">Cambios sin guardar</h3>
-                      <p className="text-sm text-gray-400 mt-2">Estás a punto de cambiar de fábrica. Tienes cambios sin guardar en <span className="text-white font-bold">{clients.find(c => c.id === selectedClientId)?.name}</span>.</p>
+                      <p className="text-sm text-gray-400 mt-2">Estás a punto de cambiar de fábrica. Tienes cambios sin guardar en <span className="text-white font-bold">{clients.find(c => c.id === selectedClientId)?.name}</span>. Solicita Guardar todos los cambios y luego Aceptar para cambiar.</p>
                   </div>
                   <div className="flex flex-col gap-2">
                        <button 
@@ -421,7 +422,7 @@ export default function App() {
                          onClick={() => performClientSwitch(pendingClientId!)}
                          className="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 py-3 rounded-xl font-bold border border-gray-700 transition-all"
                        >
-                           DESCARTAR CAMBIOS
+                           DESCARTAR Y CAMBIAR
                        </button>
                        <button 
                          onClick={() => { setShowDirtyModal(false); setPendingClientId(null); }}
