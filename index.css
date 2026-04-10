@@ -140,3 +140,14 @@ textarea {
   scrollbar-width: thin;
   scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
 }
+
+/* Remove Steppers from Number Inputs Globally */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
