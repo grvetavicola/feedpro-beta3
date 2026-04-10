@@ -42,7 +42,7 @@ export const Header: React.FC<HeaderProps> = ({
     ];
 
     return (
-        <header className="fixed top-0 left-0 right-0 h-14 bg-gray-950 border-b border-gray-800 z-50 flex items-center px-4 gap-6">
+        <header className="shrink-0 h-14 bg-gray-950 border-b border-gray-800 z-50 flex items-center px-4 gap-6 relative">
             {/* Logo */}
             <div className="flex items-center shrink-0 pr-4">
                 <img src="/feedpro.png" alt="FeedPro 360" className="h-10 object-contain drop-shadow-md hidden sm:block" />

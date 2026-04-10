@@ -5,7 +5,6 @@ import { IngredientsScreen } from './components/IngredientsScreen';
 import { NutrientsScreen } from './components/NutrientsScreen';
 import { ProductsScreen } from './components/ProductsScreen';
 import { FormulationScreen } from './components/FormulationScreen';
-import { FormulationWorkspace } from './components/FormulationWorkspace';
 import { ClientsScreen } from './components/ClientsScreen';
 import { SimulationScreen } from './components/SimulationScreen';
 import { LoginScreen } from './components/LoginScreen';
@@ -92,32 +91,9 @@ export default function App() {
             selectedClientId, user, isDynamicMatrix, workspaces 
         }));
     }
-  }, [ingredients, nutrients, products, clients, savedFormulas, selectedClientId, user, isDynamicMatrix]);
+  }, [ingredients, nutrients, products, clients, savedFormulas, selectedClientId, user, isDynamicMatrix, workspaces]);
 
   if (!user) return <LoginScreen onLogin={setUser} />;
-
-  const renderView = () => {
-    switch (view) {
-      case 'DASHBOARD': return <Dashboard products={products} ingredients={ingredients} savedFormulas={savedFormulas} clients={clients} onNavigate={setView} isDynamicMatrix={isDynamicMatrix} setIsDynamicMatrix={setIsDynamicMatrix} />;
-      case 'INGREDIENTS': return <IngredientsScreen ingredients={ingredients} setIngredients={setIngredients} nutrients={nutrients} setNutrients={setNutrients} />;
-      case 'NUTRIENTS': return <NutrientsScreen nutrients={nutrients} setNutrients={setNutrients} />;
-      case 'PRODUCTS': return <ProductsScreen products={products} setProducts={setProducts} ingredients={ingredients} nutrients={nutrients} onOpenInNewWindow={(data, name) => handleOpenTask('OPTIMIZATION', name, data)} />;
-      case 'OPTIMIZATION': return <FormulationScreen products={products} setProducts={setProducts} ingredients={ingredients} nutrients={nutrients} clients={clients} selectedClientId={selectedClientId} savedFormulas={savedFormulas} setSavedFormulas={setSavedFormulas} isDynamicMatrix={isDynamicMatrix} onOpenInNewWindow={(data, name) => handleOpenTask('OPTIMIZATION', name, data)} />;
-      case 'GROUP_OPTIMIZATION': return <GroupOptimizationScreen products={products} ingredients={ingredients} nutrients={nutrients} isDynamicMatrix={isDynamicMatrix} onOpenInNewWindow={(data, name) => handleOpenTask('GROUP_OPTIMIZATION', name, data)} />;
-      case 'SIMULATION': return <SimulationScreen ingredients={ingredients} setIngredients={setIngredients} nutrients={nutrients} />;
-      case 'CLIENTS': 
-        if (user.assignedClientId && user.assignedClientId !== 'ALL') {
-            return <div className="p-8 text-center text-gray-400 mt-20 max-w-lg mx-auto bg-gray-900/50 rounded-xl border border-gray-700 border-l-4 border-l-red-500 shadow-2xl">
-                <h3 className="text-xl font-bold text-red-500 mb-2">Acceso Restringido</h3>
-                <p>Está operando bajo una cuenta de Cliente Específico vinculada a <span className="font-bold text-cyan-400">{user.email}</span>.</p>
-                <p className="text-xs mt-4">Solo los administradores o las cuentas maestras pueden agregar y cambiar carteras de clientes.</p>
-            </div>;
-        }
-        return <ClientsScreen clients={clients} setClients={setClients} selectedClientId={selectedClientId} setSelectedClientId={setSelectedClientId} />;
-      case 'ASSISTANT': return <AIAssistant user={user} ingredients={ingredients} nutrients={nutrients} products={products} />;
-      case 'SETTINGS': return <SettingsScreen />;
-    }
-  };
 
   // Delta Logic Fusion
   const getEffectiveIngredients = (): Ingredient[] => {
@@ -154,7 +130,12 @@ export default function App() {
         selectedClientId={selectedClientId}
         activeView={view}
         onSelectClient={setSelectedClientId}
-        onSelectProduct={(p) => setView('OPTIMIZATION')}
+        onSelectProduct={(p) => {
+            setView('OPTIMIZATION');
+            // Assuming the sidebar handles the selection logic or we could manage it here. In this case, 
+            // since we don't have selected productId in App directly, we just open optimization.
+            // Ideally ProductsSidebar notifies the Product component.
+        }}
         onNavigate={setView}
       />
       
@@ -182,7 +163,7 @@ export default function App() {
                                 case 'OPTIMIZATION': 
                                     return <FormulationScreen products={products} setProducts={setProducts} ingredients={effectiveIngredients} nutrients={nutrients} clients={clients} selectedClientId={selectedClientId} savedFormulas={savedFormulas} setSavedFormulas={setSavedFormulas} isDynamicMatrix={isDynamicMatrix} forceResult={currentActiveTask.data} />;
                                 case 'GROUP_OPTIMIZATION':
-                                    return <GroupResultsScreen results={currentActiveTask.data.result} assignments={currentActiveTask.data.assignments} products={products} />;
+                                    return <GroupResultsScreen results={currentActiveTask.data.result} assignments={currentActiveTask.data.assignments} products={products} ingredients={effectiveIngredients} />;
                                 case 'SIMULATION':
                                     return <SimulationScreen ingredients={effectiveIngredients} setIngredients={setIngredients} nutrients={nutrients} />;
                                 default: return <div className="p-8 text-center text-gray-500">Vista de tarea no soportada.</div>;
@@ -198,7 +179,15 @@ export default function App() {
                                 case 'OPTIMIZATION': return <FormulationScreen products={products} setProducts={setProducts} ingredients={effectiveIngredients} nutrients={nutrients} clients={clients} selectedClientId={selectedClientId} savedFormulas={savedFormulas} setSavedFormulas={setSavedFormulas} isDynamicMatrix={isDynamicMatrix} onOpenInNewWindow={(data, name) => handleOpenTask('OPTIMIZATION', name, data)} />;
                                 case 'GROUP_OPTIMIZATION': return <GroupOptimizationScreen products={products} ingredients={effectiveIngredients} nutrients={nutrients} isDynamicMatrix={isDynamicMatrix} onOpenInNewWindow={(data, name) => handleOpenTask('GROUP_OPTIMIZATION', name, data)} />;
                                 case 'SIMULATION': return <SimulationScreen ingredients={effectiveIngredients} setIngredients={setIngredients} nutrients={nutrients} />;
-                                case 'CLIENTS': return <ClientsScreen clients={clients} setClients={setClients} selectedClientId={selectedClientId} setSelectedClientId={setSelectedClientId} />;
+                                case 'CLIENTS': 
+                                    if (user.assignedClientId && user.assignedClientId !== 'ALL') {
+                                        return <div className="p-8 text-center text-gray-400 mt-20 max-w-lg mx-auto bg-gray-900/50 rounded-xl border border-gray-700 border-l-4 border-l-red-500 shadow-2xl">
+                                            <h3 className="text-xl font-bold text-red-500 mb-2">Acceso Restringido</h3>
+                                            <p>Está operando bajo una cuenta de Cliente Específico vinculada a <span className="font-bold text-cyan-400">{user.email}</span>.</p>
+                                            <p className="text-xs mt-4">Solo los administradores o las cuentas maestras pueden agregar y cambiar carteras de clientes.</p>
+                                        </div>;
+                                    }
+                                    return <ClientsScreen clients={clients} setClients={setClients} selectedClientId={selectedClientId} setSelectedClientId={setSelectedClientId} />;
                                 case 'ASSISTANT': return <AIAssistant user={user} ingredients={effectiveIngredients} nutrients={nutrients} products={products} />;
                                 case 'SETTINGS': return <SettingsScreen />;
                                 default: return <Dashboard products={products} ingredients={effectiveIngredients} savedFormulas={savedFormulas} clients={clients} onNavigate={setView} isDynamicMatrix={isDynamicMatrix} setIsDynamicMatrix={setIsDynamicMatrix} />;
