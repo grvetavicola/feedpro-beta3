@@ -232,6 +232,7 @@ export default function App() {
           selectedClientId={selectedClientId}
           activeView={view}
           onSelectClient={handleSwitchClientRequest}
+          onManageProfile={() => setShowProfileModal(true)}
           onSelectProduct={(p) => {
               setView('OPTIMIZATION');
           }}

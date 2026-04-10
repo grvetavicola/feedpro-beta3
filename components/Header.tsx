@@ -36,34 +36,19 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Background Glow */}
             <div className="absolute top-0 left-0 w-[500px] h-full bg-gradient-to-r from-cyan-900/10 via-transparent to-transparent pointer-events-none"></div>
 
-            {/* Unified Branding & Profile Area */}
-            <div className="flex items-center gap-6 shrink-0 relative z-10">
-                {/* Branding Block */}
-                <div className="relative flex items-center gap-4 py-2 px-4 bg-gray-900 border border-gray-700/50 rounded-2xl shadow-2xl backdrop-blur-md">
-                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent rounded-2xl"></div>
-
-                    {/* Profile Avatar (Integrated into Brand) */}
-                    <button
-                        onClick={onManageProfile}
-                        className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-cyan-600 p-0.5 shadow-lg shadow-cyan-900/40 hover:scale-105 transition-transform active:scale-95 group"
-                    >
-                        <div className="w-full h-full rounded-[10px] bg-gray-900 flex items-center justify-center overflow-hidden border border-white/10">
-                            <UserIcon className="w-6 h-6 text-cyan-400 group-hover:text-white transition-colors" />
-                        </div>
-                        {/* Status Indicator */}
-                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-gray-950 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)] animate-pulse"></div>
-                    </button>
-
-                    <div className="h-10 w-px bg-gray-800 mx-1"></div>
-
-                    {/* Logo styled as Text instead of broken image */}
-                    <div className="flex flex-col ml-2">
-                        <span className="text-[17px] font-black text-white italic tracking-tighter uppercase leading-none">
-                            {APP_NAME}
-                        </span>
-                        <span className="text-[9px] font-black text-cyan-500 uppercase tracking-[0.3em] leading-none mt-1 opacity-80">Executive</span>
+            {/* Unified Profile & Task Area */}
+            <div className="flex items-center gap-6 shrink-0 relative z-10 mr-4">
+                {/* Profile Avatar */}
+                <button
+                    onClick={onManageProfile}
+                    className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-cyan-600 p-0.5 shadow-lg shadow-cyan-900/40 hover:scale-105 transition-transform active:scale-95 group"
+                >
+                    <div className="w-full h-full rounded-[10px] bg-gray-900 flex items-center justify-center overflow-hidden border border-white/10">
+                        <UserIcon className="w-6 h-6 text-cyan-400 group-hover:text-white transition-colors" />
                     </div>
-                </div>
+                    {/* Status Indicator */}
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-gray-950 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)] animate-pulse"></div>
+                </button>
             </div>
 
             <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth flex-1 relative z-10 pr-20">

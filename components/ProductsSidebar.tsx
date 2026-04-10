@@ -17,6 +17,7 @@ interface ProductsSidebarProps {
   onDeleteCategory?: (category: string) => void;
   onNavigate: (view: ViewState) => void;
   activeView: ViewState;
+  onManageProfile?: () => void;
 }
 
 export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
@@ -32,20 +33,10 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
   onEditCategory,
   onDeleteCategory,
   onNavigate,
-  activeView
+  activeView,
+  onManageProfile
 }) => {
   const filteredProducts = products.filter(p => !selectedClientId || p.clientId === selectedClientId);
-
-  const [localLogoData, setLocalLogoData] = React.useState<string | null>(null);
-
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => setLocalLogoData(event.target?.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
 
   const attemptDeleteProduct = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -65,43 +56,50 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
 
   return (
     <aside className="w-[240px] bg-gray-950 border-r border-gray-800 flex flex-col h-full overflow-hidden">
-      {/* Premium Branding Section */}
-      <div className="p-6 border-b border-gray-800">
-        <div className="flex flex-col gap-0.5 mb-6">
-          <h1 className="text-[18px] font-black text-white italic tracking-tighter leading-none">{APP_NAME}</h1>
-          <p className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] leading-none opacity-80">EXECUTIVE</p>
+      {/* Nivel 1, 2 y 3: Identidad y Selección */}
+      <div className="p-6 border-b border-gray-800 flex flex-col gap-4">
+        
+        {/* Nivel 1: Marca (Clickable) */}
+        <button 
+          onClick={onManageProfile}
+          className="flex flex-col items-start gap-1 group text-left outline-none transition-transform active:scale-95"
+          title="Gestión de Fábrica"
+        >
+          <h1 className="text-[18px] font-black text-white italic tracking-tighter leading-none group-hover:text-cyan-400 transition-colors">
+            {APP_NAME}
+          </h1>
+          <p className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] leading-none opacity-80 decoration-none">
+            EXECUTIVE
+          </p>
+        </button>
+
+        {/* Nivel 2: Logo del Cliente Activo */}
+        <div className="flex justify-start items-center">
+            <div className="w-16 h-16 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center overflow-hidden shadow-inner group/logo hover:border-cyan-500/30 transition-all">
+                {(() => {
+                    const currentClient = clients.find(c => c.id === selectedClientId);
+                    return currentClient?.logo ? (
+                        <img src={currentClient.logo} alt="Factory" className="w-full h-full object-contain p-1" />
+                    ) : (
+                        <Users className="w-6 h-6 text-gray-700" />
+                    );
+                })()}
+            </div>
         </div>
 
-        {/* Current Factory Logo - Dynamic Refresh */}
-        <div className="flex items-center gap-3 p-3 bg-gray-900/50 rounded-xl border border-gray-800 mb-4 animate-fade-in">
-          <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-700 shrink-0 shadow-inner">
-            {(() => {
-                const currentClient = clients.find(c => c.id === selectedClientId);
-                return currentClient?.logo ? (
-                    <img src={currentClient.logo} alt="Factory" className="w-full h-full object-cover" />
-                ) : (
-                    <Users className="w-5 h-5 text-gray-500" />
-                );
-            })()}
-          </div>
-          <div className="overflow-hidden">
-            <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest leading-tight mb-0.5">Sincronizado</p>
-            <p className="text-[11px] font-black text-white truncate uppercase tracking-tight">{clients.find(c => c.id === selectedClientId)?.name || 'Sin Cliente'}</p>
-          </div>
-        </div>
-
+        {/* Nivel 3: Acción/Selector (Dropdown) */}
         <div className="relative group w-full">
           <select
             value={selectedClientId}
             onChange={(e) => onSelectClient(e.target.value)}
-            className="w-full bg-gray-900 border border-gray-800 rounded-lg py-1.5 px-3 text-[11px] font-black text-cyan-400 appearance-none focus:ring-1 focus:ring-cyan-500 outline-none transition-all cursor-pointer hover:border-cyan-500/50"
+            className="w-full bg-gray-900 border border-gray-800 rounded-lg py-2 px-3 text-[12px] font-black text-white appearance-none focus:ring-1 focus:ring-cyan-500 outline-none transition-all cursor-pointer hover:border-cyan-500/50"
           >
             {clients.map(c => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+              <option key={c.id} value={c.id} className="bg-gray-900 font-bold">{c.name}</option>
             ))}
           </select>
-          <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-600 group-hover:text-cyan-400">
-             <ChevronRight className="w-3 h-3 rotate-90" />
+          <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-cyan-400">
+             <ChevronRight className="w-3.5 h-3.5 rotate-90" />
           </div>
         </div>
       </div>
