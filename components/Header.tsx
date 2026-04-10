@@ -34,7 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
         <header className="shrink-0 h-14 bg-gray-950 border-b border-gray-800 z-50 flex items-center px-4 gap-6 relative">
             {/* Nav Title (Instead of logo) */}
             <div className="flex items-center shrink-0 pr-4 border-r border-gray-800 h-8">
-                 <span className="text-xs font-black text-emerald-400 uppercase tracking-[0.2em]">Workflow</span>
+                 <span className="text-xs font-black text-emerald-500 uppercase tracking-[0.2em] opacity-80">FeedPro Executive</span>
             </div>
             
             <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth flex-1">

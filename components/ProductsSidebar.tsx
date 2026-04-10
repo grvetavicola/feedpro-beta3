@@ -59,49 +59,34 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
             <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 block">
               Módulos Críticos
             </label>
-            <div className="space-y-1">
-              <button 
-                onClick={() => onNavigate('DASHBOARD')}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${activeView === 'DASHBOARD' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:bg-gray-900'}`}
-              >
-                <LayoutGrid size={16} /> Inicio
-              </button>
-              <button 
-                onClick={() => onNavigate('INGREDIENTS')}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${activeView === 'INGREDIENTS' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:bg-gray-900'}`}
-              >
-                <Beaker size={16} /> Insumos
-              </button>
-              <button 
-                onClick={() => onNavigate('NUTRIENTS')}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${activeView === 'NUTRIENTS' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:bg-gray-900'}`}
-              >
-                <FlaskConical size={16} /> Nutrientes
-              </button>
-               <button 
-                onClick={() => onNavigate('PRODUCTS')}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${activeView === 'PRODUCTS' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:bg-gray-900'}`}
-              >
-                <Package size={16} /> Productos
-              </button>
-              <button 
-                onClick={() => onNavigate('GROUP_OPTIMIZATION')}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${activeView === 'GROUP_OPTIMIZATION' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:bg-gray-900'}`}
-              >
-                <Calculator size={16} /> Optimización Grupal
-              </button>
-              <button 
-                onClick={() => onNavigate('SIMULATION')}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${activeView === 'SIMULATION' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:bg-gray-900'}`}
-              >
-                <PlayCircle size={16} /> Simular
-              </button>
-              <button 
-                onClick={() => onNavigate('SETTINGS')}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${activeView === 'SETTINGS' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:bg-gray-900'}`}
-              >
-                <Settings size={16} /> Ajustes
-              </button>
+            <div className="space-y-1.5 p-1">
+              {[
+                { id: 'DASHBOARD', label: 'Inicio', icon: LayoutGrid, color: 'text-blue-400', bg: 'hover:bg-blue-500/10' },
+                { id: 'INGREDIENTS', label: 'Insumos', icon: Beaker, color: 'text-emerald-400', bg: 'hover:bg-emerald-500/10' },
+                { id: 'NUTRIENTS', label: 'Nutrientes', icon: FlaskConical, color: 'text-purple-400', bg: 'hover:bg-purple-500/10' },
+                { id: 'PRODUCTS', label: 'Productos', icon: Package, color: 'text-indigo-400', bg: 'hover:bg-indigo-500/10' },
+                { id: 'GROUP_OPTIMIZATION', label: 'Opt. Grupal', icon: Calculator, color: 'text-cyan-400', bg: 'hover:bg-cyan-500/10' },
+                { id: 'SIMULATION', label: 'Simular', icon: PlayCircle, color: 'text-amber-400', bg: 'hover:bg-amber-500/10' },
+                { id: 'SETTINGS', label: 'Ajustes', icon: Settings, color: 'text-gray-400', bg: 'hover:bg-gray-500/10' },
+              ].map(item => {
+                const isActive = activeView === item.id;
+                return (
+                  <button 
+                    key={item.id}
+                    onClick={() => onNavigate(item.id as ViewState)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${
+                        isActive 
+                        ? 'bg-gray-800/80 border border-gray-700 shadow-lg shadow-black/20' 
+                        : `border border-transparent ${item.bg}`
+                    }`}
+                  >
+                    <item.icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${isActive ? item.color : 'text-gray-500 group-hover:' + item.color}`} />
+                    <span className={`text-[11px] font-black uppercase tracking-[0.15em] transition-colors ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}`}>
+                        {item.label}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

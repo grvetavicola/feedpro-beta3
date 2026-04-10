@@ -197,7 +197,7 @@ export default function App() {
           }}
           onManageProfile={() => setShowProfileModal(true)}
         />
-        <main className="flex-1 relative flex flex-col bg-[radial-gradient(circle_at_50%_0%,rgba(6,182,212,0.05),transparent_50%)] overflow-hidden">
+        <main className="flex-1 relative flex flex-col bg-[radial-gradient(circle_at_50%_0%,rgba(6,182,212,0.05),transparent_50%)] overflow-hidden p-6">
             <div className="flex-1 relative overflow-hidden flex flex-col">
                 {/* View Content */}
                 <div className="flex-1 overflow-y-auto w-full">

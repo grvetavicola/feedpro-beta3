@@ -186,43 +186,72 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredient
                 <div className="flex-1 overflow-auto custom-scrollbar">
                     {viewMode === 'list' ? (
                         <table className="w-full text-left text-gray-300">
-                            <thead className="text-[11px] text-cyan-300 uppercase bg-gray-700/50 sticky top-0 z-10">
+                            <thead className="text-[11px] font-black text-emerald-400 uppercase bg-gray-900 border-b border-gray-700 sticky top-0 z-10">
                                 <tr>
-                                    <th scope="col" className="px-2 py-1.5">Cód</th>
-                                    <th scope="col" className="px-2 py-1.5">{t('ingredients.tableHeaderName')}</th>
-                                    <th scope="col" className="px-2 py-1.5">Cat.</th>
-                                    <th scope="col" className="px-2 py-1.5">Stock (kg)</th>
-                                    <th scope="col" className="px-2 py-1.5">{t('ingredients.tableHeaderPrice')}</th>
-                                    <th scope="col" className="px-2 py-1.5 text-center">{t('ingredients.tableHeaderActions')}</th>
+                                    <th scope="col" className="px-3 py-3 tracking-widest text-left">Cód</th>
+                                    <th scope="col" className="px-3 py-3 tracking-widest text-left">{t('ingredients.tableHeaderName')}</th>
+                                    <th scope="col" className="px-3 py-3 tracking-widest text-left">Cat.</th>
+                                    <th scope="col" className="px-3 py-3 tracking-widest text-left">Stock (kg)</th>
+                                    <th scope="col" className="px-3 py-3 tracking-widest text-left">{t('ingredients.tableHeaderPrice')}</th>
+                                    <th scope="col" className="px-3 py-3 tracking-widest text-center">{t('ingredients.tableHeaderActions')}</th>
                                 </tr>
                             </thead>
-                            <tbody className="text-[13px]">
-                                {sortedIngredients.map(ing => (
-                                    <tr key={ing.id} className="border-b border-gray-700 hover:bg-gray-700/30 h-[32px]">
-                                        <td className="px-2 py-1 font-mono text-gray-500">{ing.code}</td>
-                                        <td className="px-2 py-1 font-medium whitespace-nowrap text-white">{ing.name}</td>
-                                        <td className="px-2 py-1">
-                                            <div className="flex flex-col">
-                                                <span className={`text-[9px] uppercase font-black ${ing.category === 'Macro' ? 'text-green-400' : 'text-purple-400'}`}>
-                                                    {ing.category || 'Macro'}
-                                                </span>
-                                                <span className="text-[11px] text-gray-300 font-semibold truncate max-w-[80px]">
-                                                    {ing.subcategory || '-'}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td className="px-2 py-1">
-                                            <span className={`font-mono font-bold ${(!ing.stock || ing.stock < 1000) ? 'text-red-400' : 'text-blue-300'}`}>
-                                                {ing.stock?.toLocaleString() || 0}
-                                            </span>
-                                        </td>
-                                        <td className="px-2 py-1 font-mono">{ing.price.toFixed(2)}</td>
-                                        <td className="px-2 py-1 flex justify-center items-center gap-3">
-                                            <button onClick={() => setEditingIngredient(ing)} className="text-cyan-400 hover:text-cyan-300"><PencilIcon className="w-4 h-4"/></button>
-                                            <button onClick={() => handleDelete(ing.id)} className="text-red-400 hover:text-red-300"><TrashIcon className="w-4 h-4"/></button>
-                                        </td>
-                                    </tr>
-                                ))}
+                            <tbody className="text-[13px] divide-y divide-gray-800/40">
+                                {sortedIngredients.map(ing => {
+                                    const catColors: Record<string, string> = {
+                                        'Macro': 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+                                        'Micro': 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+                                        'Proteico': 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+                                        'Energético': 'text-red-400 bg-red-500/10 border-red-500/20'
+                                    };
+                                    const catStyle = catColors[ing.category] || 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20';
+
+                                    return (
+                                        <tr key={ing.id} className="hover:bg-gray-800/40 transition-colors group">
+                                            <td className="px-3 py-3 font-mono text-gray-500 text-[11px]">{ing.code}</td>
+                                            <td className="px-3 py-3">
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-gray-100 group-hover:text-cyan-400 transition-colors">{ing.name}</span>
+                                                    {ing.code && <span className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">REF-ING-{ing.code}</span>}
+                                                </div>
+                                            </td>
+                                            <td className="px-3 py-3">
+                                                <div className="flex flex-col gap-1">
+                                                    <span className={`text-[9px] px-1.5 py-0.5 rounded border fit-content w-fit font-black uppercase tracking-widest ${catStyle}`}>
+                                                        {ing.category || 'Macro'}
+                                                    </span>
+                                                    {ing.subcategory && (
+                                                        <span className="text-[11px] text-gray-500 font-medium ml-1">
+                                                            {ing.subcategory}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="px-3 py-3">
+                                                <div className="flex flex-col">
+                                                    <span className={`font-mono font-bold text-sm ${(!ing.stock || ing.stock < 1000) ? 'text-red-400' : 'text-blue-300'}`}>
+                                                        {ing.stock?.toLocaleString() || 0}
+                                                    </span>
+                                                    <div className="h-1 w-12 bg-gray-700 rounded-full mt-1 overflow-hidden">
+                                                        <div className={`h-full ${(!ing.stock || ing.stock < 1000) ? 'bg-red-500 w-1/4' : 'bg-blue-500 w-3/4'}`}></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-3 py-3">
+                                                <div className="flex flex-col">
+                                                    <span className="font-mono text-gray-200 text-sm font-bold">${ing.price.toFixed(2)}</span>
+                                                    <span className="text-[9px] text-gray-600 uppercase font-black">por kg</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-3 py-3">
+                                                <div className="flex justify-center items-center gap-1">
+                                                    <button onClick={() => setEditingIngredient(ing)} className="p-2 hover:bg-cyan-500/10 text-gray-500 hover:text-cyan-400 rounded-lg transition-all"><PencilIcon className="w-4 h-4"/></button>
+                                                    <button onClick={() => handleDelete(ing.id)} className="p-2 hover:bg-red-500/10 text-gray-500 hover:text-red-400 rounded-lg transition-all"><TrashIcon className="w-4 h-4"/></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     ) : (
