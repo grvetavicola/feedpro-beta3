@@ -22,14 +22,14 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
 
     return (
         <div className="p-3 space-y-3 animate-fade-in">
-            <div className="flex justify-between items-end mb-3">
-                <div className="bg-gray-800 px-4 py-2 rounded border border-gray-700 shadow-sm">
-                    <h2 className="text-[10px] text-gray-500 uppercase tracking-widest font-black">Lote Multi-Mezcla Terminado</h2>
-                    <p className="text-lg font-black text-emerald-400 mt-0.5 leading-none">{assignments.length} Productos Óptimos</p>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
+                <div className="bg-gradient-to-r from-emerald-900/60 to-cyan-900/40 p-4 rounded-xl border border-emerald-500/40 shadow-lg shadow-emerald-900/20 w-full md:w-auto">
+                    <h2 className="text-[12px] text-emerald-200 uppercase tracking-[0.2em] font-black flex items-center gap-2"><DatabaseIcon className="w-4 h-4"/> Lote Multi-Mezcla Terminado</h2>
+                    <p className="text-2xl font-black text-white mt-1 leading-none">{assignments.length} <span className="text-emerald-400">Productos Óptimos</span></p>
                 </div>
-                <div className="bg-gray-800 px-4 py-2 rounded border border-gray-700 shadow-sm">
-                    <p className="text-[10px] text-gray-500 font-black uppercase">Costo Total del Grupo</p>
-                    <p className="text-lg font-black text-emerald-400 font-mono">${results.result.toLocaleString()}</p>
+                <div className="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-md w-full md:w-auto flex flex-col justify-center">
+                    <p className="text-[11px] text-gray-400 font-black uppercase tracking-widest">Costo Total del Grupo Operativo</p>
+                    <p className="text-3xl font-black text-cyan-400 font-mono mt-1">${results.result.toLocaleString()}</p>
                 </div>
             </div>
 
@@ -53,42 +53,42 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
 
                     return (
                         <div className="flex flex-col h-full" key={i}>
-                            <div className="bg-gray-800/40 border border-gray-700/50 p-3 rounded relative overflow-hidden group h-full flex flex-col">
-                                <div className="absolute top-0 right-0 p-8 bg-emerald-500/5 rounded-full -mr-10 -mt-10 blur-2xl"></div>
-                                <h4 className="font-black text-white uppercase text-sm mb-1 z-10 relative">{product?.name}</h4>
-                                <p className="text-xs text-gray-500 font-mono italic mb-3 z-10 relative">Lote: {assign.batchSize.toLocaleString()} kg</p>
+                            <div className="bg-gray-800/80 border border-gray-700/80 p-5 rounded-2xl shadow-xl flex flex-col h-full hover:border-emerald-500/30 transition-all group overflow-hidden relative">
+                                <div className="absolute top-0 right-0 p-12 bg-emerald-500/5 rounded-full -mr-10 -mt-10 blur-3xl group-hover:bg-cyan-500/10 transition-colors"></div>
+                                <h4 className="font-black text-white uppercase text-lg mb-1 z-10 relative">{product?.name}</h4>
+                                <p className="text-sm text-gray-400 font-black uppercase tracking-widest mb-4 z-10 relative">Lote: <span className="text-emerald-400">{assign.batchSize.toLocaleString()} kg</span></p>
                                 
-                                <div className="flex-1 overflow-y-auto mb-3 pr-1 custom-scrollbar z-10 relative min-h-[120px]">
+                                <div className="flex-1 overflow-y-auto mb-4 pr-2 custom-scrollbar z-10 relative bg-gray-900/50 rounded-xl border border-gray-700/50 p-2">
                                     <table className="w-full text-left">
-                                        <thead className="text-[9px] uppercase text-gray-500 border-b border-gray-700/50">
+                                        <thead className="text-[10px] uppercase font-black text-gray-500 border-b border-gray-700">
                                             <tr>
-                                                <th className="pb-1">Ingrediente</th>
-                                                <th className="pb-1 text-right">%</th>
-                                                <th className="pb-1 text-right">Peso</th>
+                                                <th className="pb-2">Ingrediente Asignado</th>
+                                                <th className="pb-2 text-right">Inclusión %</th>
+                                                <th className="pb-2 text-right">Volumen</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="text-[11px] text-gray-300">
+                                        <tbody className="text-[13px] text-gray-300">
                                             {productItems.map((item, idx) => (
-                                                <tr key={idx} className="border-b border-gray-700/20 last:border-0 hover:bg-gray-700/20">
-                                                    <td className="py-1 truncate max-w-[120px] font-medium" title={item.name}>{item.name}</td>
-                                                    <td className="py-1 text-right font-mono text-emerald-400/80">{item.percentage.toFixed(2)}%</td>
-                                                    <td className="py-1 text-right font-mono text-cyan-400">{item.weight.toFixed(2)} kg</td>
+                                                <tr key={idx} className="border-b border-gray-700/20 last:border-0 hover:bg-gray-700/40">
+                                                    <td className="py-2.5 truncate max-w-[140px] font-bold text-gray-100" title={item.name}>{item.name}</td>
+                                                    <td className="py-2.5 text-right font-mono text-emerald-400 font-bold">{item.percentage.toFixed(2)}%</td>
+                                                    <td className="py-2.5 text-right font-mono text-cyan-400 font-bold">{item.weight.toFixed(2)} kg</td>
                                                 </tr>
                                             ))}
                                             {productItems.length === 0 && (
-                                                <tr><td colSpan={3} className="py-4 text-center text-gray-600 italic">No hay ingredientes asignados</td></tr>
+                                                <tr><td colSpan={3} className="py-6 text-center text-gray-500 italic bg-gray-900/50 rounded-lg mt-2">No se formularon ingredientes para esta dieta</td></tr>
                                             )}
                                         </tbody>
                                     </table>
                                 </div>
 
-                                <div className="space-y-2 border-t border-gray-700/50 pt-3 z-10 relative mt-auto">
-                                    <p className="text-[10px] text-emerald-400/60 font-black uppercase tracking-widest flex items-center justify-between">
-                                        <span>Estado: Óptimo</span>
-                                        <span>{productItems.length} Elementos</span>
+                                <div className="space-y-3 z-10 relative mt-auto bg-gray-900 p-3 rounded-xl border border-emerald-900/30">
+                                    <p className="text-[11px] text-emerald-400 font-black uppercase tracking-widest flex items-center justify-between">
+                                        <span className="flex items-center gap-1.5"><div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div> ESTADO: ÓPTIMO</span>
+                                        <span className="text-gray-400">{productItems.length} Elementos</span>
                                     </p>
-                                    <div className="h-1 bg-gray-900 rounded-full overflow-hidden">
-                                        <div className="h-full bg-emerald-500" style={{width: '100%'}}></div>
+                                    <div className="h-1.5 bg-gray-950 rounded-full overflow-hidden shadow-inner border border-gray-800">
+                                        <div className="h-full bg-gradient-to-r from-emerald-600 to-cyan-500" style={{width: '100%'}}></div>
                                     </div>
                                 </div>
                             </div>

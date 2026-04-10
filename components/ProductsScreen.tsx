@@ -13,6 +13,54 @@ interface ProductsScreenProps {
   onOpenInNewWindow?: (data: any, name: string) => void;
 }
 
+// --- SMART INPUT FOR NUMBERS ---
+const SmartInput = ({ value, onChange, placeholder, className, isMax = false }: { value: number, onChange: (v: number) => void, placeholder?: string, className?: string, isMax?: boolean }) => {
+    const defaultVal = value === 0 || value === 999 ? '' : value.toString();
+    const [localVal, setLocalVal] = useState<string>(defaultVal);
+
+    useEffect(() => {
+        if ((value === 0 || value === 999) && localVal === '') return;
+        const parsed = parseFloat(localVal.replace(/,/g, '.'));
+        if (parsed !== value && localVal !== value.toString() + '.' && localVal !== '0.' && localVal !== '-.') {
+           setLocalVal(value === 0 || value === 999 ? '' : value.toString());
+        }
+    }, [value]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let val = e.target.value.replace(/,/g, '.');
+        val = val.replace(/[^0-9.]/g, ''); 
+        
+        if (val.startsWith('.')) val = '0' + val;
+
+        const parts = val.split('.');
+        if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
+        
+        setLocalVal(val);
+        
+        if (val === '' || val === '.') onChange(isMax ? 999 : 0);
+        else onChange(parseFloat(val));
+    };
+
+    const handleBlur = () => {
+        if (localVal.endsWith('.')) {
+            const fixed = localVal.slice(0, -1);
+            setLocalVal(fixed);
+            onChange(parseFloat(fixed) || (isMax ? 999 : 0));
+        }
+        if (localVal === '') onChange(isMax ? 999 : 0);
+    };
+
+    return <input 
+        type="text" 
+        value={localVal} 
+        onChange={handleChange} 
+        onFocus={e => e.target.select()}
+        onBlur={handleBlur}
+        placeholder={placeholder} 
+        className={`text-center font-mono ${className}`} 
+    />;
+};
+
 // --- SELECTION MODAL ---
 const SelectionModal = ({
     options,
@@ -217,12 +265,12 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
                                                     </div>
                                                     <div className="flex gap-2">
                                                         <div className="flex-1 group/field">
-                                                            <label className="text-[9px] text-gray-400 uppercase font-bold block mb-1">Mínimo</label>
-                                                            <input type="number" step="0.01" onFocus={e => e.target.select()} value={c.min === 0 ? '' : c.min} placeholder="0" onChange={e => handleUpdate(p => ({...p, constraints: p.constraints.map((x, i) => i === idx ? {...x, min: parseFloat(e.target.value) || 0} : x)}))} className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 text-[14px] text-indigo-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 outline-none text-right font-mono font-bold transition-all" />
+                                                            <label className="text-[9px] text-gray-400 uppercase font-bold block mb-1 text-center">Mínimo</label>
+                                                            <SmartInput value={c.min} onChange={v => handleUpdate(p => ({...p, constraints: p.constraints.map((x, i) => i === idx ? {...x, min: v} : x)}))} placeholder="0" className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 text-[14px] text-indigo-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 outline-none font-bold transition-all" />
                                                         </div>
                                                         <div className="flex-1 group/field">
-                                                            <label className="text-[9px] text-gray-400 uppercase font-bold block mb-1">Máximo</label>
-                                                            <input type="number" step="0.01" onFocus={e => e.target.select()} value={c.max === 999 ? '' : c.max} placeholder="Máx" onChange={e => handleUpdate(p => ({...p, constraints: p.constraints.map((x, i) => i === idx ? {...x, max: parseFloat(e.target.value) || 999} : x)}))} className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 text-[14px] text-indigo-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 outline-none text-right font-mono font-bold transition-all" />
+                                                            <label className="text-[9px] text-gray-400 uppercase font-bold block mb-1 text-center">Máximo</label>
+                                                            <SmartInput value={c.max} isMax={true} onChange={v => handleUpdate(p => ({...p, constraints: p.constraints.map((x, i) => i === idx ? {...x, max: v} : x)}))} placeholder="Máx" className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 text-[14px] text-indigo-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 outline-none font-bold transition-all" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -233,30 +281,32 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
 
                                 {/* Segment: Ratios (V1 Feature) */}
                                 <div>
-                                    <div className="flex justify-between items-center mb-2 border-b border-gray-700/50 pb-1">
-                                        <h3 className="font-semibold text-[13px] text-gray-200 flex items-center gap-1.5"><RatiosIcon className="w-3 h-3 text-yellow-400"/> Relaciones (Ratios)</h3>
-                                        <button onClick={addRelationship} className="bg-yellow-900/30 text-yellow-400 border border-yellow-500/50 hover:bg-yellow-900/50 px-2 py-1 rounded text-[11px] font-bold transition-all">+ Añadir</button>
+                                    <div className="flex justify-between items-center mb-3 bg-yellow-900/40 p-3 rounded-xl border border-yellow-500/30 shadow-md">
+                                        <h3 className="font-black text-[15px] text-yellow-300 flex items-center gap-2 uppercase tracking-wide"><RatiosIcon className="w-5 h-5 text-yellow-400"/> Relaciones (Ratios)</h3>
+                                        <button onClick={addRelationship} className="bg-yellow-600 hover:bg-yellow-500 text-white font-bold px-4 py-2 rounded-lg text-xs transition-all shadow-lg shadow-yellow-900/20 flex items-center gap-2">+ Añadir</button>
                                     </div>
-                                    <div className="space-y-1.5">
-                                        {currentProduct.relationships.length === 0 ? <p className="text-[11px] text-gray-600 italic">No se han definido relaciones.</p> : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {currentProduct.relationships.length === 0 ? <p className="text-[12px] text-gray-500 italic p-2">No se han definido relaciones.</p> : (
                                             currentProduct.relationships.map((rel, idx) => (
-                                                <div key={rel.id} className="bg-gray-900/30 border border-gray-700 rounded p-2 flex flex-col md:flex-row items-center gap-2 group">
-                                                    <div className="flex-1 flex items-center gap-2 min-w-0">
-                                                        <input value={rel.name} onChange={e => handleUpdate(p => ({...p, relationships: p.relationships.map(r => r.id === rel.id ? {...r, name: e.target.value} : r)}))} className="bg-transparent border-b border-gray-700 text-[11px] font-bold text-yellow-400 focus:border-yellow-500 outline-none w-32" />
-                                                        <div className="flex items-center gap-1 bg-gray-800 p-1 rounded border border-gray-700">
-                                                            <select value={rel.nutrientAId} onChange={e => handleUpdate(p => ({...p, relationships: p.relationships.map(r => r.id === rel.id ? {...r, nutrientAId: e.target.value} : r)}))} className="bg-transparent text-[10px] text-gray-300 outline-none max-w-[100px]">
+                                                <div key={rel.id} className="bg-gray-800 p-3 rounded-xl border border-gray-700 hover:border-yellow-500/50 flex flex-col items-center gap-3 group shadow-sm transition-colors">
+                                                    <div className="w-full flex justify-between items-center border-b border-gray-700/50 pb-2">
+                                                        <input value={rel.name} onChange={e => handleUpdate(p => ({...p, relationships: p.relationships.map(r => r.id === rel.id ? {...r, name: e.target.value} : r)}))} className="bg-transparent text-[13px] font-black text-yellow-400 focus:border-b border-yellow-500 outline-none w-48" />
+                                                        <button onClick={() => removeRelation(rel.id)} className="text-gray-500 hover:text-red-400 bg-gray-900 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"><TrashIcon className="w-3.5 h-3.5"/></button>
+                                                    </div>
+                                                    <div className="flex w-full gap-3">
+                                                        <div className="flex-1 space-y-2">
+                                                            <select value={rel.nutrientAId} onChange={e => handleUpdate(p => ({...p, relationships: p.relationships.map(r => r.id === rel.id ? {...r, nutrientAId: e.target.value} : r)}))} className="w-full bg-gray-900 text-[11px] font-bold text-gray-300 p-2 rounded-lg outline-none border border-gray-700 focus:border-yellow-500">
                                                                 {nutrients.map(n => <option key={n.id} value={n.id} className="bg-gray-800">#{n.code} {n.name}</option>)}
                                                             </select>
-                                                            <span className="text-gray-600 text-xs">÷</span>
-                                                            <select value={rel.nutrientBId} onChange={e => handleUpdate(p => ({...p, relationships: p.relationships.map(r => r.id === rel.id ? {...r, nutrientBId: e.target.value} : r)}))} className="bg-transparent text-[10px] text-gray-300 outline-none max-w-[100px]">
+                                                            <div className="text-center text-gray-600 text-xs font-black">DIVIDIDO POR (÷)</div>
+                                                            <select value={rel.nutrientBId} onChange={e => handleUpdate(p => ({...p, relationships: p.relationships.map(r => r.id === rel.id ? {...r, nutrientBId: e.target.value} : r)}))} className="w-full bg-gray-900 text-[11px] font-bold text-gray-300 p-2 rounded-lg outline-none border border-gray-700 focus:border-yellow-500">
                                                                 {nutrients.map(n => <option key={n.id} value={n.id} className="bg-gray-800">#{n.code} {n.name}</option>)}
                                                             </select>
                                                         </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="flex items-center gap-1"><span className="text-[9px] text-gray-500 uppercase font-bold">Min</span><input type="number" step="0.01" value={rel.min} onChange={e => handleUpdate(p => ({...p, relationships: p.relationships.map(r => r.id === rel.id ? {...r, min: parseFloat(e.target.value) || 0} : r)}))} className="w-12 bg-gray-800 border border-gray-700 rounded p-1 text-[11px] text-right text-yellow-500 font-mono focus:border-yellow-500 outline-none" /></div>
-                                                        <div className="flex items-center gap-1"><span className="text-[9px] text-gray-500 uppercase font-bold">Max</span><input type="number" step="0.01" value={rel.max} onChange={e => handleUpdate(p => ({...p, relationships: p.relationships.map(r => r.id === rel.id ? {...r, max: parseFloat(e.target.value) || 0} : r)}))} className="w-12 bg-gray-800 border border-gray-700 rounded p-1 text-[11px] text-right text-yellow-500 font-mono focus:border-yellow-500 outline-none" /></div>
-                                                        <button onClick={() => removeRelation(rel.id)} className="text-gray-600 hover:text-red-400 p-1"><TrashIcon className="w-3 h-3"/></button>
+                                                        <div className="flex flex-col gap-2 w-28 justify-center">
+                                                            <div className="flex flex-col"><label className="text-[9px] text-gray-400 uppercase font-bold text-center mb-1">Min</label><SmartInput value={rel.min} onChange={v => handleUpdate(p => ({...p, relationships: p.relationships.map(r => r.id === rel.id ? {...r, min: v} : r)}))} className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 text-[14px] text-yellow-500 focus:border-yellow-500 outline-none font-bold transition-all" /></div>
+                                                            <div className="flex flex-col"><label className="text-[9px] text-gray-400 uppercase font-bold text-center mb-1">Max</label><SmartInput value={rel.max} isMax={true} onChange={v => handleUpdate(p => ({...p, relationships: p.relationships.map(r => r.id === rel.id ? {...r, max: v} : r)}))} className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 text-[14px] text-yellow-500 focus:border-yellow-500 outline-none font-bold transition-all" /></div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             ))
@@ -266,19 +316,22 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
 
                                 {/* Segment: Ingredients Inclusion */}
                                 <div className="opacity-90">
-                                    <div className="flex justify-between items-center mb-2 border-b border-gray-700/50 pb-1">
-                                        <h3 className="font-semibold text-[13px] text-gray-200 flex items-center gap-1.5">< FlaskIcon className="w-3 h-3 text-green-400"/> Inclusión de Ingredientes</h3>
-                                        <div className="w-48"><SelectionModal title="Seleccionar Ingredientes" triggerLabel="+ Inclusión" options={ingredients.map(i => ({id: i.id, name: i.name, sub: '$' + i.price, code: i.code}))} onAdd={addIngredients} /></div>
+                                    <div className="flex justify-between items-center mb-3 bg-green-900/40 p-3 rounded-xl border border-green-500/30 shadow-md">
+                                        <h3 className="font-black text-[15px] text-green-300 flex items-center gap-2 uppercase tracking-wide"><FlaskIcon className="w-5 h-5 text-green-400"/> Inclusión de Ingredientes</h3>
+                                        <div className="w-56"><SelectionModal title="Seleccionar Ingredientes" triggerLabel="+ Inclusión" options={ingredients.map(i => ({id: i.id, name: i.name, sub: '$' + i.price, code: i.code}))} onAdd={addIngredients} /></div>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-2">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-6">
                                         {currentProduct.ingredientConstraints.map((ic, idx) => {
                                             const ing = ingredients.find(i => i.id === ic.ingredientId);
                                             return (
-                                                <div key={idx} className="bg-gray-900/30 p-1.5 rounded border border-gray-700 flex flex-col gap-1 text-[11px] relative group">
-                                                    <div className="flex justify-between"><div className="font-bold text-gray-400 truncate w-24">{ing?.name}</div><button onClick={() => handleUpdate(p => ({...p, ingredientConstraints: p.ingredientConstraints.filter((_, i) => i !== idx)}))} className="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100"><XCircleIcon className="w-3 h-3"/></button></div>
-                                                    <div className="flex gap-1.5">
-                                                        <div className="flex-1"><label className="text-[8px] text-gray-500 block">MIN%</label><input type="number" value={ic.min} onChange={e => handleUpdate(p => ({...p, ingredientConstraints: p.ingredientConstraints.map((x, i) => i === idx ? {...x, min: parseFloat(e.target.value) || 0} : x)}))} className="w-full bg-gray-800 border border-gray-700 rounded p-1 text-green-400 font-mono text-right text-[11px]" /></div>
-                                                        <div className="flex-1"><label className="text-[8px] text-gray-500 block">MAX%</label><input type="number" value={ic.max} onChange={e => handleUpdate(p => ({...p, ingredientConstraints: p.ingredientConstraints.map((x, i) => i === idx ? {...x, max: parseFloat(e.target.value) || 0} : x)}))} className="w-full bg-gray-800 border border-gray-700 rounded p-1 text-green-400 font-mono text-right text-[11px]" /></div>
+                                                <div key={idx} className="bg-gray-800 p-3 rounded-xl border border-gray-700 hover:border-green-500/50 transition-colors group flex flex-col gap-2 shadow-sm">
+                                                    <div className="flex justify-between items-start mb-1 border-b border-gray-700/50 pb-2">
+                                                        <div className="text-[13px] font-black text-white truncate w-40" title={ing?.name}>{ing?.name}</div>
+                                                        <button onClick={() => handleUpdate(p => ({...p, ingredientConstraints: p.ingredientConstraints.filter((_, i) => i !== idx)}))} className="text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 p-1.5 rounded-lg"><TrashIcon className="w-3.5 h-3.5"/></button>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <div className="flex-1"><label className="text-[9px] text-gray-400 uppercase font-bold text-center block mb-1">Mín %</label><SmartInput value={ic.min} onChange={v => handleUpdate(p => ({...p, ingredientConstraints: p.ingredientConstraints.map((x, i) => i === idx ? {...x, min: v} : x)}))} placeholder="0" className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 text-[14px] text-green-400 focus:border-green-500 focus:ring-1 focus:ring-green-500/50 outline-none font-bold transition-all" /></div>
+                                                        <div className="flex-1"><label className="text-[9px] text-gray-400 uppercase font-bold text-center block mb-1">Máx %</label><SmartInput value={ic.max} isMax={true} onChange={v => handleUpdate(p => ({...p, ingredientConstraints: p.ingredientConstraints.map((x, i) => i === idx ? {...x, max: v} : x)}))} placeholder="Máx" className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 text-[14px] text-green-400 focus:border-green-500 focus:ring-1 focus:ring-green-500/50 outline-none font-bold transition-all" /></div>
                                                     </div>
                                                 </div>
                                             );

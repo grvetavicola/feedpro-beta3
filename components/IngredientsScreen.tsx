@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Ingredient, Nutrient } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
 import { PencilIcon, TrashIcon, PlusIcon, UploadIcon, SaveIcon, XCircleIcon, SparklesIcon, FlaskIcon, MenuIcon } from './icons'; // Assuming MenuIcon or similar can represent list view, using icons available
@@ -28,6 +28,50 @@ interface ParsedNewNutrient {
     name: string;
     unit: string;
 }
+
+// --- SMART INPUT FOR NUMBERS ---
+const SmartInput = ({ value, onChange, placeholder, className, isMax = false }: { value: number, onChange: (v: number) => void, placeholder?: string, className?: string, isMax?: boolean }) => {
+    const defaultVal = value === 0 || value === 999 ? '' : value.toString();
+    const [localVal, setLocalVal] = useState<string>(defaultVal);
+
+    useEffect(() => {
+        if ((value === 0 || value === 999) && localVal === '') return;
+        const parsed = parseFloat(localVal.replace(/,/g, '.'));
+        if (parsed !== value && localVal !== value.toString() + '.' && localVal !== '0.' && localVal !== '-.') {
+           setLocalVal(value === 0 || value === 999 ? '' : value.toString());
+        }
+    }, [value]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let val = e.target.value.replace(/,/g, '.');
+        val = val.replace(/[^0-9.]/g, ''); 
+        if (val.startsWith('.')) val = '0' + val;
+        const parts = val.split('.');
+        if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
+        setLocalVal(val);
+        if (val === '' || val === '.') onChange(isMax ? 999 : 0);
+        else onChange(parseFloat(val));
+    };
+
+    const handleBlur = () => {
+        if (localVal.endsWith('.')) {
+            const fixed = localVal.slice(0, -1);
+            setLocalVal(fixed);
+            onChange(parseFloat(fixed) || (isMax ? 999 : 0));
+        }
+        if (localVal === '') onChange(isMax ? 999 : 0);
+    };
+
+    return <input 
+        type="text" 
+        value={localVal} 
+        onChange={handleChange} 
+        onFocus={e => e.target.select()}
+        onBlur={handleBlur}
+        placeholder={placeholder} 
+        className={`text-center font-mono ${className}`} 
+    />;
+};
 
 // --- EDIT MODAL COMPONENT (unchanged logic, just keeping it here) ---
 const EditIngredientModal: React.FC<{
@@ -148,29 +192,23 @@ const EditIngredientModal: React.FC<{
                                     }} className="text-red-400 hover:text-red-300"><TrashIcon className="w-4 h-4"/></button>
                                 </div>
                                 <div className="col-span-3">
-                                     <input
-                                        type="number"
-                                        step="0.01"
+                                     <SmartInput
                                         value={editedIngredient.nutrients[n.id]}
-                                        onChange={(e) => handleCompositionChange(n.id, e.target.value)}
-                                        className="w-full bg-gray-900/50 text-sm rounded-md p-1.5 border border-cyan-900/50 focus:border-cyan-500 outline-none text-right font-mono text-cyan-100"
-                                    />
+                                        onChange={(v) => handleCompositionChange(n.id, v.toString())}
+                                        className="w-full bg-gray-900/50 text-[14px] rounded-lg p-2 border border-cyan-900/50 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50 outline-none text-right font-mono font-bold text-cyan-300 transition-all placeholder-transparent"
+                                      />
                                 </div>
                                 <div className="col-span-3">
-                                      <input
-                                        type="number"
-                                        step="0.01"
-                                        value={editedIngredient.dynamicNutrients?.[n.id] || ''}
+                                      <SmartInput
+                                        value={editedIngredient.dynamicNutrients?.[n.id] || 0}
                                         placeholder="--"
-                                        title="Dejar vacío para usar Estándar"
-                                        onChange={(e) => {
-                                            const val = e.target.value;
+                                        onChange={(v) => {
                                             const newDyn = {...(editedIngredient.dynamicNutrients || {})};
-                                            if (val === '') { delete newDyn[n.id]; }
-                                            else { newDyn[n.id] = parseFloat(val) || 0; }
+                                            if (v === 0 && (document.activeElement as HTMLInputElement)?.value === '') { delete newDyn[n.id]; }
+                                            else { newDyn[n.id] = v; }
                                             setEditedIngredient({...editedIngredient, dynamicNutrients: newDyn});
                                         }}
-                                        className="w-full bg-purple-900/20 text-sm rounded-md p-1.5 border border-purple-900/50 focus:border-purple-500 outline-none text-right font-mono text-purple-200 placeholder-purple-800"
+                                        className="w-full bg-purple-900/20 text-[14px] rounded-lg p-2 border border-purple-900/50 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 outline-none text-right font-mono font-bold text-purple-300 transition-all placeholder-purple-800/50"
                                     />
                                 </div>
                             </div>
