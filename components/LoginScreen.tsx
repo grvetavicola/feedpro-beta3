@@ -31,7 +31,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                 name: account.username,
                 subscription: 'pro',
                 email: account.email,
-                assignedClientId: account.assignedClientId
+                assignedClientId: account.assignedClientId,
+                trialEndsAt: account.trialEndsAt
             });
         } else {
             setErrorMsg('Credenciales inválidas. Por favor verifique el usuario y contraseña.');

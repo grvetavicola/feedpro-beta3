@@ -85,16 +85,22 @@ export const INITIAL_PRODUCTS: Product[] = [
   }
 ];
 
+// Fechas de Expiracion de Prueba (90 dias / 3 meses)
+const THREE_MONTHS_MS = 90 * 24 * 60 * 60 * 1000;
+const TRIAL_START = new Date('2026-04-10').getTime();
+const TRIAL_EXPIRY = TRIAL_START + THREE_MONTHS_MS;
+const PREM_EXPIRY = TRIAL_START + (1000 * 365 * 24 * 60 * 60 * 1000); // 1000 años para Admin/Comercial
+
 export const AUTHORIZED_ACCOUNTS = [
-  { username: 'feedpro', password: 'feed01_', email: 'contacto@cliente1.com', assignedClientId: 'c1' },
-  { username: 'feedpro', password: 'feed02_', email: 'contacto@cliente2.com', assignedClientId: 'c2' },
-  { username: 'feedpro', password: 'feed03_', email: 'contacto@cliente3.com', assignedClientId: 'c3' },
-  { username: 'feedpro', password: 'feed04_', email: 'contacto@cliente4.com', assignedClientId: 'c4' },
-  { username: 'feedpro', password: 'feed05_', email: 'contacto@cliente5.com', assignedClientId: 'c5' },
-  { username: 'feedpro', password: 'feed06_', email: 'contacto@cliente6.com', assignedClientId: 'c6' },
-  { username: 'feedpro', password: 'feed07_', email: 'contacto@cliente7.com', assignedClientId: 'c7' },
-  { username: 'feedpro', password: 'feed08_', email: 'contacto@cliente8.com', assignedClientId: 'c8' },
-  { username: 'feedpro', password: 'feed09_', email: 'contacto@cliente9.com', assignedClientId: 'c9' },
-  { username: 'feedpro', password: 'feed10_', email: 'contacto@cliente10.com', assignedClientId: 'c10' },
-  { username: 'admin', password: 'admin_feedpro', email: 'admin@feedpro.com', assignedClientId: 'ALL' }
+  { username: 'feedpro', password: 'feed01_', email: 'comercial@feedpro.com', assignedClientId: 'c1', trialEndsAt: PREM_EXPIRY },
+  { username: 'feedpro', password: 'feed02_', email: 'gratis02@feedpro.com', assignedClientId: 'c2', trialEndsAt: TRIAL_EXPIRY },
+  { username: 'feedpro', password: 'feed03_', email: 'gratis03@feedpro.com', assignedClientId: 'c3', trialEndsAt: TRIAL_EXPIRY },
+  { username: 'feedpro', password: 'feed04_', email: 'gratis04@feedpro.com', assignedClientId: 'c4', trialEndsAt: TRIAL_EXPIRY },
+  { username: 'feedpro', password: 'feed05_', email: 'gratis05@feedpro.com', assignedClientId: 'c5', trialEndsAt: TRIAL_EXPIRY },
+  { username: 'feedpro', password: 'feed06_', email: 'gratis06@feedpro.com', assignedClientId: 'c6', trialEndsAt: TRIAL_EXPIRY },
+  { username: 'feedpro', password: 'feed07_', email: 'gratis07@feedpro.com', assignedClientId: 'c7', trialEndsAt: TRIAL_EXPIRY },
+  { username: 'feedpro', password: 'feed08_', email: 'gratis08@feedpro.com', assignedClientId: 'c8', trialEndsAt: TRIAL_EXPIRY },
+  { username: 'feedpro', password: 'feed09_', email: 'gratis09@feedpro.com', assignedClientId: 'c9', trialEndsAt: TRIAL_EXPIRY },
+  { username: 'feedpro', password: 'feed10_', email: 'gratis10@feedpro.com', assignedClientId: 'c10', trialEndsAt: TRIAL_EXPIRY },
+  { username: 'admin', password: 'admin_feedpro', email: 'admin@feedpro.com', assignedClientId: 'ALL', trialEndsAt: PREM_EXPIRY }
 ];

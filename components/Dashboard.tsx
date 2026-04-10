@@ -11,6 +11,7 @@ interface DashboardProps {
   onNavigate: (view: ViewState) => void;
   isDynamicMatrix: boolean;
   setIsDynamicMatrix: (val: boolean) => void;
+  user?: User | null;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, savedFormulas, clients, onNavigate, isDynamicMatrix, setIsDynamicMatrix }) => {
@@ -38,6 +39,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
             </div>
             <h1 className="text-lg font-bold text-white leading-tight">Optimización Nutricional <span className="text-cyan-400">Sin Compromisos.</span></h1>
             <p className="text-gray-400 text-[13px] leading-snug">Motor táctico de formulación agropecuaria sincronizado.</p>
+            
+            {user?.trialEndsAt && user.trialEndsAt < (Date.now() + 1000 * 365 * 24 * 60 * 60) && (
+                <div className="mt-2 inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 px-2 py-0.5 rounded text-[10px] font-bold text-yellow-500 uppercase tracking-tighter">
+                   <ClockIcon className="w-3 h-3"/> 
+                   LICENCIA DE PRUEBA: {Math.max(0, Math.ceil((user.trialEndsAt - Date.now()) / (1000 * 60 * 60 * 24)))} DÍAS RESTANTES
+                </div>
+            )}
           </div>
           <div className="flex gap-2 shrink-0">
              <button onClick={() => onNavigate('OPTIMIZATION')} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-4 py-1.5 rounded flex items-center gap-2 transition-all text-[13px]">

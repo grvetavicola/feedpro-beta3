@@ -5,6 +5,7 @@ export interface User {
   subscription: SubscriptionTier;
   email?: string;
   assignedClientId?: string;
+  trialEndsAt?: number; // Timestamp
 }
 
 export interface Nutrient {

@@ -98,6 +98,24 @@ export default function App() {
 
   if (!user) return <LoginScreen onLogin={setUser} />;
 
+  // Proteger por expiracion de prueba (BETA)
+  const isTrialExpired = user.trialEndsAt && Date.now() > user.trialEndsAt;
+  if (isTrialExpired) {
+      return (
+          <div className="flex items-center justify-center h-screen bg-gray-950 text-white p-8">
+              <div className="max-w-md w-full bg-gray-900 border border-red-500/30 p-8 rounded-2xl shadow-2xl text-center space-y-6">
+                  <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto">
+                      <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                  </div>
+                  <h1 className="text-2xl font-bold text-red-400 uppercase tracking-widest">Suscripción Expirada</h1>
+                  <p className="text-gray-400 text-sm italic">Tu periodo de prueba beta de 3 meses ha finalizado para la cuenta {user.name}.</p>
+                  <p className="text-gray-500 text-xs">Por favor, contacte el soporte técnico de FeedPro 360 para renovar su licencia comercial o pasar a un plan Pro.</p>
+                  <button onClick={() => setUser(null)} className="w-full bg-gray-800 hover:bg-gray-700 text-white py-3 rounded-lg font-bold transition-all border border-gray-700">VOLVER AL INICIO</button>
+              </div>
+          </div>
+      );
+  }
+
   // Delta Logic Fusion
   const getEffectiveIngredients = (): Ingredient[] => {
     if (!selectedClientId || !workspaces[selectedClientId]) return ingredients;
@@ -198,7 +216,7 @@ export default function App() {
                     ) : (
                         (() => {
                             switch (view) {
-                                case 'DASHBOARD': return <Dashboard products={products} ingredients={effectiveIngredients} savedFormulas={savedFormulas} clients={clients} onNavigate={setView} isDynamicMatrix={isDynamicMatrix} setIsDynamicMatrix={setIsDynamicMatrix} />;
+                                case 'DASHBOARD': return <Dashboard products={products} ingredients={effectiveIngredients} savedFormulas={savedFormulas} clients={clients} onNavigate={setView} isDynamicMatrix={isDynamicMatrix} setIsDynamicMatrix={setIsDynamicMatrix} user={user} />;
                                 case 'INGREDIENTS': return <IngredientsScreen ingredients={ingredients} setIngredients={setIngredients} nutrients={nutrients} setNutrients={setNutrients} />;
                                 case 'NUTRIENTS': return <NutrientsScreen nutrients={nutrients} setNutrients={setNutrients} />;
                                 case 'PRODUCTS': return <ProductsScreen products={products} setProducts={setProducts} ingredients={effectiveIngredients} nutrients={nutrients} onOpenInNewWindow={(data, name) => handleOpenTask('OPTIMIZATION', name, data)} />;
@@ -216,7 +234,7 @@ export default function App() {
                                     return <ClientsScreen clients={clients} setClients={setClients} selectedClientId={selectedClientId} setSelectedClientId={setSelectedClientId} />;
                                 case 'ASSISTANT': return <AIAssistant user={user} ingredients={ingredients} nutrients={nutrients} products={products} />;
                                 case 'SETTINGS': return <SettingsScreen clients={clients} setClients={setClients} />;
-                                default: return <Dashboard products={products} ingredients={effectiveIngredients} savedFormulas={savedFormulas} clients={clients} onNavigate={setView} isDynamicMatrix={isDynamicMatrix} setIsDynamicMatrix={setIsDynamicMatrix} />;
+                                default: return <Dashboard products={products} ingredients={effectiveIngredients} savedFormulas={savedFormulas} clients={clients} onNavigate={setView} isDynamicMatrix={isDynamicMatrix} setIsDynamicMatrix={setIsDynamicMatrix} user={user} />;
                             }
                         })()
                     )}
