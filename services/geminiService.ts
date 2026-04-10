@@ -1,3 +1,4 @@
+import { GoogleGenAI } from '@google/genai';
 import { FormulationResult, Product, Ingredient, Nutrient, ChatMessage } from '../types';
 import { getAssistantPrompt } from '../lib/i18n/translations';
 
@@ -15,19 +16,56 @@ const getErrorMessage = (language: string) => {
     return "Hubo un error al comunicarse con la IA en la nube. Por favor, revisa la consola para más detalles.";
 }
 
+const LOCAL_DEV_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+let localAiInstance: GoogleGenAI | null = null;
+if (LOCAL_DEV_API_KEY) {
+    localAiInstance = new GoogleGenAI({ apiKey: LOCAL_DEV_API_KEY });
+}
+
 const callServerlessAI = async (action: string, payload: any): Promise<string> => {
-    const res = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, payload })
-    });
+    const isProduction = import.meta.env.PROD || window.location.hostname !== 'localhost'; 
     
-    if (!res.ok) {
-        throw new Error(`Serverless Error: ${res.statusText}`);
+    if (isProduction || !localAiInstance) {
+        const res = await fetch('/api/gemini', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action, payload })
+        });
+        
+        if (!res.ok) {
+            throw new Error(`Serverless Error: ${res.statusText}`);
+        }
+        
+        const data = await res.json();
+        return data.text || '';
+    } else {
+        // LOCAL DEVELOPMENT FALLBACK
+        const activeModel = payload.model || 'gemini-3-flash-preview';
+        
+        if (action === 'chatWithAssistant') {
+            const finalParts: any[] = [{ text: payload.prompt }];
+            if (payload.image) {
+                finalParts.unshift({ inlineData: { mimeType: payload.image.mimeType, data: payload.image.data } });
+            }
+            const response = await localAiInstance.models.generateContent({ model: activeModel, contents: finalParts });
+            return response.text || '';
+        }
+        
+        if (action === 'analyzeFormula') {
+            const response = await localAiInstance.models.generateContent({ model: activeModel, contents: payload.prompt });
+            return response.text || '';
+        }
+        
+        if (action === 'parseRequirements' || action === 'parseIngredients') {
+            const response = await localAiInstance.models.generateContent({
+                model: activeModel,
+                contents: payload.parts,
+                config: { systemInstruction: payload.systemInstruction, responseMimeType: "application/json" }
+            });
+            return response.text || '';
+        }
+        return '';
     }
-    
-    const data = await res.json();
-    return data.text || '';
 };
 
 
