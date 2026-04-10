@@ -1,6 +1,6 @@
 import React from 'react';
 import { Client, Product, ViewState } from '../types';
-import { Users, FileText, ChevronRight, LayoutGrid, Calculator, FlaskConical, Beaker, Package, Settings, PlayCircle } from 'lucide-react';
+import { Users, FileText, ChevronRight, LayoutGrid, Calculator, FlaskConical, Beaker, Package, Settings, PlayCircle, Plus } from 'lucide-react';
 
 interface ProductsSidebarProps {
   clients: Client[];
@@ -90,46 +90,76 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
             </div>
           </div>
 
-          {/* Real-time Diet Tree */}
+          {/* Real-time Diet Tree with Categorization */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">
+            <div className="flex items-center justify-between mb-4 px-1">
+              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">
                 Árbol de Dietas
               </label>
-              <span className="text-[10px] bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded border border-gray-700">
-                {filteredProducts.length}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] bg-gray-900 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-500/20 font-black">
+                  {filteredProducts.length} TOTAL
+                </span>
+              </div>
             </div>
             
-            <div className="space-y-1">
+            <div className="space-y-4">
               {filteredProducts.length > 0 ? (
-                filteredProducts.map(product => (
-                  <button
-                    key={product.id}
-                    onClick={() => {
-                        onNavigate('OPTIMIZATION');
-                        onSelectProduct(product);
-                    }}
-                    className="w-full flex items-center justify-between group px-3 py-2.5 rounded-lg border border-transparent hover:border-gray-800 hover:bg-gray-900/50 transition-all text-left"
-                  >
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center shrink-0 group-hover:bg-cyan-500/20 transition-colors border border-gray-700 group-hover:border-cyan-500/50">
-                        <FileText size={18} className="group-hover:text-cyan-400 text-gray-400" />
+                (() => {
+                  const grouped = filteredProducts.reduce((acc, p) => {
+                    const cat = p.category || 'Sin Categoría';
+                    if (!acc[cat]) acc[cat] = [];
+                    acc[cat].push(p);
+                    return acc;
+                  }, {} as Record<string, Product[]>);
+
+                  return Object.entries(grouped).map(([category, items]) => (
+                    <div key={category} className="space-y-1">
+                      <div className="flex items-center gap-2 px-1 mb-1 justify-between">
+                         <div className="flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]"></div>
+                            <span className="text-[11px] font-black text-emerald-400 uppercase tracking-wider">{category}</span>
+                         </div>
+                         <span className="text-[9px] text-gray-600 font-bold">{items.length}</span>
                       </div>
-                      <div className="overflow-hidden">
-                        <p className="text-[14px] font-black text-white truncate">{product.name}</p>
-                        <p className="text-[10px] text-cyan-400 font-black uppercase tracking-tighter">Banda: {product.code}</p>
+                      <div className="space-y-1 ml-1 pl-2 border-l border-gray-800/50">
+                        {items.map(product => (
+                          <button
+                            key={product.id}
+                            onClick={() => {
+                                onNavigate('OPTIMIZATION');
+                                onSelectProduct(product);
+                            }}
+                            className="w-full flex items-center justify-between group px-2 py-1.5 rounded-lg border border-transparent hover:border-gray-800 hover:bg-gray-900/50 transition-all text-left"
+                          >
+                            <div className="flex items-center gap-2 overflow-hidden">
+                              <div className="w-7 h-7 rounded bg-gray-800 flex items-center justify-center shrink-0 group-hover:bg-cyan-500/20 transition-colors border border-gray-700/50">
+                                <FileText size={12} className="group-hover:text-cyan-400 text-gray-500" />
+                              </div>
+                              <div className="overflow-hidden">
+                                <p className="text-[13px] font-bold text-gray-100 truncate group-hover:text-white">{product.name}</p>
+                                <p className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">REF-{product.code}</p>
+                              </div>
+                            </div>
+                            <ChevronRight size={12} className="text-gray-700 group-hover:text-cyan-400/50" />
+                          </button>
+                        ))}
                       </div>
                     </div>
-                    <ChevronRight size={14} className="text-gray-600 group-hover:text-cyan-400/50" />
-                  </button>
-                ))
+                  ));
+                })()
               ) : (
-                <p className="text-xs text-gray-600 italic px-3 py-4 text-center">No hay dietas registradas para este cliente.</p>
+                <div className="py-8 flex flex-col items-center justify-center text-center px-4 bg-gray-900/20 rounded-xl border border-dashed border-gray-800">
+                    <Package className="w-6 h-6 text-gray-700 mb-2 opacity-20" />
+                    <p className="text-[11px] text-gray-600 font-bold uppercase tracking-tighter">No hay dietas registradas</p>
+                </div>
               )}
 
-              <button className="w-full mt-2 py-2 border border-dashed border-gray-800 rounded-lg text-gray-600 text-xs hover:border-cyan-500/50 hover:text-cyan-500 transition-all flex items-center justify-center gap-2">
-                + Nueva Dieta
+              <button 
+                onClick={() => onNavigate('PRODUCTS')}
+                className="w-full mt-2 py-3 border-2 border-dashed border-gray-800/10 rounded-xl text-gray-500 text-[11px] font-black uppercase tracking-widest hover:border-cyan-500/30 hover:text-cyan-400 hover:bg-cyan-500/5 transition-all flex items-center justify-center gap-2 group"
+              >
+                <Plus className="w-3 h-3 group-hover:scale-125 transition-transform" /> Nueva Dieta
               </button>
             </div>
           </div>

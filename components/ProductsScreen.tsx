@@ -202,14 +202,17 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <input value={newProductName} onChange={e => setNewProductName(e.target.value)} placeholder="Nombre..." className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-[13px] text-white focus:border-cyan-500 outline-none w-48"/>
+                    <input value={newProductName} onChange={e => setNewProductName(e.target.value)} placeholder="Nombre Dieta..." className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-[13px] text-white focus:border-cyan-500 outline-none w-40 font-bold"/>
+                    <input id="new-product-category" placeholder="Categoría (opc)..." className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-[13px] text-white focus:border-cyan-500 outline-none w-32 font-bold"/>
                     <button onClick={() => {
                         if (!newProductName) return;
+                        const catInput = document.getElementById('new-product-category') as HTMLInputElement;
                         const newId = `p_${Date.now()}`;
-                        setProducts([...products, { id: newId, clientId: 'default', code: products.length + 100, name: newProductName, constraints: [], relationships: [], ingredientConstraints: [] }]);
+                        setProducts([...products, { id: newId, clientId: 'default', code: products.length + 100, name: newProductName, category: catInput.value || undefined, constraints: [], relationships: [], ingredientConstraints: [] }]);
                         setSelectedProductId(newId);
                         setNewProductName('');
-                    }} className="bg-cyan-600 hover:bg-cyan-500 text-white font-semibold px-3 py-1 rounded text-[13px] transition-all flex items-center gap-1">
+                        if (catInput) catInput.value = '';
+                    }} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-4 py-1 rounded text-[13px] transition-all flex items-center gap-1 shadow-lg shadow-cyan-900/20">
                         <PlusIcon className="w-3 h-3"/> Crear
                     </button>
                 </div>
@@ -222,7 +225,13 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
                     <div className="flex-1 overflow-y-auto space-y-0.5 p-1 custom-scrollbar">
                         {products.map(p => (
                             <div key={p.id} onClick={() => setSelectedProductId(p.id)} className={`p-2 rounded cursor-pointer transition-colors group flex justify-between items-center ${p.id === selectedProductId ? 'bg-cyan-900/30 border border-cyan-500/50' : 'hover:bg-gray-700/50 border border-transparent'}`}>
-                                <div className="truncate"><div className={`text-[13px] font-bold ${p.id === selectedProductId ? 'text-cyan-300' : 'text-gray-300'}`}>{p.name}</div><div className="text-[10px] text-gray-500 font-mono leading-none\">#{p.code}</div></div>
+                                <div className="truncate">
+                                    <div className={`text-[13px] font-black ${p.id === selectedProductId ? 'text-cyan-300' : 'text-white'}`}>{p.name}</div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] text-gray-400 font-black font-mono">#{p.code}</span>
+                                        {p.category && <span className="text-[9px] text-emerald-500 font-black uppercase tracking-tighter bg-emerald-500/10 px-1 rounded">{p.category}</span>}
+                                    </div>
+                                </div>
                                 <button onClick={(e) => { e.stopPropagation(); setProducts(prev => prev.filter(x => x.id !== p.id)); }} className="text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100"><TrashIcon className="w-3 h-3"/></button>
                             </div>
                         ))}
@@ -234,7 +243,17 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
                     {currentProduct ? (
                         <div className="flex-1 flex flex-col overflow-hidden">
                             <div className="p-2 px-3 border-b border-gray-700 flex justify-between items-center bg-gray-900/20">
-                                <div className="flex items-center gap-3"><input value={currentProduct.name} onChange={e => handleUpdate(p => ({...p, name: e.target.value}))} className="bg-transparent text-[15px] font-bold text-cyan-400 focus:outline-none focus:border-b border-cyan-500 w-64" /></div>
+                                <div className="flex items-center gap-4">
+                                    <div className="flex flex-col">
+                                        <label className="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none mb-1">Nombre de Dieta</label>
+                                        <input value={currentProduct.name} onChange={e => handleUpdate(p => ({...p, name: e.target.value}))} className="bg-transparent text-[16px] font-black text-white focus:outline-none focus:border-b border-cyan-500 w-64" />
+                                    </div>
+                                    <div className="h-8 w-px bg-gray-700 mx-2"></div>
+                                    <div className="flex flex-col">
+                                        <label className="text-[9px] text-emerald-400 font-bold uppercase tracking-widest leading-none mb-1">Categoría / Grupo</label>
+                                        <input value={currentProduct.category || ''} placeholder="Ej: Crianzas, Postura..." onChange={e => handleUpdate(p => ({...p, category: e.target.value}))} className="bg-transparent text-[14px] font-black text-emerald-400 focus:outline-none focus:border-b border-emerald-500 w-48" />
+                                    </div>
+                                </div>
                                 <div className="flex gap-2">
                                     {bases && bases.length > 0 && bases.map(b => (
                                         <button key={b.id} onClick={() => applyBase(b)} className="text-[10px] bg-purple-900/30 text-purple-400 border border-purple-500/30 px-2 py-1 rounded hover:bg-purple-900/50 transition-colors">Base: {b.name}</button>

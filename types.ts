@@ -59,6 +59,7 @@ export interface Product {
   clientId: string; 
   code: number;
   name: string;
+  category?: string; // e.g. "Crianzas", "Postura", etc.
   constraints: ProductConstraint[];
   relationships: Relationship[];
   ingredientConstraints: IngredientConstraint[];
