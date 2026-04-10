@@ -25,15 +25,10 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
   
   return (
     <aside className="w-[240px] bg-gray-950 border-r border-gray-800 flex flex-col h-full overflow-hidden">
-      {/* Brand Logo & Client Selector Section */}
-      <div className="p-4 border-b border-gray-800 flex flex-col items-center">
-        <div className="mb-4 flex flex-col items-center">
-             <img src="/feedpro.png" alt="FeedPro" className="h-10 object-contain drop-shadow-md mb-2" />
-             <div className="h-px w-10 bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
-        </div>
-
+      {/* Client Selector Section (Logo moved to Header) */}
+      <div className="p-4 border-b border-gray-800 flex flex-col items-center pt-2">
         <label className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 block w-full text-center">
-          Consultoría Activa
+          Portfolio de Consultoría
         </label>
         <div className="relative group">
           <select 

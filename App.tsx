@@ -167,36 +167,34 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-950 text-white overflow-hidden font-sans">
-      <ProductsSidebar 
-        clients={clients}
-        products={products}
-        selectedClientId={selectedClientId}
-        activeView={view}
-        onSelectClient={setSelectedClientId}
-        onSelectProduct={(p) => {
-            setView('OPTIMIZATION');
-            // Assuming the sidebar handles the selection logic or we could manage it here. In this case, 
-            // since we don't have selected productId in App directly, we just open optimization.
-            // Ideally ProductsSidebar notifies the Product component.
+    <div className="flex flex-col h-screen bg-gray-950 text-white overflow-hidden font-sans">
+      <Header 
+        activeView={view} 
+        onViewChange={setView} 
+        user={user} 
+        activeTasks={activeTasks}
+        activeTaskId={activeTaskId}
+        onSelectTask={setActiveTaskId}
+        onCloseTask={(id) => {
+            setActiveTasks(prev => prev.filter(t => t.id !== id));
+            if (activeTaskId === id) setActiveTaskId(null);
         }}
-        onNavigate={setView}
+        onManageProfile={() => setShowProfileModal(true)}
       />
-      
-      <div className="flex-1 flex flex-col min-w-0">
-        <Header 
-          activeView={view} 
-          onViewChange={setView} 
-          user={user} 
-          activeTasks={activeTasks}
-          activeTaskId={activeTaskId}
-          onSelectTask={setActiveTaskId}
-          onCloseTask={(id) => {
-              setActiveTasks(prev => prev.filter(t => t.id !== id));
-              if (activeTaskId === id) setActiveTaskId(null);
+
+      <div className="flex flex-1 overflow-hidden">
+        <ProductsSidebar 
+          clients={clients}
+          products={products}
+          selectedClientId={selectedClientId}
+          activeView={view}
+          onSelectClient={setSelectedClientId}
+          onSelectProduct={(p) => {
+              setView('OPTIMIZATION');
           }}
-          onManageProfile={() => setShowProfileModal(true)}
+          onNavigate={setView}
         />
+        
         <main className="flex-1 relative flex flex-col bg-[radial-gradient(circle_at_50%_0%,rgba(6,182,212,0.05),transparent_50%)] overflow-hidden p-6">
             <div className="flex-1 relative overflow-hidden flex flex-col">
                 {/* View Content */}
