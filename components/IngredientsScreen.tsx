@@ -121,14 +121,30 @@ const EditIngredientModal: React.FC<{
                             />
                         </div>
                         <div className="col-span-2">
-                            <label className="text-xs text-gray-400 block mb-1">Categoría</label>
+                            <label className="text-xs text-gray-400 block mb-1">C. Principal</label>
                             <select 
                                 value={editedIngredient.category || 'Macro'}
-                                onChange={(e) => setEditedIngredient({ ...editedIngredient, category: e.target.value as 'Macro' | 'Micro' })}
-                                className="w-full bg-gray-700 text-sm rounded-md p-2 border border-gray-600"
+                                onChange={(e) => setEditedIngredient({ ...editedIngredient, category: e.target.value })}
+                                className="w-full bg-gray-700 text-xs rounded-md p-2 border border-gray-600 font-bold text-white shadow-inner"
                             >
                                 <option value="Macro">Macro</option>
                                 <option value="Micro">Micro</option>
+                            </select>
+                        </div>
+                        <div className="col-span-2">
+                             <label className="text-xs text-gray-400 block mb-1">Subcategoría</label>
+                            <select 
+                                value={editedIngredient.subcategory || 'Energético'}
+                                onChange={(e) => setEditedIngredient({ ...editedIngredient, subcategory: e.target.value })}
+                                className="w-full bg-gray-700 text-xs rounded-md p-2 border border-gray-600 font-bold text-white shadow-inner"
+                            >
+                                <option value="Energético">Energético</option>
+                                <option value="Proteico">Proteico</option>
+                                <option value="Fibroso">Fibroso</option>
+                                <option value="Mineral">Mineral</option>
+                                <option value="Vitamínico">Vitamínico</option>
+                                <option value="Aditivo">Aditivo</option>
+                                <option value="Otros">Otros</option>
                             </select>
                         </div>
                         <div className="col-span-2">
@@ -394,9 +410,14 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredient
                                         <td className="px-2 py-1 font-mono text-gray-500">{ing.code}</td>
                                         <td className="px-2 py-1 font-medium whitespace-nowrap text-white">{ing.name}</td>
                                         <td className="px-2 py-1">
-                                            <span className={`text-[10px] uppercase px-1.5 py-0.5 rounded border ${ing.category === 'Macro' ? 'border-green-500/50 text-green-400' : 'border-purple-500/50 text-purple-400'}`}>
-                                                {ing.category || 'Macro'}
-                                            </span>
+                                            <div className="flex flex-col">
+                                                <span className={`text-[9px] uppercase font-black ${ing.category === 'Macro' ? 'text-green-400' : 'text-purple-400'}`}>
+                                                    {ing.category || 'Macro'}
+                                                </span>
+                                                <span className="text-[11px] text-gray-300 font-semibold truncate max-w-[80px]">
+                                                    {ing.subcategory || '-'}
+                                                </span>
+                                            </div>
                                         </td>
                                         <td className="px-2 py-1">
                                             <span className={`font-mono font-bold ${(!ing.stock || ing.stock < 1000) ? 'text-red-400' : 'text-blue-300'}`}>

@@ -23,27 +23,27 @@ export const DEFAULT_RELATIONS: Omit<Relationship, 'id' | 'min' | 'max'>[] = [
 
 export const INITIAL_INGREDIENTS: Ingredient[] = [
   { 
-    id: 'i1', code: 1001, name: 'Maíz Grano', category: 'Energético', price: 0.25, stock: 50000,
+    id: 'i1', code: 1001, name: 'Maíz Grano', category: 'Macro', subcategory: 'Energético', price: 0.25, stock: 50000,
     nutrients: { 'n1': 88, 'n2': 8.5, 'n3': 3.35, 'n4': 0.02, 'n5': 0.12, 'n6': 0.24, 'n7': 0.18 }
   },
   { 
-    id: 'i2', code: 1002, name: 'Harina de Soja 45%', category: 'Proteico', price: 0.55, stock: 20000,
+    id: 'i2', code: 1002, name: 'Harina de Soja 45%', category: 'Macro', subcategory: 'Proteico', price: 0.55, stock: 20000,
     nutrients: { 'n1': 89, 'n2': 45.0, 'n3': 2.25, 'n4': 0.30, 'n5': 0.28, 'n6': 2.80, 'n7': 0.65 }
   },
   { 
-    id: 'i3', code: 1003, name: 'Afrecho de Trigo', category: 'Fibroso', price: 0.20, stock: 15000,
+    id: 'i3', code: 1003, name: 'Afrecho de Trigo', category: 'Macro', subcategory: 'Fibroso', price: 0.20, stock: 15000,
     nutrients: { 'n1': 88, 'n2': 15.0, 'n3': 1.80, 'n4': 0.15, 'n5': 0.50, 'n6': 0.60, 'n7': 0.25 }
   },
   { 
-    id: 'i4', code: 1004, name: 'Carbonato de Calcio', category: 'Mineral', price: 0.10, stock: 5000,
+    id: 'i4', code: 1004, name: 'Carbonato de Calcio', category: 'Micro', subcategory: 'Mineral', price: 0.10, stock: 5000,
     nutrients: { 'n1': 99, 'n2': 0, 'n3': 0, 'n4': 38.0, 'n5': 0, 'n6': 0, 'n7': 0 }
   },
   { 
-    id: 'i5', code: 1005, name: 'Fosfato Bicálcico', category: 'Mineral', price: 0.80, stock: 3000,
+    id: 'i5', code: 1005, name: 'Fosfato Bicálcico', category: 'Micro', subcategory: 'Mineral', price: 0.80, stock: 3000,
     nutrients: { 'n1': 98, 'n2': 0, 'n3': 0, 'n4': 24.0, 'n5': 18.0, 'n6': 0, 'n7': 0 }
   },
   { 
-    id: 'i6', code: 1006, name: 'Aceite de Soja', category: 'Energético', price: 1.20, stock: 2000,
+    id: 'i6', code: 1006, name: 'Aceite de Soja', category: 'Macro', subcategory: 'Energético', price: 1.20, stock: 2000,
     nutrients: { 'n1': 99, 'n2': 0, 'n3': 8.80, 'n4': 0, 'n5': 0, 'n6': 0, 'n7': 0 }
   }
 ];

@@ -21,6 +21,7 @@ export interface Ingredient {
   code: number;
   name: string;
   category: string; 
+  subcategory?: string;
   price: number; 
   stock: number;
   nutrients: Record<string, number>; 
