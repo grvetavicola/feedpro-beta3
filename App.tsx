@@ -189,7 +189,7 @@ export default function App() {
                                 case 'OPTIMIZATION': 
                                     return <FormulationScreen products={products} setProducts={setProducts} ingredients={effectiveIngredients} nutrients={nutrients} clients={clients} selectedClientId={selectedClientId} savedFormulas={savedFormulas} setSavedFormulas={setSavedFormulas} isDynamicMatrix={isDynamicMatrix} forceResult={currentActiveTask.data} />;
                                 case 'GROUP_OPTIMIZATION':
-                                    return <GroupResultsScreen results={currentActiveTask.data.result} assignments={currentActiveTask.data.assignments} products={products} ingredients={effectiveIngredients} />;
+                                    return <GroupResultsScreen results={currentActiveTask.data.result} assignments={currentActiveTask.data.assignments} products={products} ingredients={effectiveIngredients} nutrients={nutrients} isDynamicMatrix={isDynamicMatrix} onUpdateProduct={(updatedProduct) => setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p))} />;
                                 case 'SIMULATION':
                                     return <SimulationScreen ingredients={effectiveIngredients} setIngredients={setIngredients} nutrients={nutrients} />;
                                 default: return <div className="p-8 text-center text-gray-500">Vista de tarea no soportada.</div>;
