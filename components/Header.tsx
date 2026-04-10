@@ -60,7 +60,7 @@ export const Header: React.FC<HeaderProps> = ({
                         <img 
                             src="/feedpro.png" 
                             alt="FeedPro" 
-                            className="h-7 object-contain brightness-0 invert opacity-90 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]" 
+                            className="h-7 object-contain brightness-0 invert opacity-90" 
                         />
                         <div className="flex items-center gap-1 mt-0.5">
                             <span className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.2em] opacity-80">Executive</span>
@@ -97,17 +97,6 @@ export const Header: React.FC<HeaderProps> = ({
                     })}
                 </div>
             </nav>
-
-            {/* Account Status Badge */}
-            <div className="flex items-center gap-4 shrink-0 relative z-10 bg-gray-950/50 py-2 px-4 rounded-2xl border border-gray-800">
-                <div className="text-right">
-                    <p className="text-[11px] font-black text-white uppercase leading-none">{user.name}</p>
-                    <div className="flex items-center justify-end gap-1.5 mt-1">
-                        <StarIcon className="w-3 h-3 text-yellow-500" />
-                        <p className="text-[9px] text-yellow-500 font-bold uppercase tracking-wider">Premium Account</p>
-                    </div>
-                </div>
-            </div>
         </header>
     );
 };
