@@ -44,6 +44,9 @@ export default function App() {
   const [activeTasks, setActiveTasks] = useState<ActiveTask[]>([]);
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   
+  // Unified Optimization State
+  const [selectedDietIds, setSelectedDietIds] = useState<string[]>([]);
+  
   // UI Interaction States
   const [showProfileModal, setShowProfileModal] = useState(false);
 
@@ -141,6 +144,18 @@ export default function App() {
     setActiveTaskId(id);
   };
 
+  const handleToggleDietSelection = (ids: string[], isSelected: boolean) => {
+      setSelectedDietIds(prev => {
+          const set = new Set(prev);
+          if (isSelected) {
+              ids.forEach(id => set.add(id));
+          } else {
+              ids.forEach(id => set.delete(id));
+          }
+          return Array.from(set);
+      });
+  };
+
   const currentActiveTask = activeTasks.find(t => t.id === activeTaskId);
 
   // Cross-Client Replicator Logic
@@ -192,6 +207,8 @@ export default function App() {
           onSelectProduct={(p) => {
               setView('OPTIMIZATION');
           }}
+          selectedDietIds={selectedDietIds}
+          onToggleDietSelection={handleToggleDietSelection}
           onNavigate={setView}
         />
         
@@ -218,8 +235,8 @@ export default function App() {
                                 case 'INGREDIENTS': return <IngredientsScreen ingredients={ingredients} setIngredients={setIngredients} nutrients={nutrients} setNutrients={setNutrients} />;
                                 case 'NUTRIENTS': return <NutrientsScreen nutrients={nutrients} setNutrients={setNutrients} />;
                                 case 'PRODUCTS': return <ProductsScreen products={products} setProducts={setProducts} ingredients={effectiveIngredients} nutrients={nutrients} onOpenInNewWindow={(data, name) => handleOpenTask('OPTIMIZATION', name, data)} />;
-                                case 'OPTIMIZATION': return <FormulationScreen products={products} setProducts={setProducts} ingredients={effectiveIngredients} setIngredients={setIngredients} nutrients={nutrients} clients={clients} selectedClientId={selectedClientId} savedFormulas={savedFormulas} setSavedFormulas={setSavedFormulas} isDynamicMatrix={isDynamicMatrix} onOpenInNewWindow={(data, name) => handleOpenTask('OPTIMIZATION', name, data)} />;
-                                case 'GROUP_OPTIMIZATION': return <GroupOptimizationScreen products={products} ingredients={effectiveIngredients} nutrients={nutrients} isDynamicMatrix={isDynamicMatrix} onOpenInNewWindow={(data, name) => handleOpenTask('GROUP_OPTIMIZATION', name, data)} />;
+                                case 'OPTIMIZATION': return <GroupOptimizationScreen products={products} ingredients={effectiveIngredients} nutrients={nutrients} isDynamicMatrix={isDynamicMatrix} selectedDietIds={selectedDietIds} onOpenInNewWindow={(data, name) => handleOpenTask('GROUP_OPTIMIZATION', name, data)} onUpdateProduct={(updatedProduct) => setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p))} />;
+                                case 'GROUP_OPTIMIZATION': return <GroupOptimizationScreen products={products} ingredients={effectiveIngredients} nutrients={nutrients} isDynamicMatrix={isDynamicMatrix} selectedDietIds={selectedDietIds} onOpenInNewWindow={(data, name) => handleOpenTask('GROUP_OPTIMIZATION', name, data)} onUpdateProduct={(updatedProduct) => setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p))} />;
                                 case 'SIMULATION': return <SimulationScreen ingredients={effectiveIngredients} setIngredients={setIngredients} nutrients={nutrients} />;
                                 case 'CLIENTS': 
                                     if (user.assignedClientId && user.assignedClientId !== 'ALL') {
