@@ -20,13 +20,50 @@ const LoadingBubble: React.FC = () => (
     </div>
 );
 
-const fileToBase64 = (file: File): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve((reader.result as string).split(',')[1]); // remove prefix
-    reader.onerror = (error) => reject(error);
-  });
+const compressImageToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                
+                // Maximum viewport constraint for AI reading (crushes 4k screenshots)
+                const MAX_RESOLUTION = 1800;
+                
+                if (width > height && width > MAX_RESOLUTION) {
+                    height *= MAX_RESOLUTION / width;
+                    width = MAX_RESOLUTION;
+                } else if (height > MAX_RESOLUTION) {
+                    width *= MAX_RESOLUTION / height;
+                    height = MAX_RESOLUTION;
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    ctx.drawImage(img, 0, 0, width, height);
+                    // Compress to JPEG at 80% quality
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+                    resolve(compressedBase64);
+                } else {
+                    resolve((event.target?.result as string).split(',')[1]); // Fallback if no contexts
+                }
+            };
+            img.onerror = (err) => reject(err);
+            if (event.target?.result) {
+                img.src = event.target.result as string;
+            } else {
+                reject(new Error("No file content"));
+            }
+        };
+        reader.onerror = (error) => reject(error);
+    });
+};
 
 export const AIAssistant: React.FC<AIAssistantProps> = ({ user = { name: 'Admin', subscription: 'pro' }, ingredients, nutrients, products, onUpgradeRequest = () => {} }) => {
   const { t, language } = useTranslations();
@@ -87,9 +124,9 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ user = { name: 'Admin'
     let imagePayload;
     if (attachedFile) {
         try {
-            const base64Data = await fileToBase64(attachedFile);
+            const base64Data = await compressImageToBase64(attachedFile);
             imagePayload = {
-                mimeType: attachedFile.type,
+                mimeType: 'image/jpeg', // Always output as optimized JPEG
                 data: base64Data,
             };
         } catch (error) {
