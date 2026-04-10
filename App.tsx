@@ -19,7 +19,8 @@ import {
     INITIAL_INGREDIENTS,
     INITIAL_NUTRIENTS, 
     INITIAL_PRODUCTS, 
-    INITIAL_CLIENTS 
+    INITIAL_CLIENTS,
+    APP_NAME
 } from './constants';
 
 const STORAGE_KEY = 'feedpro_pro_integrated_data';
@@ -112,7 +113,7 @@ export default function App() {
                   </div>
                   <h1 className="text-2xl font-bold text-red-400 uppercase tracking-widest">Suscripción Expirada</h1>
                   <p className="text-gray-400 text-sm italic">Tu periodo de prueba beta de 3 meses ha finalizado para la cuenta {user.name}.</p>
-                  <p className="text-gray-500 text-xs">Por favor, contacte el soporte técnico de FeedPro 360 para renovar su licencia comercial o pasar a un plan Pro.</p>
+                  <p className="text-gray-500 text-xs">Por favor, contacte el soporte técnico de {APP_NAME} para renovar su licencia comercial o pasar a un plan Pro.</p>
                   <button onClick={() => setUser(null)} className="w-full bg-gray-800 hover:bg-gray-700 text-white py-3 rounded-lg font-bold transition-all border border-gray-700">VOLVER AL INICIO</button>
               </div>
           </div>
@@ -210,6 +211,22 @@ export default function App() {
           selectedDietIds={selectedDietIds}
           onToggleDietSelection={handleToggleDietSelection}
           onNavigate={setView}
+          onDeleteProduct={(id) => {
+              setProducts(prev => prev.filter(p => p.id !== id));
+              setSelectedDietIds(prev => prev.filter(dietId => dietId !== id));
+          }}
+          onDeleteCategory={(cat) => {
+              const toRemove = new Set(products.filter(p => (p.category || 'Categoría General') === cat).map(p => p.id));
+              setProducts(prev => prev.filter(p => !toRemove.has(p.id)));
+              setSelectedDietIds(prev => prev.filter(id => !toRemove.has(id)));
+          }}
+          onEditProduct={(id) => {
+              setView('PRODUCTS');
+              // Optionally handled in ProductsScreen if selected, but simply navigating to PRODUCTS allows editing.
+          }}
+          onEditCategory={(cat) => {
+              setView('PRODUCTS');
+          }}
         />
         
         <main className="flex-1 relative flex flex-col bg-[radial-gradient(circle_at_50%_0%,rgba(6,182,212,0.05),transparent_50%)] overflow-hidden p-6">

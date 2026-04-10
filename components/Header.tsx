@@ -6,6 +6,7 @@ import {
     TruckIcon, SparklesIcon, GlobeIcon, MenuIcon, StarIcon, UserIcon,
     ChevronDownIcon, NutrientsIcon, ProductsIcon, FormulateIcon, IngredientsIcon
 } from './icons';
+import { APP_NAME } from '../constants';
 
 interface HeaderProps {
     activeView: ViewState;
@@ -55,13 +56,11 @@ export const Header: React.FC<HeaderProps> = ({
 
                     <div className="h-10 w-px bg-gray-800 mx-1"></div>
 
-                    {/* Logo with Soft Edges */}
+                    {/* Logo styled as Text instead of broken image */}
                     <div className="flex flex-col">
-                        <img 
-                            src="/feedpro.png" 
-                            alt="FeedPro" 
-                            className="h-7 object-contain brightness-0 invert opacity-90" 
-                        />
+                        <span className="text-[17px] font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400 tracking-tighter uppercase">
+                            {APP_NAME}
+                        </span>
                         <div className="flex items-center gap-1 mt-0.5">
                             <span className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.2em] opacity-80">Executive</span>
                             <div className="h-0.5 w-8 bg-cyan-500/30 rounded-full"></div>

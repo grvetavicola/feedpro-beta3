@@ -1,6 +1,7 @@
 import React from 'react';
 import { Client, Product, ViewState } from '../types';
 import { Users, FileText, ChevronRight, LayoutGrid, Calculator, FlaskConical, Beaker, Package, Settings, PlayCircle, Plus } from 'lucide-react';
+import { APP_NAME, APP_VERSION } from '../constants';
 
 interface ProductsSidebarProps {
   clients: Client[];
@@ -246,10 +247,10 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
       <div className="p-4 flex flex-col gap-3 bg-gray-900/30 border-t border-gray-800 shrink-0">
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">FeedPro 360 v1.1.0</p>
+          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{APP_NAME} {APP_VERSION}</p>
         </div>
         <div className="text-[8px] leading-tight text-gray-600 font-medium">
-            <p className="mb-1">© 2026 FeedPro 360.</p>
+            <p className="mb-1">© 2026 {APP_NAME}.</p>
             <p>Todos los derechos reservados bajo la marca AVICULTURA 360.</p>
             <p className="mt-1">Propiedad Intelectual e Industrial pertenece a Gabriel Rivera Chamy.</p>
             <p className="mt-1 hover:text-cyan-500 transition-colors cursor-pointer break-all">Contacto: grvet.avicola@gmail.com</p>

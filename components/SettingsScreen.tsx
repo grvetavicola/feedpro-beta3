@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslations } from '../lib/i18n/LangContext';
 import { GlobeIcon, MonitorIcon, DatabaseIcon, ShieldCheckIcon, SaveIcon, PlusIcon } from './icons';
 import { Client } from '../types';
+import { APP_NAME } from '../constants';
 
 interface SettingsScreenProps {
     clients: Client[];
@@ -24,7 +25,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
         <div className="p-3 space-y-4 animate-fade-in max-w-4xl mx-auto h-full overflow-y-auto custom-scrollbar pb-10">
             <div>
                 <h2 className="text-xl font-bold text-white uppercase tracking-tight">Ajustes <span className="text-cyan-400">Globales</span></h2>
-                <p className="text-gray-500 font-semibold uppercase tracking-widest text-[10px]">Configuración del Motor FeedPro 360</p>
+                <p className="text-gray-500 font-semibold uppercase tracking-widest text-[10px]">Configuración del Motor {APP_NAME}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
