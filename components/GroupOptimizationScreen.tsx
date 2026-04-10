@@ -22,6 +22,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     const { t } = useTranslations();
     const [selectedAssignments, setSelectedAssignments] = useState<{ productId: string, batchSize: number }[]>([]);
     const [isOptimizing, setIsOptimizing] = useState(false);
+    const [useStock, setUseStock] = useState(true);
 
     const handleAddProduct = () => {
         if (products.length > 0) {
@@ -50,7 +51,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
         }));
 
         setTimeout(() => {
-            const result = solveGroupFormulation(assignments, ingredients, nutrients, isDynamicMatrix);
+            const result = solveGroupFormulation(assignments, ingredients, nutrients, isDynamicMatrix, useStock);
             console.log("Group Result:", result);
             setIsOptimizing(false);
             if (result.feasible) {
@@ -76,6 +77,20 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                         <h2 className="text-[15px] font-bold text-white uppercase tracking-tight leading-none">Optimización por Grupo (Masa de Fórmulas)</h2>
                         <p className="text-emerald-400/60 font-semibold text-[10px] uppercase tracking-wider mt-1 leading-none">Cálculo Simultáneo & Stock Compartido</p>
                     </div>
+                </div>
+                
+                {/* Global Stock Toggle */}
+                <div className={`p-2 rounded border flex items-center gap-3 transition-all ${useStock ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-gray-800 border-gray-700 opacity-60'}`}>
+                    <div className="flex flex-col text-right">
+                        <span className="text-[10px] font-black text-white uppercase leading-none">Restringir por Stock</span>
+                        <span className="text-[8px] text-gray-500 uppercase mt-0.5">{useStock ? 'Activo' : 'Desactivado (Teórico)'}</span>
+                    </div>
+                    <button 
+                        onClick={() => setUseStock(!useStock)}
+                        className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors ${useStock ? 'bg-emerald-500' : 'bg-gray-600'}`}
+                    >
+                        <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${useStock ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </button>
                 </div>
             </div>
 

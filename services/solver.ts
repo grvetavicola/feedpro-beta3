@@ -156,7 +156,8 @@ export const solveGroupFormulation = (
     assignments: { product: Product, batchSize: number }[],
     ingredients: Ingredient[],
     nutrients: Nutrient[],
-    isDynamicMatrix: boolean = false
+    isDynamicMatrix: boolean = false,
+    useStock: boolean = true
 ): any => {
     
     const model: any = {
@@ -192,11 +193,13 @@ export const solveGroupFormulation = (
     });
 
     // 2. Global Stock Constraints
-    ingredients.forEach(ing => {
-        if (ing.stock !== undefined && ing.stock < 999999) {
-            model.constraints[`stock_${ing.id}`] = { max: ing.stock };
-        }
-    });
+    if (useStock) {
+        ingredients.forEach(ing => {
+            if (ing.stock !== undefined && ing.stock < 999999) {
+                model.constraints[`stock_${ing.id}`] = { max: ing.stock };
+            }
+        });
+    }
 
     // 3. Variables: Ingredient_Per_Product
     ingredients.forEach(ing => {
@@ -219,7 +222,7 @@ export const solveGroupFormulation = (
                 }, {} as any),
 
                 // Contributes to global stock: (Percentage/100 * BatchSize) kg
-                [`stock_${ing.id}`]: batchSize / 100
+                ...(useStock ? { [`stock_${ing.id}`]: batchSize / 100 } : {})
             };
 
             // Contributes to relationships
