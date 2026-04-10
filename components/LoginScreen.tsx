@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
-import { DatabaseIcon, UserIcon, LockClosedIcon } from './icons';
+import { DatabaseIcon, UserIcon, LockClosedIcon, RefreshIcon } from './icons';
 import { AUTHORIZED_ACCOUNTS } from '../constants';
 
 interface LoginScreenProps {
@@ -13,24 +13,31 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if(isAuthenticating) return;
     setErrorMsg('');
+    setIsAuthenticating(true);
     
-    const account = AUTHORIZED_ACCOUNTS.find(a => a.username === username && a.password === password);
-    
-    if (account) {
-        onLogin({
-            name: account.username,
-            subscription: 'pro',
-            email: account.email,
-            assignedClientId: account.assignedClientId
-        });
-    } else {
-        setErrorMsg('Credenciales inválidas. Por favor verifique el usuario y contraseña.');
-    }
+    // Simular un retraso en la red para una experiencia de usuario mas premium
+    setTimeout(() => {
+        const account = AUTHORIZED_ACCOUNTS.find(a => a.username === username && a.password === password);
+        
+        if (account) {
+            onLogin({
+                name: account.username,
+                subscription: 'pro',
+                email: account.email,
+                assignedClientId: account.assignedClientId
+            });
+        } else {
+            setErrorMsg('Credenciales inválidas. Por favor verifique el usuario y contraseña.');
+            setIsAuthenticating(false);
+        }
+    }, 1200);
   };
 
   return (
@@ -87,9 +94,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
 
             <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-cyan-700 to-cyan-600 hover:from-cyan-600 hover:to-cyan-500 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-3 transition-all transform hover:scale-[1.02] shadow-lg shadow-cyan-900/30 mt-2"
+                disabled={isAuthenticating}
+                className={`w-full font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-3 transition-all transform shadow-lg mt-2 ${isAuthenticating ? 'bg-cyan-900 text-cyan-400 cursor-not-allowed border border-cyan-800' : 'bg-gradient-to-r from-cyan-700 to-cyan-600 hover:from-cyan-600 hover:to-cyan-500 text-white hover:scale-[1.02] shadow-cyan-900/30'}`}
             >
-                <span>INGRESAR Y CONTINUAR</span>
+                {isAuthenticating ? (
+                     <><RefreshIcon className="w-5 h-5 animate-spin" /> <span>AUTENTICANDO...</span></>
+                ) : (
+                     <span>INGRESAR Y CONTINUAR</span>
+                )}
             </button>
         </form>
         

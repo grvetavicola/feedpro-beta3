@@ -88,5 +88,13 @@ export const INITIAL_PRODUCTS: Product[] = [
 export const AUTHORIZED_ACCOUNTS = [
   { username: 'feedpro', password: 'feed01_', email: 'contacto@cliente1.com', assignedClientId: 'c1' },
   { username: 'feedpro', password: 'feed02_', email: 'contacto@cliente2.com', assignedClientId: 'c2' },
+  { username: 'feedpro', password: 'feed03_', email: 'contacto@cliente3.com', assignedClientId: 'c3' },
+  { username: 'feedpro', password: 'feed04_', email: 'contacto@cliente4.com', assignedClientId: 'c4' },
+  { username: 'feedpro', password: 'feed05_', email: 'contacto@cliente5.com', assignedClientId: 'c5' },
+  { username: 'feedpro', password: 'feed06_', email: 'contacto@cliente6.com', assignedClientId: 'c6' },
+  { username: 'feedpro', password: 'feed07_', email: 'contacto@cliente7.com', assignedClientId: 'c7' },
+  { username: 'feedpro', password: 'feed08_', email: 'contacto@cliente8.com', assignedClientId: 'c8' },
+  { username: 'feedpro', password: 'feed09_', email: 'contacto@cliente9.com', assignedClientId: 'c9' },
+  { username: 'feedpro', password: 'feed10_', email: 'contacto@cliente10.com', assignedClientId: 'c10' },
   { username: 'admin', password: 'admin_feedpro', email: 'admin@feedpro.com', assignedClientId: 'ALL' }
 ];
