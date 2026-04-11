@@ -84,14 +84,13 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ user = { name: 'Admin'
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Validate that the file is an image
-      if (!file.type.startsWith('image/')) {
-          alert(t('data.importError') || "Formato no soportado. Por favor suba una imagen.");
-          return;
-      }
-
       setAttachedFile(file);
-      setFilePreview(URL.createObjectURL(file));
+      if (file.type.startsWith('image/')) {
+          setFilePreview(URL.createObjectURL(file));
+      } else {
+          // It's a document, just show the filename later
+          setFilePreview(file.name);
+      }
     }
     if(event.target) {
       event.target.value = '';
@@ -124,11 +123,25 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ user = { name: 'Admin'
     let imagePayload;
     if (attachedFile) {
         try {
-            const base64Data = await compressImageToBase64(attachedFile);
-            imagePayload = {
-                mimeType: 'image/jpeg', // Always output as optimized JPEG
-                data: base64Data,
-            };
+            if (attachedFile.type.startsWith('image/')) {
+                const base64Data = await compressImageToBase64(attachedFile);
+                imagePayload = {
+                    mimeType: 'image/jpeg',
+                    data: base64Data,
+                };
+            } else {
+                // Read as generic DataURL (PDF, CSV, etc)
+                const reader = new FileReader();
+                const base64Data = await new Promise<string>((resolve, reject) => {
+                    reader.onload = () => resolve((reader.result as string).split(',')[1]);
+                    reader.onerror = error => reject(error);
+                    reader.readAsDataURL(attachedFile);
+                });
+                imagePayload = {
+                    mimeType: attachedFile.type || 'text/plain',
+                    data: base64Data,
+                };
+            }
         } catch (error) {
             console.error("Error converting file to base64:", error);
             setIsLoading(false);
@@ -191,12 +204,19 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ user = { name: 'Admin'
             <div ref={chatEndRef} />
         </div>
         <div className="mt-4">
-            {filePreview && (
+            {attachedFile && (
                 <div className="relative inline-block mb-2">
-                    <img src={filePreview} alt="Preview" className="h-20 w-20 object-cover rounded-lg border-2 border-gray-600"/>
+                    {attachedFile.type.startsWith('image/') && filePreview?.startsWith('blob:') ? (
+                        <img src={filePreview} alt="Preview" className="h-20 w-20 object-cover rounded-lg border-2 border-gray-600"/>
+                    ) : (
+                        <div className="h-20 max-w-[200px] bg-gray-900 border-2 border-cyan-500/50 rounded-lg p-2 flex items-center justify-center text-[10px] text-gray-300 break-words flex-col">
+                           <PaperclipIcon className="w-6 h-6 mb-1 text-cyan-400" />
+                           <span className="truncate w-full text-center">{attachedFile.name}</span>
+                        </div>
+                    )}
                     <button 
                         onClick={removeAttachment} 
-                        className="absolute -top-2 -right-2 bg-gray-800 text-white rounded-full p-0.5 hover:bg-red-500"
+                        className="absolute -top-2 -right-2 bg-gray-800 text-white rounded-full p-0.5 hover:bg-red-500 shadow-lg"
                         aria-label="Remove attachment"
                     >
                         <XCircleIcon className="w-5 h-5"/>
@@ -209,7 +229,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ user = { name: 'Admin'
                     ref={fileInputRef}
                     onChange={handleFileChange}
                     className="hidden"
-                    accept="image/png, image/jpeg, image/webp"
+                    accept="image/*, application/pdf, .csv, .xlsx, text/*"
                 />
                 <button 
                     type="button" 
