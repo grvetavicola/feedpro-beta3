@@ -45,6 +45,17 @@ export default function App() {
   const [activeTasks, setActiveTasks] = useState<ActiveTask[]>([]);
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   
+  // UI Customization
+  const [uiScale, setUiScale] = useState<number>(() => {
+    const saved = localStorage.getItem('feedpro_ui_scale');
+    return saved ? parseFloat(saved) : 1.0;
+  });
+
+  const updateUiScale = (newScale: number) => {
+    setUiScale(newScale);
+    localStorage.setItem('feedpro_ui_scale', newScale.toString());
+  };
+  
   // Unified Optimization State
   const [selectedDietIds, setSelectedDietIds] = useState<string[]>([]);
   
@@ -210,7 +221,10 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-950 text-white overflow-hidden font-sans">
+    <div 
+        className="flex flex-col h-screen bg-gray-950 text-white overflow-hidden font-sans"
+        style={{ zoom: uiScale }}
+    >
       <Header 
         activeView={view} 
         onViewChange={setView} 
@@ -296,7 +310,7 @@ export default function App() {
                                     }
                                     return <ClientsScreen clients={clients} setClients={setClients} selectedClientId={selectedClientId} setSelectedClientId={setSelectedClientId} />;
                                 case 'ASSISTANT': return <AIAssistant user={user} ingredients={ingredients} nutrients={nutrients} products={products} />;
-                                case 'SETTINGS': return <SettingsScreen clients={clients} setClients={setClients} onNavigate={setView} />;
+                                case 'SETTINGS': return <SettingsScreen clients={clients} setClients={setClients} onNavigate={setView} uiScale={uiScale} setUiScale={updateUiScale} />;
                                 default: return <Dashboard products={products} ingredients={effectiveIngredients} savedFormulas={savedFormulas} clients={clients} onNavigate={setView} isDynamicMatrix={isDynamicMatrix} setIsDynamicMatrix={setIsDynamicMatrix} user={user} />;
                             }
                         })()
