@@ -42,7 +42,7 @@ export const Header: React.FC<HeaderProps> = ({
                     className="w-1/2 h-full"
                     style={{
                         backgroundImage: 'url("/banner A.jpg")',
-                        backgroundSize: '100% 100%',
+                        backgroundSize: 'contain',
                         backgroundPosition: 'left center',
                         backgroundRepeat: 'no-repeat'
                     }}
@@ -51,7 +51,7 @@ export const Header: React.FC<HeaderProps> = ({
                     className="w-1/2 h-full"
                     style={{
                         backgroundImage: 'url("/banner B.jpg")',
-                        backgroundSize: '100% 100%',
+                        backgroundSize: 'contain',
                         backgroundPosition: 'right center',
                         backgroundRepeat: 'no-repeat'
                     }}
