@@ -41,16 +41,15 @@ export const Header: React.FC<HeaderProps> = ({
                 className="absolute inset-0 pointer-events-none select-none"
                 style={{
                     backgroundImage: 'url("/banner feedpro.jpg")',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'right 35%',
-                    backgroundRepeat: 'no-repeat'
+                    backgroundSize: 'auto 100%',
+                    backgroundPosition: 'right',
+                    backgroundRepeat: 'no-repeat',
                 }}
                 aria-hidden="true"
             />
             {/* Overlays de oscurecimiento para legibilidad (más oscuro a la izquierda para el logo) */}
             <div className="absolute inset-0 bg-gray-950/60 pointer-events-none" />
             <div className="absolute top-0 left-0 w-80 h-full bg-gradient-to-r from-gray-950 to-transparent pointer-events-none" />
-            <div className="absolute top-0 right-0 w-48 h-full bg-gradient-to-l from-gray-950/80 to-transparent pointer-events-none" />
 
             <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth flex-1 relative z-10 w-full pl-6">
                 {/* Active Tasks Section */}
