@@ -235,61 +235,6 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredient
                 />
             )}
 
-            {/* IMPORT REVIEW MODAL (Unchanged) */}
-            {importPreview && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-gray-800 rounded-2xl border border-gray-600 shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
-                        {/* ... Modal content same as before ... */}
-                        <div className="p-5 border-b border-gray-700 flex justify-between items-center bg-gray-800 rounded-t-2xl">
-                            <div className="flex items-center gap-3">
-                                <SparklesIcon className="text-cyan-400 w-6 h-6" />
-                                <h3 className="text-xl font-bold text-white">{t('ingredients.importReviewTitle')}</h3>
-                            </div>
-                            <button onClick={() => setImportPreview(null)} className="text-gray-400 hover:text-white">
-                                <XCircleIcon className="w-6 h-6" />
-                            </button>
-                        </div>
-                        <div className="p-6 overflow-y-auto flex-1 space-y-6">
-                            {importPreview.newNutrients && importPreview.newNutrients.length > 0 && (
-                                <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-4">
-                                    <h4 className="text-yellow-400 font-bold mb-3 flex items-center gap-2">
-                                        <FlaskIcon className="w-5 h-5"/> {t('ingredients.newNutrientsDetected')} ({importPreview.newNutrients.length})
-                                    </h4>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                        {importPreview.newNutrients.map((nut, idx) => (
-                                            <div key={idx} className="bg-gray-900 p-2 rounded text-xs text-gray-300 border border-gray-700">
-                                                <div className="font-semibold text-white">{nut.name}</div>
-                                                <div className="text-gray-500">{nut.unit}</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                            <div>
-                                <h4 className="text-gray-300 font-semibold mb-2">{t('ingredients.ingredientsPreview')} ({importPreview.ingredients.length})</h4>
-                                <table className="w-full text-sm text-left text-gray-300">
-                                    <thead className="text-xs text-gray-400 uppercase bg-gray-900 sticky top-0">
-                                        <tr><th className="px-4 py-3">{t('common.name')}</th><th className="px-4 py-3">{t('common.price')}</th><th className="px-4 py-3">{t('nav.nutrients')}</th></tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-700">
-                                        {importPreview.ingredients.map((imp, idx) => (
-                                            <tr key={idx} className="hover:bg-gray-700/30">
-                                                <td className="px-4 py-3 font-medium text-white">{imp.name}</td>
-                                                <td className="px-4 py-3">{imp.price || 0}</td>
-                                                <td className="px-4 py-3 text-xs text-gray-400">{Object.keys(imp.nutrients).length} {t('ingredients.mapped')}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <div className="p-5 border-t border-gray-700 bg-gray-800 rounded-b-2xl flex justify-end gap-3">
-                            <button onClick={() => setImportPreview(null)} className="px-5 py-2 text-sm font-medium text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">{t('common.cancel')}</button>
-                            <button onClick={confirmImport} className="px-5 py-2 text-sm font-bold text-white bg-cyan-600 hover:bg-cyan-500 rounded-lg shadow-lg shadow-cyan-900/20 transition-all transform hover:scale-105 flex items-center gap-2"><SaveIcon className="w-4 h-4" />{t('ingredients.confirmImportButton')}</button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
