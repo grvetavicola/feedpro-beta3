@@ -140,24 +140,29 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
              );
           })}
 
-          {/* VETIA - Asistente AI (4th Spot) */}
+          {/* VETIA - Asistente AI (4th Spot) - Premium Featured Design */}
           <div 
               onClick={() => onNavigate('ASSISTANT')}
-              className="bg-gradient-to-br from-indigo-950 to-purple-950 border border-purple-500/30 p-3 rounded-xl flex items-center shadow-lg shadow-purple-900/20 hover:-translate-y-1 hover:shadow-purple-700/30 hover:border-purple-400/50 transition-all overflow-hidden relative group cursor-pointer"
+              className="bg-gradient-to-br from-indigo-900 via-indigo-950 to-purple-900 border border-purple-500/40 p-5 rounded-2xl flex items-center justify-center shadow-2xl shadow-purple-950/50 hover:-translate-y-1.5 hover:shadow-purple-800/60 hover:border-purple-300/50 transition-all duration-500 overflow-hidden relative group cursor-pointer lg:col-span-1"
           >
-              <div className="absolute right-0 top-0 w-24 h-24 bg-purple-500/10 blur-xl rounded-full pointer-events-none group-hover:bg-purple-500/20 transition-colors"></div>
-              <div className="flex items-center gap-3 relative z-10 w-full">
-                  <div className="w-10 h-10 flex items-center justify-center relative">
-                      <div className="absolute inset-0 bg-white/20 blur-md rounded-full animate-pulse"></div>
+              {/* Dynamic Aura */}
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(168,85,247,0.15)_0%,_transparent_70%)] group-hover:scale-150 transition-transform duration-1000"></div>
+              <div className="absolute -right-4 -top-4 w-32 h-32 bg-purple-500/10 blur-3xl rounded-full pointer-events-none group-hover:bg-purple-500/20 transition-all"></div>
+              
+              <div className="flex items-center gap-6 relative z-10 w-full justify-center">
+                  <div className="relative flex-shrink-0">
+                      {/* Professional Throb Effect */}
+                      <div className="absolute -inset-3 bg-white/5 blur-2xl rounded-full animate-pulse"></div>
                       <img 
                         src="/icons/ai_assistant.png" 
-                        className="w-10 h-10 object-contain filter brightness-0 invert relative z-20 group-hover:scale-110 transition-transform duration-500" 
-                        alt="VETIA" 
+                        className="w-18 h-18 md:w-20 md:h-20 object-contain filter brightness-0 invert relative z-20 group-hover:scale-110 transition-transform duration-700 drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]" 
+                        alt="VetIA" 
                       />
                   </div>
                   <div className="flex flex-col">
-                      <h3 className="text-[15px] font-black text-white tracking-widest uppercase mb-0">VETIA</h3>
-                      <p className="text-purple-300/80 text-[10px] font-bold uppercase tracking-widest leading-none">Asistente</p>
+                      <span className="text-[10px] font-black text-purple-400 uppercase tracking-[0.3em] mb-1 opacity-80">AI Power</span>
+                      <h3 className="text-3xl font-black text-white tracking-tighter leading-none italic">VetIA</h3>
+                      <p className="text-purple-200/70 text-[11px] font-bold uppercase tracking-wider mt-1.5 whitespace-nowrap">Asistente Nutricional</p>
                   </div>
               </div>
           </div>
