@@ -58,51 +58,55 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
     <aside className="w-[240px] bg-gray-950 border-r border-gray-800 flex flex-col h-full overflow-hidden">
       {/* Zona de Identidad de Marca */}
       <div className="flex flex-col border-b border-gray-800">
-        {/* Logo FeedPro Oficial – Clickable para Gestión de Fábrica */}
+
+        {/* FeedPro Logo — Título de App + Acceso a Gestión de Perfiles */}
         <button
           onClick={onManageProfile}
-          className="w-full px-4 pt-4 pb-2 flex flex-col items-center gap-1 group outline-none"
-          title="Gestión de Fábrica e Intercambio Táctico"
+          className="w-full px-3 pt-3 pb-2 flex items-center justify-center group outline-none"
+          title="Gestión de Perfiles"
         >
           <img
             src="/LOGOFEEDPRO.png"
             alt="FeedPro 360"
-            className="w-full max-h-14 object-contain drop-shadow-lg group-hover:opacity-90 transition-opacity"
+            className="w-full max-h-10 object-contain drop-shadow-lg group-hover:opacity-85 transition-opacity"
           />
-          <span className="text-[9px] font-black text-cyan-500 uppercase tracking-[0.3em] opacity-80 mt-0.5">
-            EXECUTIVE
-          </span>
         </button>
 
-        {/* Contenedor Cliente – Logo flotante transparente + Selector */}
-        <div className="px-4 pt-1 pb-4 flex flex-col gap-2">
-            {/* Logo del Cliente Activo: transparente, integrado */}
-            <div className="w-full h-14 flex items-center justify-center overflow-hidden">
-                {(() => {
-                    const currentClient = clients.find(c => c.id === selectedClientId);
-                    return currentClient?.logo ? (
-                        <img src={currentClient.logo} alt="Cliente" className="max-w-full max-h-full object-contain drop-shadow-md" />
-                    ) : (
-                        <Users className="w-7 h-7 text-gray-700" />
-                    );
-                })()}
-            </div>
+        {/* Zona de Perfil Activo del Cliente — Logo flotante, transparente */}
+        <div className="px-4 pt-1 pb-3 flex flex-col gap-2">
+          <div className="w-full h-16 flex items-center justify-center overflow-hidden rounded-lg">
+            {(() => {
+              const currentClient = clients.find(c => c.id === selectedClientId);
+              return currentClient?.logo ? (
+                <img
+                  src={currentClient.logo}
+                  alt={currentClient.name}
+                  className="max-w-full max-h-full object-contain drop-shadow-md"
+                />
+              ) : (
+                <div className="flex flex-col items-center gap-1 opacity-30">
+                  <Users className="w-6 h-6 text-gray-500" />
+                  <span className="text-[9px] text-gray-500 uppercase tracking-widest font-black">Sin logo</span>
+                </div>
+              );
+            })()}
+          </div>
 
-            {/* Selector de Granja Unificado */}
-            <div className="relative group w-full">
-              <select
-                value={selectedClientId}
-                onChange={(e) => onSelectClient(e.target.value)}
-                className="w-full bg-gray-800/80 hover:bg-gray-700 border border-gray-700/60 rounded-lg py-2 pl-3 pr-8 text-[11px] font-black text-white appearance-none focus:ring-1 focus:ring-cyan-500 outline-none transition-all cursor-pointer text-center uppercase tracking-widest"
-              >
-                {clients.map(c => (
-                  <option key={c.id} value={c.id} className="bg-gray-900 font-bold normal-case text-left">{c.name}</option>
-                ))}
-              </select>
-              <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400 group-hover:text-cyan-400">
-                 <ChevronRight className="w-4 h-4 rotate-90" />
-              </div>
+          {/* Selector de Perfil Unificado */}
+          <div className="relative group w-full">
+            <select
+              value={selectedClientId}
+              onChange={(e) => onSelectClient(e.target.value)}
+              className="w-full bg-gray-800/80 hover:bg-gray-700 border border-gray-700/60 rounded-lg py-2 pl-3 pr-8 text-[11px] font-black text-white appearance-none focus:ring-1 focus:ring-cyan-500 outline-none transition-all cursor-pointer text-center uppercase tracking-widest"
+            >
+              {clients.map(c => (
+                <option key={c.id} value={c.id} className="bg-gray-900 font-bold normal-case text-left">{c.name}</option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400 group-hover:text-cyan-400">
+               <ChevronRight className="w-4 h-4 rotate-90" />
             </div>
+          </div>
         </div>
       </div>
 

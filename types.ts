@@ -52,7 +52,9 @@ export interface IngredientConstraint {
 export interface Client {
   id: string;
   name: string;
-  logo?: string; 
+  logo?: string;
+  description?: string;
+  species?: string; // e.g. "Avícola", "Porcino", "Bovino"
 }
 
 export interface Product {

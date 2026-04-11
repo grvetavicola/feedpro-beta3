@@ -313,90 +313,188 @@ export default function App() {
         </main>
       </div>
 
-      {/* --- PROFILE & EXCHANGE MODAL --- */}
-      {showProfileModal && (
+      {/* --- GESTIÓN DE PERFILES MODAL --- */}
+      {showProfileModal && (() => {
+        const activeProfile = clients.find(c => c.id === selectedClientId);
+        const [editName, setEditName] = React.useState(activeProfile?.name || '');
+        const [editDesc, setEditDesc] = React.useState(activeProfile?.description || '');
+        const [editSpecies, setEditSpecies] = React.useState(activeProfile?.species || '');
+        const [editLogo, setEditLogo] = React.useState(activeProfile?.logo || '');
+        const [newProfileName, setNewProfileName] = React.useState('');
+        const [replicTarget, setReplicTarget] = React.useState('');
+        const [activeTab, setActiveTab] = React.useState<'edit' | 'profiles' | 'exchange'>('edit');
+
+        const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (ev) => setEditLogo(ev.target?.result as string);
+          reader.readAsDataURL(file);
+        };
+
+        const handleSaveProfile = () => {
+          setClients(prev => prev.map(c => c.id === selectedClientId ? {
+            ...c, name: editName, description: editDesc, species: editSpecies, logo: editLogo
+          } : c));
+        };
+
+        const handleCreateProfile = () => {
+          if (!newProfileName.trim()) return;
+          const newId = `profile_${Date.now()}`;
+          setClients(prev => [...prev, { id: newId, name: newProfileName.trim(), description: '', species: '', logo: '' }]);
+          setNewProfileName('');
+          handleSwitchClientRequest(newId);
+        };
+
+        return (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-950/90 backdrop-blur-md animate-fade-in">
-              <div className="bg-gray-900 border border-gray-700 w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden flex flex-col">
-                  <div className="p-6 bg-gradient-to-r from-cyan-900/40 to-indigo-900/40 border-b border-gray-800 flex justify-between items-center">
-                      <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-2xl bg-cyan-600 flex items-center justify-center shadow-lg shadow-cyan-900/20">
-                              <span className="text-white font-black text-xl italic">FP</span>
-                          </div>
-                          <div>
-                              <h3 className="text-lg font-bold text-white uppercase tracking-tight leading-none">{user.name}</h3>
-                              <p className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest mt-1">Gestión de Fábrica e Intercambio</p>
-                          </div>
-                      </div>
-                      <button onClick={() => setShowProfileModal(false)} className="text-gray-500 hover:text-white transition-colors">
-                          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                      </button>
-                  </div>
-                  
-                  <div className="p-8 space-y-8 overflow-y-auto custom-scrollbar">
-                      {/* Section 1: Switch Focus */}
-                      <section className="space-y-4">
-                          <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-800 pb-2">Selección Rápida de Fábrica</h4>
-                          <div className="grid grid-cols-2 gap-2">
-                              {clients.map(c => (
-                                  <button 
-                                    key={c.id} 
-                                    onClick={() => handleSwitchClientRequest(c.id)}
-                                    className={`p-3 rounded-xl border text-sm font-bold transition-all text-left ${selectedClientId === c.id ? 'bg-cyan-500 border-cyan-400 text-white shadow-lg' : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-500'}`}
-                                  >
-                                      {c.name}
-                                  </button>
-                              ))}
-                          </div>
-                      </section>
+            <div className="bg-gray-900 border border-gray-700/60 w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
 
-                      {/* Section 2: Data Exchange (Replica) */}
-                      <section className="space-y-4 bg-gray-800/20 p-4 rounded-2xl border border-gray-800">
-                          <h4 className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em]">Intercambio y Replicación Táctica</h4>
-                          <p className="text-[11px] text-gray-500">Copia productos o matrices de nutrientes del cliente actual a otro destino.</p>
-                          
-                          <div className="flex flex-col gap-3">
-                               <div className="flex items-center gap-2">
-                                   <label className="text-[10px] text-gray-400 uppercase font-black w-14">Destino:</label>
-                                   <select id="replic_target" className="flex-1 bg-gray-950 border border-gray-800 rounded-lg p-2 text-xs text-white outline-none focus:border-cyan-500">
-                                       <option value="">Seleccione destino...</option>
-                                       {clients.filter(c => c.id !== selectedClientId).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                   </select>
-                               </div>
-                               <div className="flex gap-2">
-                                   <button 
-                                      onClick={() => {
-                                          const target = (document.getElementById('replic_target') as HTMLSelectElement)?.value;
-                                          if (target && selectedClientId) replicateClientData(selectedClientId, target, { products: true });
-                                      }}
-                                      className="flex-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 p-2.5 rounded-xl text-[10px] font-black uppercase text-gray-300 transition-all"
-                                   >
-                                       Copiar Productos
-                                   </button>
-                                   <button 
-                                      onClick={() => {
-                                          const target = (document.getElementById('replic_target') as HTMLSelectElement)?.value;
-                                          if (target && selectedClientId) replicateClientData(selectedClientId, target, { matrix: true });
-                                      }}
-                                      className="flex-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 p-2.5 rounded-xl text-[10px] font-black uppercase text-gray-300 transition-all"
-                                   >
-                                       Copiar Matriz Delta
-                                   </button>
-                               </div>
-                          </div>
-                      </section>
-                  </div>
-
-                  <div className="p-4 bg-gray-950/20 border-t border-gray-800 flex justify-between items-center gap-4">
-                      <button onClick={() => setUser(null)} className="flex items-center gap-2 text-xs text-red-500 hover:text-red-400 font-bold uppercase tracking-widest transition-colors px-4 py-2 hover:bg-red-500/10 rounded-lg">
-                          Cerrar Sesión Pro
-                      </button>
-                      <button onClick={() => setShowProfileModal(false)} className="bg-gray-800 hover:bg-gray-700 text-white font-bold px-6 py-2 rounded-xl text-xs transition-all uppercase">
-                          Regresar
-                      </button>
-                  </div>
+              {/* Header del Modal */}
+              <div className="p-5 bg-gradient-to-r from-cyan-900/30 to-indigo-900/30 border-b border-gray-800 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-800 border border-gray-700 flex items-center justify-center shrink-0">
+                  {editLogo ? <img src={editLogo} className="w-full h-full object-contain p-1" /> : <span className="text-white font-black text-sm italic">FP</span>}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-black text-white uppercase tracking-tight leading-none truncate">{editName || user.name}</h3>
+                  <p className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest mt-0.5">Gestión de Perfiles</p>
+                </div>
+                <button onClick={() => setShowProfileModal(false)} className="text-gray-500 hover:text-white transition-colors shrink-0">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
               </div>
+
+              {/* Tabs */}
+              <div className="flex border-b border-gray-800 shrink-0">
+                {([['edit', 'Editar Perfil'], ['profiles', 'Mis Perfiles'], ['exchange', 'Intercambio']] as const).map(([tab, label]) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest transition-colors ${activeTab === tab ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-gray-500 hover:text-gray-300'}`}
+                  >{label}</button>
+                ))}
+              </div>
+
+              {/* Contenido */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-5">
+
+                {/* TAB: Editar Perfil Activo */}
+                {activeTab === 'edit' && (
+                  <div className="space-y-4">
+                    <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-800 pb-2">Perfil Activo: {activeProfile?.name}</h4>
+
+                    {/* Logo Upload */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-20 h-20 rounded-2xl bg-gray-800 border-2 border-dashed border-gray-700 flex items-center justify-center overflow-hidden shrink-0">
+                        {editLogo ? <img src={editLogo} className="w-full h-full object-contain p-1" /> : <span className="text-[9px] text-gray-600 font-black uppercase text-center leading-tight">Sin<br/>Logo</span>}
+                      </div>
+                      <div className="flex flex-col gap-2 flex-1">
+                        <label className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Logo del Perfil</label>
+                        <label className="cursor-pointer bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl py-2 px-4 text-[11px] font-black text-gray-300 uppercase tracking-widest text-center transition-all">
+                          Subir Imagen
+                          <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+                        </label>
+                        {editLogo && <button onClick={() => setEditLogo('')} className="text-[10px] text-red-500 hover:text-red-400 font-bold uppercase">Quitar logo</button>}
+                      </div>
+                    </div>
+
+                    {/* Campos */}
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-[10px] text-gray-400 font-black uppercase tracking-widest block mb-1">Nombre del Perfil</label>
+                        <input value={editName} onChange={e => setEditName(e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 px-3 text-sm text-white outline-none focus:border-cyan-500 transition-colors" placeholder="Ej: Granja El Sol" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-gray-400 font-black uppercase tracking-widest block mb-1">Tipo de Producción</label>
+                        <select value={editSpecies} onChange={e => setEditSpecies(e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 px-3 text-sm text-white outline-none focus:border-cyan-500 transition-colors">
+                          <option value="">Seleccionar...</option>
+                          <option value="Avícola">Avícola</option>
+                          <option value="Porcino">Porcino</option>
+                          <option value="Bovino">Bovino</option>
+                          <option value="Acuícola">Acuícola</option>
+                          <option value="Mixto">Mixto</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-gray-400 font-black uppercase tracking-widest block mb-1">Descripción / Notas</label>
+                        <textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} rows={2} className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 px-3 text-sm text-white outline-none focus:border-cyan-500 transition-colors resize-none" placeholder="Descripción opcional..." />
+                      </div>
+                    </div>
+
+                    <button onClick={handleSaveProfile} className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-black py-2.5 rounded-xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-cyan-900/20">
+                      Guardar Cambios
+                    </button>
+                  </div>
+                )}
+
+                {/* TAB: Mis Perfiles */}
+                {activeTab === 'profiles' && (
+                  <div className="space-y-4">
+                    <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-800 pb-2">Perfiles de tu Cuenta</h4>
+                    <div className="space-y-2">
+                      {clients.map(c => (
+                        <button
+                          key={c.id}
+                          onClick={() => handleSwitchClientRequest(c.id)}
+                          className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${selectedClientId === c.id ? 'bg-cyan-500/10 border-cyan-500/50 shadow-lg' : 'bg-gray-800/50 border-gray-700 hover:border-gray-500'}`}
+                        >
+                          <div className="w-10 h-10 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-center overflow-hidden shrink-0">
+                            {c.logo ? <img src={c.logo} className="w-full h-full object-contain p-1" /> : <span className="text-gray-600 text-xs font-black">{c.name.charAt(0)}</span>}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-black truncate ${selectedClientId === c.id ? 'text-cyan-300' : 'text-white'}`}>{c.name}</p>
+                            {c.species && <p className="text-[10px] text-gray-500 font-bold uppercase">{c.species}</p>}
+                          </div>
+                          {selectedClientId === c.id && <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shrink-0" />}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Crear nuevo perfil */}
+                    <div className="border-t border-gray-800 pt-4 space-y-2">
+                      <h4 className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em]">+ Nuevo Perfil</h4>
+                      <input value={newProfileName} onChange={e => setNewProfileName(e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 px-3 text-sm text-white outline-none focus:border-emerald-500 transition-colors" placeholder="Nombre del nuevo perfil..." />
+                      <button onClick={handleCreateProfile} disabled={!newProfileName.trim()} className="w-full bg-emerald-700 hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black py-2 rounded-xl text-xs uppercase tracking-widest transition-all">
+                        Crear Perfil
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB: Intercambio de Datos */}
+                {activeTab === 'exchange' && (
+                  <div className="space-y-4">
+                    <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-800 pb-2">Intercambio Entre Perfiles</h4>
+                    <p className="text-[11px] text-gray-500">Copia dietas o matrices desde el perfil activo ({activeProfile?.name}) hacia otro perfil destino.</p>
+                    <div>
+                      <label className="text-[10px] text-gray-400 font-black uppercase tracking-widest block mb-1">Perfil Destino</label>
+                      <select value={replicTarget} onChange={e => setReplicTarget(e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 text-sm text-white outline-none focus:border-cyan-500">
+                        <option value="">Seleccione destino...</option>
+                        {clients.filter(c => c.id !== selectedClientId).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      </select>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => { if (replicTarget && selectedClientId) replicateClientData(selectedClientId, replicTarget, { products: true }); }} disabled={!replicTarget} className="flex-1 bg-gray-800 hover:bg-gray-700 disabled:opacity-40 border border-gray-700 p-2.5 rounded-xl text-[10px] font-black uppercase text-gray-300 transition-all">Copiar Dietas</button>
+                      <button onClick={() => { if (replicTarget && selectedClientId) replicateClientData(selectedClientId, replicTarget, { matrix: true }); }} disabled={!replicTarget} className="flex-1 bg-gray-800 hover:bg-gray-700 disabled:opacity-40 border border-gray-700 p-2.5 rounded-xl text-[10px] font-black uppercase text-gray-300 transition-all">Copiar Matriz Delta</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 bg-gray-950/30 border-t border-gray-800 flex justify-between items-center gap-4 shrink-0">
+                <button onClick={() => setUser(null)} className="text-xs text-red-500 hover:text-red-400 font-bold uppercase tracking-widest transition-colors px-4 py-2 hover:bg-red-500/10 rounded-lg">
+                  Cerrar Sesión
+                </button>
+                <button onClick={() => setShowProfileModal(false)} className="bg-gray-800 hover:bg-gray-700 text-white font-bold px-6 py-2 rounded-xl text-xs transition-all uppercase">
+                  Cerrar
+                </button>
+              </div>
+            </div>
           </div>
-      )}
+        );
+      })()}
+
       {/* --- DIRTY GUARD MODAL --- */}
       {showDirtyModal && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-gray-950/80 backdrop-blur-sm animate-fade-in">
