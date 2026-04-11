@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslations } from '../lib/i18n/LangContext';
-import { DatabaseIcon, CubeIcon, CalculatorIcon, TrendingUpIcon, XCircleIcon, SettingsIcon, CheckIcon, XIcon, RefreshIcon } from './icons';
+import { DatabaseIcon, CubeIcon, CalculatorIcon, TrendingUpIcon, XCircleIcon, SettingsIcon, CheckIcon, XIcon, RefreshIcon, DownloadIcon } from './icons';
 import { Product, Ingredient, Nutrient } from '../types';
 import { solveFeedFormulation } from '../services/solver';
 
@@ -394,40 +394,49 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
                        <p className="text-sm font-black text-red-400">Existen fórmulas infactibles pendientes de corrección.</p>
                    )}
                 </div>
-                <button
-                    onClick={() => {
-                        if (setSavedFormulas) {
-                           // Persist global results here
-                           const successResults = Object.values(localSolutions).filter(sol => sol.isSuccessful);
-                           successResults.forEach(sol => {
-                               const theFormula = {
-                                   id: `formula_${Date.now()}_${sol.productId}`,
-                                   name: products.find(p => p.id === sol.productId)?.name || 'Dieta Modificada',
-                                   date: Date.now(),
-                                   result: {
-                                        feasible: true,
-                                        totalCost: sol.currentCost,
-                                        items: sol.items.map(it => {
-                                            const ingrDef = ingredients.find(i => i.name === it.name);
-                                            return {
-                                                ingredientId: ingrDef ? ingrDef.id : 'unknown',
-                                                percentage: it.percentage,
-                                                weight: it.weight
-                                            }
-                                        }),
-                                        // Empty structure to satisfy SavedFormula
-                                        nutrients: []
-                                   }
-                               };
-                               setSavedFormulas((prev: any) => [...prev, theFormula]);
-                           });
-                        }
-                        if (onCloseDrawer) onCloseDrawer();
-                    }}
-                    className="bg-cyan-600 hover:bg-cyan-500 text-white font-black px-8 py-3 rounded-xl uppercase tracking-widest text-[13px] shadow-[0_0_15px_rgba(8,145,178,0.4)] hover:shadow-cyan-500/50 transition-all flex items-center gap-2"
-                >
-                    <DatabaseIcon className="w-5 h-5" /> Aprobar y Guardar como Definitivo
-                </button>
+                <div className="flex items-center gap-3">
+                    <button 
+                        onClick={handleExportGroupCSV}
+                        className="bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold px-6 py-3 rounded-xl uppercase tracking-widest text-[13px] border border-gray-600 shadow-lg flex items-center gap-2 transition-all"
+                    >
+                        <DownloadIcon className="w-5 h-5"/> EXPORTAR CSV
+                    </button>
+                    <button
+                        onClick={() => {
+                            if (setSavedFormulas) {
+                               // Persist global results here
+                               const successResults = Object.values(localSolutions).filter(sol => sol.isSuccessful);
+                               successResults.forEach(sol => {
+                                   const theFormula = {
+                                       id: `formula_${Date.now()}_${sol.productId}`,
+                                       name: products.find(p => p.id === sol.productId)?.name || 'Dieta Modificada',
+                                       date: Date.now(),
+                                       result: {
+                                            feasible: true,
+                                            totalCost: sol.currentCost,
+                                            items: sol.items.map(it => {
+                                                const ingrDef = ingredients.find(i => i.name === it.name);
+                                                return {
+                                                    ingredientId: ingrDef ? ingrDef.id : 'unknown',
+                                                    percentage: it.percentage,
+                                                    weight: it.weight
+                                                }
+                                            }),
+                                            // Empty structure to satisfy SavedFormula
+                                            nutrients: [],
+                                            nutrientAnalysis: []
+                                       }
+                                   };
+                                   setSavedFormulas((prev: any) => [...prev, theFormula]);
+                               });
+                            }
+                            if (onCloseDrawer) onCloseDrawer();
+                        }}
+                        className="bg-cyan-600 hover:bg-cyan-500 text-white font-black px-8 py-3 rounded-xl uppercase tracking-widest text-[13px] shadow-[0_0_15px_rgba(8,145,178,0.4)] hover:shadow-cyan-500/50 transition-all flex items-center gap-2"
+                    >
+                        <DatabaseIcon className="w-5 h-5" /> Aprobar y Guardar como Definitivo
+                    </button>
+                </div>
             </div>
             
         </div>
