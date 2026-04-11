@@ -143,11 +143,27 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                         : `border border-transparent ${item.bg}`
                       }`}
                   >
-                    <img 
-                      src={item.img} 
-                      alt={item.label}
-                      className={`w-7 h-7 transition-transform group-hover:scale-110 object-contain drop-shadow-md ${isActive ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`} 
-                    />
+                    <div className="relative w-7 h-7 transition-transform group-hover:scale-110">
+                      {/* Generar color solido usando filtros CSS avanzados (drop-shadow technique) */}
+                      <img 
+                        src={item.img} 
+                        alt={item.label}
+                        className={`absolute inset-0 w-full h-full object-contain mix-blend-screen opacity-0`} 
+                      />
+                      <div 
+                        className={`absolute inset-0 w-full h-full ${isActive ? 'bg-amber-400' : 'bg-amber-500/70 group-hover:bg-amber-400'}`}
+                        style={{
+                           WebkitMaskImage: `url('${item.img}')`,
+                           WebkitMaskSize: 'contain',
+                           WebkitMaskPosition: 'center',
+                           WebkitMaskRepeat: 'no-repeat',
+                           maskImage: `url('${item.img}')`,
+                           maskSize: 'contain',
+                           maskPosition: 'center',
+                           maskRepeat: 'no-repeat',
+                        }}
+                      />
+                    </div>
                     <span className={`text-[11px] font-black uppercase tracking-[0.2em] transition-colors ${isActive ? 'text-white' : 'text-white/70 group-hover:text-white'}`}>
                       {item.label}
                     </span>
