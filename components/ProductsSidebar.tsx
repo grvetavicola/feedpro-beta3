@@ -56,41 +56,39 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
 
   return (
     <aside className="w-[240px] bg-gray-950 border-r border-gray-800 flex flex-col h-full overflow-hidden">
-      {/* Zona de Marca con Banner */}
+      {/* Zona de Identidad de Marca */}
       <div className="flex flex-col border-b border-gray-800">
-
-        {/* Banner FeedPro - Imagen de Marca Completa */}
-        <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16/7' }}>
+        {/* Logo FeedPro Oficial – Clickable para Gestión de Fábrica */}
+        <button
+          onClick={onManageProfile}
+          className="w-full px-4 pt-4 pb-2 flex flex-col items-center gap-1 group outline-none"
+          title="Gestión de Fábrica e Intercambio Táctico"
+        >
           <img
-            src="/banner feedpro.jpg"
-            alt="FeedPro 360 Brand"
-            className="w-full h-full object-cover object-center"
+            src="/LOGOFEEDPRO.png"
+            alt="FeedPro 360"
+            className="w-full max-h-14 object-contain drop-shadow-lg group-hover:opacity-90 transition-opacity"
           />
-          {/* Gradiente inferior para legibilidad del texto */}
-          <div className="absolute inset-0 bg-gradient-to-t from-gray-950/80 via-transparent to-transparent pointer-events-none" />
-          {/* Badge EXECUTIVE sobre el banner */}
-          <div className="absolute bottom-2 left-3">
-            <span className="text-[9px] font-black text-cyan-400 uppercase tracking-[0.3em] bg-gray-950/60 backdrop-blur-sm px-2 py-0.5 rounded-full border border-cyan-500/30">
-              EXECUTIVE
-            </span>
-          </div>
-        </div>
+          <span className="text-[9px] font-black text-cyan-500 uppercase tracking-[0.3em] opacity-80 mt-0.5">
+            EXECUTIVE
+          </span>
+        </button>
 
-        {/* Nivel 2: Contenedor Cliente – Transparente, integrado */}
-        <div className="px-4 pt-3 pb-4 flex flex-col gap-2">
-            {/* Logo del Cliente: Transparente y compacto */}
-            <div className="w-full h-16 flex items-center justify-center overflow-hidden">
+        {/* Contenedor Cliente – Logo flotante transparente + Selector */}
+        <div className="px-4 pt-1 pb-4 flex flex-col gap-2">
+            {/* Logo del Cliente Activo: transparente, integrado */}
+            <div className="w-full h-14 flex items-center justify-center overflow-hidden">
                 {(() => {
                     const currentClient = clients.find(c => c.id === selectedClientId);
                     return currentClient?.logo ? (
-                        <img src={currentClient.logo} alt="Factory" className="max-w-full max-h-full object-contain drop-shadow-md" />
+                        <img src={currentClient.logo} alt="Cliente" className="max-w-full max-h-full object-contain drop-shadow-md" />
                     ) : (
-                        <Users className="w-8 h-8 text-gray-700" />
+                        <Users className="w-7 h-7 text-gray-700" />
                     );
                 })()}
             </div>
-            
-            {/* Selector Unificado */}
+
+            {/* Selector de Granja Unificado */}
             <div className="relative group w-full">
               <select
                 value={selectedClientId}
