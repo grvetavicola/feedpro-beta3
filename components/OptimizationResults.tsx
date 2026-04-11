@@ -80,26 +80,29 @@ export const OptimizationResults: React.FC<OptimizationResultsProps> = ({ result
     });
   };
 
-  const handleExportCSV = () => {
+    const handleExportCSV = () => {
     let csvContent = "\uFEFF"; 
     csvContent += `FEEDPRO - ${t('nav.dashboard').toUpperCase()}\n`;
     csvContent += `${t('common.diet')}:,${product.name}\n`;
     csvContent += `${t('common.date')}:,${new Date().toLocaleDateString()}\n`;
     csvContent += `${t('common.price')} Total:,${result.totalCost.toFixed(2)} USD\n\n`;
 
-    csvContent += `${t('common.name').toUpperCase()},% (PORCENTAJE),PESO (KG),COSTO (USD)\n`;
+    csvContent += `--- FICHA DE INSUMOS ---\n`;
+    csvContent += `${t('common.name').toUpperCase()},INCLUSION(%),PESO(KG),PRECIO(USD/KG),COSTO_PARCIAL(USD),PRECIO_SOMBRA(USD)\n`;
+    
     result.items.forEach(item => {
         const ing = ingredients.find(i => i.id === item.ingredientId);
-        csvContent += `"${ing?.name || 'N/A'}",${item.percentage.toFixed(3)},${item.weight.toFixed(2)},${item.cost.toFixed(2)}\n`;
+        csvContent += `"${ing?.name || 'Insumo Eliminado'}",${item.percentage.toFixed(3)}%,${item.weight.toFixed(3)},${item.price?.toFixed(3) || 'N/A'},${item.cost.toFixed(3)},${item.shadowPrice !== undefined ? item.shadowPrice.toFixed(4) : 'N/A'}\n`;
     });
     
-    csvContent += `\nTOTAL,,100.000,${result.totalCost.toFixed(2)}\n\n`;
+    csvContent += `\nTOTAL MEZCLA,,100.00%,${(batchSize || 1000).toFixed(2)},,${result.totalCost.toFixed(3)}\n\n`;
 
-    csvContent += `${t('results.finalComposition')}\n`;
-    csvContent += `${t('common.name').toUpperCase()},VALOR,UNIDAD,ESTADO\n`;
+    csvContent += `--- MATRIZ NUTRICIONAL FINAL ---\n`;
+    csvContent += `${t('common.name').toUpperCase()},APORTE_FINAL,MIN_REQ,MAX_REQ,UNIDAD,ESTADO\n`;
     result.nutrientAnalysis.forEach(na => {
         const nut = nutrients.find(n => n.id === na.nutrientId);
-        csvContent += `"${nut?.name}",${na.value.toFixed(3)},${nut?.unit || ''},${na.met ? 'CUMPLE' : 'FUERA DE RANGO'}\n`;
+        const stausText = na.met ? 'CUMPLE RANGO' : (na.value < na.min ? 'DEFICIT' : 'EXCESO');
+        csvContent += `"${nut?.name || 'N/A'}",${na.value.toFixed(4)},${na.min.toFixed(4)},${na.max === 999 ? 'ILIMITADO' : na.max.toFixed(4)},${nut?.unit || ''},${stausText}\n`;
     });
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
