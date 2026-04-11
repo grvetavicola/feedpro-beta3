@@ -3,6 +3,7 @@ import { Product, Ingredient, SavedFormula, Client, ViewState, User } from '../t
 import { useTranslations } from '../lib/i18n/LangContext';
 import { TruckIcon, StarIcon, TrendingUpIcon, ShoppingCartIcon, ClockIcon, ArrowRightIcon, AIIcon, ProductsIcon, IngredientsIcon, FormulateIcon, NutrientsIcon, DatabaseIcon, FlaskIcon, CalculatorIcon } from './icons';
 import { APP_NAME, APP_VERSION } from '../constants';
+import { InsumosAnalyticsModal } from './InsumosAnalyticsModal';
 
 interface DashboardProps {
   products: Product[];
@@ -17,6 +18,7 @@ interface DashboardProps {
 
 export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, savedFormulas, clients, onNavigate, isDynamicMatrix, setIsDynamicMatrix, user }) => {
   const { t } = useTranslations();
+  const [showInsumosBI, setShowInsumosBI] = React.useState(false);
 
   const lastOp = savedFormulas.length > 0 ? new Date(savedFormulas[savedFormulas.length - 1].date).toLocaleDateString() : 'N/A';
 
@@ -94,17 +96,26 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
 
       {/* Stats Matrix (Compact) */}
       <div className="grid grid-cols-4 gap-3">
-          {stats.map((stat, i) => (
-             <div key={i} className="bg-gray-800 border border-gray-700 p-3 rounded-xl flex items-center justify-between hover:border-cyan-500/50 transition-colors shadow-lg">
-                <div className="space-y-1">
-                    <p className="text-[11px] text-white font-black uppercase tracking-wider">{stat.label}</p>
-                    <p className="text-2xl font-black text-white leading-none">{stat.value}</p>
-                </div>
-                <div className={`${stat.bg} p-2 rounded-lg transition-transform`}>
-                    <stat.icon className={`w-6 h-6 ${stat.color}`}/>
-                </div>
-             </div>
-          ))}
+          {stats.map((stat, i) => {
+             const isClickable = stat.label === 'Insumos Disponibles';
+             return (
+                 <div 
+                     key={i} 
+                     onClick={() => isClickable && setShowInsumosBI(true)}
+                     className={`bg-gray-800 border border-gray-700 p-3 rounded-xl flex items-center justify-between shadow-lg transition-all
+                         ${isClickable ? 'cursor-pointer hover:-translate-y-1 hover:border-cyan-500/50 hover:shadow-cyan-900/40' : 'hover:border-gray-500/50'}
+                     `}
+                 >
+                    <div className="space-y-1">
+                        <p className="text-[11px] text-white font-black uppercase tracking-wider">{stat.label}</p>
+                        <p className="text-2xl font-black text-white leading-none">{stat.value}</p>
+                    </div>
+                    <div className={`${stat.bg} p-2 rounded-lg transition-transform`}>
+                        <stat.icon className={`w-6 h-6 ${stat.color}`}/>
+                    </div>
+                 </div>
+             );
+          })}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
@@ -183,6 +194,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
 
       </div>
 
+      {/* Global Modals for Dashboards */}
+      {showInsumosBI && <InsumosAnalyticsModal onClose={() => setShowInsumosBI(false)} />}
     </div>
   );
 };
