@@ -91,6 +91,12 @@ export interface FormulationResult {
     cost: number;
     shadowPrice?: number; // Cost of opportunity
   }[];
+  rejectedItems?: {
+    ingredientId: string;
+    effectivePrice: number;
+    opportunityPrice: number;
+    viabilityGap: number; // The difference
+  }[];
   nutrientAnalysis: {
     nutrientId: string;
     value: number;
