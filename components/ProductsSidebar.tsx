@@ -40,7 +40,16 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
   onUpdateClientLogo,
   onLogout
 }) => {
+  onLogout
+}) => {
+  const [expandedCategories, setExpandedCategories] = React.useState<string[]>([]);
   const filteredProducts = products.filter(p => !selectedClientId || p.clientId === selectedClientId);
+
+  const toggleCategory = (cat: string) => {
+    setExpandedCategories(prev => 
+        prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
+    );
+  };
 
   const attemptDeleteProduct = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -57,6 +66,13 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
       onDeleteCategory?.(cat);
     }
   };
+
+  const groupedProducts = filteredProducts.reduce((acc, p) => {
+    const cat = p.category || 'Sin Categoría';
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(p);
+    return acc;
+  }, {} as Record<string, Product[]>);
 
   return (
     <aside className="w-[240px] bg-gray-950 border-r border-gray-800 flex flex-col h-full overflow-hidden">
@@ -118,166 +134,128 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
             </label>
             <div className="space-y-0.5">
               {[
-                { id: 'DASHBOARD', label: 'Inicio', img: '/icons/inicio.png', color: 'border-blue-400', bg: 'hover:bg-blue-500/10' },
-                { id: 'INGREDIENTS', label: 'Insumos', img: '/icons/ingredient.png', color: 'border-emerald-400', bg: 'hover:bg-emerald-500/10' },
-                { id: 'NUTRIENTS', label: 'Nutrientes', img: '/icons/nutrients.png', color: 'border-purple-400', bg: 'hover:bg-purple-500/10' },
-                { id: 'LOGOUT', label: 'Salir', img: '/icons/clients.png', color: 'border-red-400', bg: 'hover:bg-red-500/10' },
-                { id: 'PRODUCTS', label: 'Dietas', img: '/icons/products.png', color: 'border-indigo-400', bg: 'hover:bg-indigo-500/10' },
-                { id: 'OPTIMIZATION', label: 'Optimización', img: '/icons/formulation.png', color: 'border-cyan-400', bg: 'hover:bg-cyan-500/10' },
-                { id: 'SIMULATION', label: 'Simular', img: '/icons/simulation.png', color: 'border-amber-400', bg: 'hover:bg-amber-500/10' },
+                { id: 'DASHBOARD', label: 'Inicio', img: '/icons/inicio.png' },
+                { id: 'INGREDIENTS', label: 'Insumos', img: '/icons/ingredient.png' },
+                { id: 'NUTRIENTS', label: 'Nutrientes', img: '/icons/nutrients.png' },
+                { id: 'PRODUCTS', label: 'Dietas', img: '/icons/products.png' },
+                { id: 'SIMULATION', label: 'Simular', img: '/icons/simulation.png' },
+                { id: 'OPTIMIZATION', label: 'Optimización', img: '/icons/formulation.png' },
               ].map(item => {
                 const isActive = activeView === item.id;
+                const isOptim = item.id === 'OPTIMIZATION';
+                
                 return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                        if (item.id === 'LOGOUT') {
-                            if (window.confirm("¿Deseas guardar los cambios y aceptar antes de salir?")) {
-                                onLogout?.();
+                  <div key={item.id}>
+                    <button
+                        onClick={() => {
+                            if (isOptim) {
+                                onNavigate('OPTIMIZATION');
+                                // Could also auto-expand?
+                            } else {
+                                onNavigate(item.id as ViewState);
                             }
-                        } else {
-                            onNavigate(item.id as ViewState);
-                        }
-                    }}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 group ${isActive
-                      ? 'bg-gray-800 border border-cyan-500/50 shadow-md shadow-cyan-900/20'
-                      : `border border-transparent ${item.bg}`
-                      }`}
-                  >
-                    <div className="relative w-7 h-7 transition-transform group-hover:scale-110">
-                      {/* Generar color solido usando filtros CSS avanzados (drop-shadow technique) */}
-                      <img
-                        src={item.img}
-                        alt={item.label}
-                        className={`absolute inset-0 w-full h-full object-contain mix-blend-screen opacity-0`}
-                        title={item.label}
-                      />
-                      <div
-                        className={`absolute inset-0 w-full h-full ${isActive ? 'bg-cyan-500' : 'bg-cyan-600/70 group-hover:bg-cyan-500'} ${item.id === 'LOGOUT' ? 'bg-red-500/70 group-hover:bg-red-500' : ''}`}
-                        style={{
-                          WebkitMaskImage: `url('${item.img}')`,
-                          WebkitMaskSize: 'contain',
-                          WebkitMaskPosition: 'center',
-                          WebkitMaskRepeat: 'no-repeat',
-                          maskImage: `url('${item.img}')`,
-                          maskSize: 'contain',
-                          maskPosition: 'center',
-                          maskRepeat: 'no-repeat',
                         }}
-                      />
-                    </div>
-                    <span className={`text-[11px] font-black uppercase tracking-[0.2em] transition-colors ${isActive ? 'text-white' : 'text-white/70 group-hover:text-white'} ${item.id === 'LOGOUT' ? 'text-red-400 group-hover:text-red-300' : ''}`}>
-                      {item.label}
-                    </span>
-                  </button>
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 group ${isActive
+                        ? 'bg-gray-800 border border-cyan-500/50 shadow-md shadow-cyan-900/20'
+                        : `border border-transparent hover:bg-white/5`
+                        }`}
+                    >
+                        <div className="relative w-7 h-7 transition-transform group-hover:scale-110">
+                        <img
+                            src={item.img}
+                            alt={item.label}
+                            className={`absolute inset-0 w-full h-full object-contain mix-blend-screen opacity-0`}
+                            title={item.label}
+                        />
+                        <div
+                            className={`absolute inset-0 w-full h-full ${isActive ? 'bg-cyan-500' : 'bg-cyan-600/70 group-hover:bg-cyan-500'}`}
+                            style={{
+                            WebkitMaskImage: `url('${item.img}')`,
+                            WebkitMaskSize: 'contain',
+                            WebkitMaskPosition: 'center',
+                            WebkitMaskRepeat: 'no-repeat',
+                            maskImage: `url('${item.img}')`,
+                            maskSize: 'contain',
+                            maskPosition: 'center',
+                            maskRepeat: 'no-repeat',
+                            }}
+                        />
+                        </div>
+                        <span className={`flex-1 text-[11px] font-black uppercase tracking-[0.2em] transition-colors text-left ${isActive ? 'text-white' : 'text-white/70 group-hover:text-white'}`}>
+                        {item.label}
+                        </span>
+                        {isOptim && <ChevronRight className={`w-3 h-3 text-gray-500 transition-transform ${isActive ? 'rotate-90' : ''}`} />}
+                    </button>
+
+                    {/* Sub-menu for Optimization */}
+                    {isOptim && isActive && (
+                        <div className="mt-2 ml-4 space-y-3 pl-2 border-l border-gray-800 animate-slide-down">
+                            {Object.entries(groupedProducts).map(([category, items]) => {
+                                const isExpanded = expandedCategories.includes(category);
+                                const allSelected = items.length > 0 && items.every(p => selectedDietIds.includes(p.id));
+                                const someSelected = items.some(p => selectedDietIds.includes(p.id)) && !allSelected;
+
+                                return (
+                                    <div key={category} className="space-y-1">
+                                        <div className="flex items-center gap-2 group/cat">
+                                            <div className="relative w-3.5 h-3.5">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={allSelected}
+                                                    ref={input => { if (input) input.indeterminate = someSelected; }}
+                                                    onChange={(e) => onToggleDietSelection(items.map(i => i.id), e.target.checked)}
+                                                    className="w-full h-full appearance-none border border-emerald-500/50 rounded bg-gray-950 checked:bg-emerald-500 cursor-pointer"
+                                                />
+                                                {allSelected && <svg className="w-2.5 h-2.5 text-black absolute inset-0 m-auto pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                                            </div>
+                                            <button 
+                                                onClick={() => toggleCategory(category)}
+                                                className="flex-1 text-[10px] font-black text-emerald-400 uppercase tracking-widest text-left truncate flex items-center justify-between"
+                                            >
+                                                {category}
+                                                <ChevronRight className={`w-2.5 h-2.5 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                                            </button>
+                                        </div>
+
+                                        {isExpanded && (
+                                            <div className="mt-1 ml-4 space-y-1 border-l border-gray-800/40 pl-2">
+                                                {items.map(product => {
+                                                    const isSelected = selectedDietIds.includes(product.id);
+                                                    return (
+                                                        <div key={product.id} className="flex items-center gap-2 py-0.5 group/item">
+                                                            <div className="relative w-3 h-3">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={isSelected}
+                                                                    onChange={(e) => onToggleDietSelection([product.id], e.target.checked)}
+                                                                    className="w-full h-full appearance-none border border-gray-700 rounded bg-gray-950 checked:bg-cyan-500 cursor-pointer"
+                                                                />
+                                                                {isSelected && <svg className="w-2 h-2 text-black absolute inset-0 m-auto pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                                                            </div>
+                                                            <span className={`text-[11px] font-bold truncate transition-colors ${isSelected ? 'text-cyan-300' : 'text-gray-400 group-hover/item:text-white'}`}>
+                                                                {product.name}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                            
+                            {filteredProducts.length === 0 && (
+                                <p className="text-[10px] text-gray-600 italic">No hay dietas definidas</p>
+                            )}
+                        </div>
+                    )}
+                  </div>
                 );
               })}
             </div>
           </div>
-
-          {/* Real-time Diet Tree with Categorization */}
-          <div>
-            <div className="flex items-center justify-between mb-4 px-1">
-              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">
-                Árbol de Dietas
-              </label>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] bg-gray-900 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-500/20 font-black">
-                  {filteredProducts.length} TOTAL
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {filteredProducts.length > 0 ? (
-                (() => {
-                  const grouped = filteredProducts.reduce((acc, p) => {
-                    const cat = p.category || 'Sin Categoría';
-                    if (!acc[cat]) acc[cat] = [];
-                    acc[cat].push(p);
-                    return acc;
-                  }, {} as Record<string, Product[]>);
-
-                  return Object.entries(grouped).map(([category, items]) => {
-                    const allSelected = items.length > 0 && items.every(p => selectedDietIds.includes(p.id));
-                    const someSelected = items.some(p => selectedDietIds.includes(p.id)) && !allSelected;
-
-                    return (
-                      <div key={category} className="space-y-1">
-                        <div className="flex items-center gap-2 px-1 mb-1 justify-between group/cat">
-                          <label className="flex items-center gap-2 cursor-pointer relative z-10 flex-1">
-                            <input
-                              type="checkbox"
-                              className="w-3 h-3 appearance-none border border-emerald-500/50 rounded bg-gray-900 checked:bg-emerald-500 checked:border-emerald-500 transition-colors shrink-0"
-                              checked={allSelected}
-                              ref={input => { if (input) input.indeterminate = someSelected; }}
-                              onChange={(e) => onToggleDietSelection(items.map(i => i.id), e.target.checked)}
-                            />
-                            {allSelected && <svg className="w-2.5 h-2.5 text-black absolute left-px pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
-
-                            <span className="text-[11px] font-black text-emerald-400 uppercase tracking-wider truncate">{category}</span>
-                          </label>
-
-                          <div className="flex items-center gap-1 opacity-0 group-hover/cat:opacity-100 transition-opacity">
-                            <button onClick={(e) => { e.stopPropagation(); onEditCategory?.(category); }} className="p-1.5 text-gray-500 hover:text-cyan-400 bg-gray-900 hover:bg-gray-800 rounded-md"><Edit2 size={10} /></button>
-                            <button onClick={(e) => attemptDeleteCategory(e, category)} className="p-1.5 text-gray-500 hover:text-red-400 bg-gray-900 hover:bg-gray-800 rounded-md"><Trash2 size={10} /></button>
-                          </div>
-                          <span className="text-[9px] text-gray-600 font-bold shrink-0 ml-1 group-hover/cat:hidden">{items.length}</span>
-                        </div>
-                        <div className="space-y-1 ml-2 pl-2 border-l border-gray-800/50">
-                          {items.map(product => {
-                            const isSelected = selectedDietIds.includes(product.id);
-                            return (
-                              <div
-                                key={product.id}
-                                className={`w-full flex items-center justify-between group/item px-2 py-1.5 rounded-lg border transition-all text-left ${isSelected ? 'border-cyan-500/50 bg-cyan-900/10' : 'border-transparent hover:border-gray-800 hover:bg-gray-900/50'}`}
-                              >
-                                <label className="flex items-center gap-2 overflow-hidden flex-1 cursor-pointer">
-                                  <div className="relative shrink-0 flex items-center justify-center">
-                                    <input
-                                      type="checkbox"
-                                      checked={isSelected}
-                                      onChange={(e) => onToggleDietSelection([product.id], e.target.checked)}
-                                      className="w-3.5 h-3.5 appearance-none border border-gray-600 rounded bg-gray-900 checked:bg-cyan-500 checked:border-cyan-500 cursor-pointer transition-colors"
-                                    />
-                                    {isSelected && <svg className="w-2.5 h-2.5 text-black absolute pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
-                                  </div>
-                                  <div className="overflow-hidden flex-1">
-                                    <p className={`text-[13px] font-bold truncate transition-colors ${isSelected ? 'text-cyan-300' : 'text-gray-100 group-hover/item:text-white'}`}>{product.name}</p>
-                                    <p className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">REF-{product.code}</p>
-                                  </div>
-                                </label>
-                                <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity shrink-0 ml-2">
-                                  <button onClick={(e) => { e.stopPropagation(); onEditProduct?.(product.id); }} className="p-1.5 text-gray-500 hover:text-cyan-400 bg-gray-950 hover:bg-gray-800 rounded-md transition-colors">
-                                    <Edit2 size={12} />
-                                  </button>
-                                  <button onClick={(e) => attemptDeleteProduct(e, product.id)} className="p-1.5 text-gray-500 hover:text-red-400 bg-gray-950 hover:bg-gray-800 rounded-md transition-colors">
-                                    <Trash2 size={12} />
-                                  </button>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  });
-                })()
-              ) : (
-                <div className="py-8 flex flex-col items-center justify-center text-center px-4 bg-gray-900/20 rounded-xl border border-dashed border-gray-800">
-                  <Package className="w-6 h-6 text-gray-700 mb-2 opacity-20" />
-                  <p className="text-[11px] text-gray-600 font-bold uppercase tracking-tighter">No hay dietas registradas</p>
-                </div>
-              )}
-
-              <button
-                onClick={() => onNavigate('PRODUCTS')}
-                className="w-full mt-2 py-3 border-2 border-dashed border-gray-800/10 rounded-xl text-gray-500 text-[11px] font-black uppercase tracking-widest hover:border-cyan-500/30 hover:text-cyan-400 hover:bg-cyan-500/5 transition-all flex items-center justify-center gap-2 group"
-              >
-                <Plus className="w-3 h-3 group-hover:scale-125 transition-transform" /> Nueva Dieta
-              </button>
-            </div>
-          </div>
+        </div>
+      </div>
         </div>
       </div>
 
