@@ -36,40 +36,40 @@ export const Header: React.FC<HeaderProps> = ({
 
     return (
         <header className="shrink-0 h-14 border-b border-black/10 z-50 flex items-center px-4 gap-4 relative overflow-hidden bg-white">
-            {/* Banner Unificado con Difuminado de Unión (Blending) y Cobertura Total */}
+            {/* Banner Unificado: Calce exacto sin perder resolución */}
             <div className="absolute inset-0 pointer-events-none select-none">
-                {/* Capa Base C (Fondo de conexión) */}
+                {/* Capa Base C (Centro expandido) */}
                 <div 
                     className="absolute inset-0"
                     style={{
                         backgroundImage: 'url("/banner C.jpg")',
-                        backgroundSize: 'cover',
+                        backgroundSize: '100% 100%',
                         backgroundPosition: 'center',
                         backgroundRepeat: 'no-repeat'
                     }}
                 />
-                {/* Logo A (Izquierda) con Difuminado a la Derecha */}
+                {/* Logo A (Izquierda) */}
                 <div 
                     className="absolute left-0 top-0 h-full w-[40%]"
                     style={{
                         backgroundImage: 'url("/banner A.jpg")',
-                        backgroundSize: 'cover',
+                        backgroundSize: 'auto 100%',
                         backgroundPosition: 'left center',
                         backgroundRepeat: 'no-repeat',
-                        WebkitMaskImage: 'linear-gradient(to right, black 80%, transparent 100%)',
-                        maskImage: 'linear-gradient(to right, black 80%, transparent 100%)'
+                        WebkitMaskImage: 'linear-gradient(to right, black 85%, transparent 100%)',
+                        maskImage: 'linear-gradient(to right, black 85%, transparent 100%)'
                     }}
                 />
-                {/* Logo B (Derecha) con Difuminado a la Izquierda */}
+                {/* Logo B (Derecha) */}
                 <div 
                     className="absolute right-0 top-0 h-full w-[40%]"
                     style={{
                         backgroundImage: 'url("/banner B.jpg")',
-                        backgroundSize: 'cover',
+                        backgroundSize: 'auto 100%',
                         backgroundPosition: 'right center',
                         backgroundRepeat: 'no-repeat',
-                        WebkitMaskImage: 'linear-gradient(to left, black 80%, transparent 100%)',
-                        maskImage: 'linear-gradient(to left, black 80%, transparent 100%)'
+                        WebkitMaskImage: 'linear-gradient(to left, black 85%, transparent 100%)',
+                        maskImage: 'linear-gradient(to left, black 85%, transparent 100%)'
                     }}
                 />
             </div>
