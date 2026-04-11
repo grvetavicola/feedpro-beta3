@@ -65,7 +65,7 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                 title="Abrir Gestión de Perfiles"
             >
                 <img
-                    src="/LOGOFEEDPRO.png"
+                    src="/FeedPro-sinfondo.PNG"
                     alt="FeedPro 360"
                     className="w-full max-h-12 object-contain drop-shadow-md group-hover:drop-shadow-[0_0_8px_rgba(6,182,212,0.5)] group-hover:scale-[1.02] transition-all duration-300"
                 />
