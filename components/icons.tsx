@@ -260,5 +260,5 @@ export const NutrientsIcon = (props: any) => <SpriteIcon name="nutrients" {...pr
 export const ProductsIcon = (props: any) => <SpriteIcon name="products" {...props} />;
 export const FormulateIcon = (props: any) => <SpriteIcon name="formulate" {...props} />;
 export const IngredientsIcon = (props: any) => <SpriteIcon name="ingredients" {...props} />;
-export const AIIcon = (props: any) => <img src="/icons/ai_assistant.png" className={`rounded-full border border-cyan-500/30 object-cover ${props.className || 'w-6 h-6'}`} alt="VETIA AI" {...props} />;
+export const AIIcon = (props: any) => <img src="/icons/ai_assistant.png" className={`object-contain filter brightness-0 invert transition-all duration-300 ${props.className || 'w-6 h-6'}`} alt="VETIA AI" {...props} />;
 export const RatiosIcon = (props: any) => <SpriteIcon name="ratios" {...props} />;

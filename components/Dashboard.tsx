@@ -147,10 +147,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
           >
               <div className="absolute right-0 top-0 w-24 h-24 bg-purple-500/10 blur-xl rounded-full pointer-events-none group-hover:bg-purple-500/20 transition-colors"></div>
               <div className="flex items-center gap-3 relative z-10 w-full">
-                  <img src="/icons/ai_assistant.png" className="w-10 h-10 object-cover group-hover:scale-110 transition-all duration-300 rounded-full border border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.5)]" alt="VETIA AI" />
+                  <div className="w-10 h-10 flex items-center justify-center relative">
+                      <div className="absolute inset-0 bg-white/20 blur-md rounded-full animate-pulse"></div>
+                      <img 
+                        src="/icons/ai_assistant.png" 
+                        className="w-10 h-10 object-contain filter brightness-0 invert relative z-20 group-hover:scale-110 transition-transform duration-500" 
+                        alt="VETIA" 
+                      />
+                  </div>
                   <div className="flex flex-col">
-                      <h3 className="text-[15px] font-black text-white tracking-widest uppercase">VETIA</h3>
-                      <p className="text-purple-300/80 text-[10px] font-bold uppercase tracking-widest leading-none mt-0.5">Asistente</p>
+                      <h3 className="text-[15px] font-black text-white tracking-widest uppercase mb-0">VETIA</h3>
+                      <p className="text-purple-300/80 text-[10px] font-bold uppercase tracking-widest leading-none">Asistente</p>
                   </div>
               </div>
           </div>
