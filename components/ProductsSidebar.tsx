@@ -181,15 +181,16 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                                 return (
                                     <div key={category} className="space-y-1">
                                         <div className="flex items-center gap-2 group/cat">
-                                            <div className="relative w-3.5 h-3.5">
+                                            <div className="relative w-4 h-4 shrink-0 flex items-center justify-center">
                                                 <input
                                                     type="checkbox"
                                                     checked={allSelected}
                                                     ref={input => { if (input) input.indeterminate = someSelected; }}
                                                     onChange={(e) => onToggleDietSelection(items.map(i => i.id), e.target.checked)}
-                                                    className="w-full h-full appearance-none border border-emerald-500/50 rounded bg-gray-950 checked:bg-emerald-500 cursor-pointer"
+                                                    className="w-full h-full appearance-none border-2 border-emerald-500/50 rounded bg-gray-950 checked:bg-emerald-500 cursor-pointer transition-colors"
                                                 />
-                                                {allSelected && <svg className="w-2.5 h-2.5 text-black absolute inset-0 m-auto pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                                                {allSelected && <svg className="w-2.5 h-2.5 text-black absolute pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                                                {someSelected && !allSelected && <div className="w-2 h-0.5 bg-emerald-500 absolute pointer-events-none"></div>}
                                             </div>
                                             <button 
                                                 onClick={() => toggleCategory(category)}
@@ -206,14 +207,14 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                                                     const isSelected = selectedDietIds.includes(product.id);
                                                     return (
                                                         <div key={product.id} className="flex items-center gap-2 py-0.5 group/item">
-                                                            <div className="relative w-3 h-3">
+                                                            <div className="relative w-3.5 h-3.5 shrink-0 flex items-center justify-center">
                                                                 <input
                                                                     type="checkbox"
                                                                     checked={isSelected}
                                                                     onChange={(e) => onToggleDietSelection([product.id], e.target.checked)}
-                                                                    className="w-full h-full appearance-none border border-gray-700 rounded bg-gray-950 checked:bg-cyan-500 cursor-pointer"
+                                                                    className="w-full h-full appearance-none border-2 border-gray-700 rounded bg-gray-950 checked:bg-cyan-500 checked:border-cyan-500 cursor-pointer transition-colors"
                                                                 />
-                                                                {isSelected && <svg className="w-2 h-2 text-black absolute inset-0 m-auto pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                                                                {isSelected && <svg className="w-2 h-2 text-black absolute pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
                                                             </div>
                                                             <span className={`text-[11px] font-bold truncate transition-colors ${isSelected ? 'text-cyan-300' : 'text-gray-400 group-hover/item:text-white'}`}>
                                                                 {product.name}
