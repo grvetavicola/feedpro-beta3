@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslations } from '../lib/i18n/LangContext';
 import { GlobeIcon, MonitorIcon, DatabaseIcon, ShieldCheckIcon, SaveIcon, PlusIcon, UserIcon, TrashIcon, SearchIcon } from './icons';
-import { Client, ViewState } from '../types';
+import { Client, ViewState, Ingredient, Nutrient, Product } from '../types';
 import { APP_NAME } from '../constants';
 
 interface SettingsScreenProps {
@@ -10,9 +10,15 @@ interface SettingsScreenProps {
     onNavigate: (view: ViewState) => void;
     uiScale: number;
     setUiScale: (scale: number) => void;
+    ingredients: Ingredient[];
+    setIngredients: React.Dispatch<React.SetStateAction<Ingredient[]>>;
+    nutrients: Nutrient[];
+    setNutrients: React.Dispatch<React.SetStateAction<Nutrient[]>>;
+    products: Product[];
+    setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
 }
 
-export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClients, onNavigate, uiScale, setUiScale }) => {
+export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClients, onNavigate, uiScale, setUiScale, ingredients, setIngredients, nutrients, setNutrients, products, setProducts }) => {
     const { t, language, setLanguage } = useTranslations();
     const [newClientName, setNewClientName] = React.useState('');
     const [isSaving, setIsSaving] = React.useState(false);
@@ -22,6 +28,46 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
         const newClient = { id: `c${Date.now()}`, name: newClientName };
         setClients([...clients, newClient]);
         setNewClientName('');
+    };
+
+    const handleExportMatrix = () => {
+        const matrixData = {
+            version: '2.0.0',
+            timestamp: new Date().toISOString(),
+            ingredients,
+            nutrients,
+            products,
+            clients
+        };
+        const blob = new Blob([JSON.stringify(matrixData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `FeedPro_Matriz_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+        link.click();
+    };
+
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+    const handleImportMatrix = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const data = JSON.parse(event.target?.result as string);
+                if (data.ingredients && Array.isArray(data.ingredients)) setIngredients(data.ingredients);
+                if (data.nutrients && Array.isArray(data.nutrients)) setNutrients(data.nutrients);
+                if (data.products && Array.isArray(data.products)) setProducts(data.products);
+                if (data.clients && Array.isArray(data.clients)) setClients(data.clients);
+                alert("Matriz importada y restaurada exitosamente.");
+            } catch (error) {
+                console.error("Error importing matrix:", error);
+                alert("El archivo no es un backup válido de FeedPro Matrix.");
+            }
+        };
+        reader.readAsText(file);
     };
 
     const handleSave = () => {
@@ -142,6 +188,42 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                                 <span className="text-2xl">🇺🇸</span>
                                 <span className="font-black uppercase tracking-widest text-[10px]">English</span>
                             </button>
+                        </div>
+                    </div>
+
+                    {/* Matrix Management Section */}
+                    <div className="bg-gradient-to-br from-indigo-950 to-gray-900 border border-indigo-900/50 p-6 rounded-3xl space-y-4 shadow-lg">
+                        <div className="flex items-center gap-3 border-b border-indigo-900/50 pb-4">
+                            <div className="bg-indigo-500/20 p-2 rounded-xl text-indigo-400">
+                                <DatabaseIcon className="w-5 h-5" />
+                            </div>
+                            <h3 className="text-lg font-black text-white uppercase tracking-tighter leading-none">Gestión de Matriz</h3>
+                        </div>
+                        <p className="text-[10px] text-indigo-300 font-bold uppercase tracking-widest leading-relaxed">
+                            Respalda y restaura toda la base de datos (Insumos, Nutrientes y Dietas) en formato seguro JSON.
+                        </p>
+                        <div className="flex gap-3">
+                            <button 
+                                onClick={handleExportMatrix}
+                                className="flex-1 bg-indigo-900 hover:bg-indigo-800 text-white font-black uppercase text-[11px] py-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all border border-indigo-500/30"
+                            >
+                                <SaveIcon className="w-5 h-5"/>
+                                Exportar Matriz
+                            </button>
+                            <button 
+                                onClick={() => fileInputRef.current?.click()}
+                                className="flex-1 bg-gray-800 hover:bg-gray-700 text-indigo-200 font-black uppercase text-[11px] py-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all border border-gray-600"
+                            >
+                                <div className="rotate-180"><SaveIcon className="w-5 h-5"/></div>
+                                Importar Matriz
+                            </button>
+                            <input 
+                                type="file" 
+                                accept=".json" 
+                                className="hidden" 
+                                ref={fileInputRef} 
+                                onChange={handleImportMatrix} 
+                            />
                         </div>
                     </div>
 

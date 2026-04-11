@@ -38,11 +38,7 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredient
     const [editingIngredient, setEditingIngredient] = useState<Ingredient | null>(null);
     const [viewMode, setViewMode] = useState<'list' | 'matrix'>('list');
     
-    // Import States
-    const [isImporting, setIsImporting] = useState(false);
-    const [importPreview, setImportPreview] = useState<{ingredients: ParsedIngredient[], newNutrients: ParsedNewNutrient[]} | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
+    // Import States Removed (Transferred to SettingsScreen)
     const getNextCode = () => {
         if (ingredients.length === 0) return 100;
         const maxCode = Math.max(...ingredients.map(i => i.code || 0));
@@ -170,15 +166,6 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredient
                             {t('common.matrix')}
                         </button>
                     </div>
-
-                    <button 
-                        onClick={() => fileInputRef.current?.click()}
-                        className="bg-gray-700 hover:bg-gray-600 border border-gray-600 text-white font-medium py-1 px-3 rounded flex items-center gap-2 transition-colors text-[13px]"
-                    >
-                        <UploadIcon className="w-3 h-3" /> 
-                        {isImporting ? t('common.analyzing') : t('ingredients.importButton')}
-                    </button>
-                    <input type="file" ref={fileInputRef} className="hidden" accept=".xlsx,.xls,.csv,.pdf,image/*" onChange={handleFileSelect} disabled={isImporting} />
                     <button onClick={handleAddNew} className="bg-cyan-600 hover:bg-cyan-500 text-white font-semibold py-1 px-3 rounded flex items-center gap-2 text-[13px]">
                         <PlusIcon className="w-3 h-3" /> {t('ingredients.addButton')}
                     </button>
