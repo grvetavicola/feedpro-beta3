@@ -72,8 +72,34 @@ export const ClientsScreen: React.FC<ClientsScreenProps> = ({ clients, setClient
                         onClick={() => setSelectedClientId(client.id)}
                         className={`p-6 rounded-2xl border transition-all cursor-pointer group relative flex items-center gap-4 ${selectedClientId === client.id ? 'bg-cyan-900/30 border-cyan-500 shadow-lg shadow-cyan-900/20' : 'bg-gray-800/60 border-gray-700 hover:border-gray-500'}`}
                       >
-                          <div className={`p-4 rounded-xl ${selectedClientId === client.id ? 'bg-cyan-500 text-white' : 'bg-gray-700 text-gray-400 group-hover:text-cyan-400 transition-colors'}`}>
-                              <UserIcon className="w-6 h-6"/>
+                          <div className={`p-4 rounded-xl relative overflow-hidden flex items-center justify-center min-w-[64px] min-h-[64px] ${selectedClientId === client.id ? 'bg-cyan-500 text-white' : 'bg-gray-700 text-gray-400 group-hover:text-cyan-400 transition-colors'}`}>
+                              {client.logo ? (
+                                  <img src={client.logo} alt={client.name} className="w-full h-full object-contain" />
+                              ) : (
+                                  <UserIcon className="w-6 h-6"/>
+                              )}
+                              
+                              {/* Logo Upload Trigger only if selected */}
+                              {selectedClientId === client.id && (
+                                  <label className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+                                      <SearchIcon className="w-5 h-5 text-white" />
+                                      <input 
+                                        type="file" 
+                                        accept="image/*" 
+                                        className="hidden" 
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+                                            const reader = new FileReader();
+                                            reader.onload = (ev) => {
+                                                const logoData = ev.target?.result as string;
+                                                setClients(prev => prev.map(c => c.id === client.id ? { ...c, logo: logoData } : c));
+                                            };
+                                            reader.readAsDataURL(file);
+                                        }}
+                                      />
+                                  </label>
+                              )}
                           </div>
                           <div className="flex-1 truncate">
                               <h4 className={`font-bold text-lg truncate ${selectedClientId === client.id ? 'text-white' : 'text-gray-200'}`}>{client.name}</h4>

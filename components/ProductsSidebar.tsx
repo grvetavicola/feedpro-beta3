@@ -58,27 +58,22 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
 
   return (
     <aside className="w-[240px] bg-gray-950 border-r border-gray-800 flex flex-col h-full overflow-hidden">
-      {/* Zona de Identidad Premium: Logo + Perfil */}
-      <div className="p-2 border-b border-gray-800 bg-gray-950 flex flex-col items-center shrink-0">
-        <div className="w-full flex justify-center mb-2 mt-1">
-            <button 
-                onClick={onManageProfile}
-                className="group outline-none w-full flex justify-center items-center"
-                title="Abrir Gestión de Perfiles"
-            >
-                <img
-                    src="/FeedPro-sinfondo.PNG"
-                    alt="FeedPro 360"
-                    className="w-full max-h-8 object-contain drop-shadow-md group-hover:drop-shadow-[0_0_8px_rgba(6,182,212,0.5)] group-hover:scale-[1.02] transition-all duration-300"
-                />
-            </button>
-        </div>
-
+      {/* Zona de Identidad Premium: Logo + Perfil Integrado */}
+      <div className="p-2 pb-0 border-b border-gray-800 bg-gray-950 flex flex-col items-center shrink-0">
         <div className="w-full flex flex-col bg-gray-900/60 border border-gray-800/80 rounded-2xl shadow-xl overflow-hidden relative group">
           <div className="absolute inset-0 bg-gradient-to-b from-cyan-900/5 to-transparent pointer-events-none" />
 
-          {/* Middle: Logo del Perfil Activo */}
-          <div className="relative px-3 py-2 flex flex-col items-center justify-center min-h-[50px] group/logo">
+          {/* Top: Branding FeedPro (Fix) */}
+          <div className="w-full flex justify-center pt-3 pb-2 border-b border-gray-800/30">
+              <img
+                  src="/FeedPro-sinfondo.PNG"
+                  alt="FeedPro 360"
+                  className="max-h-6 object-contain drop-shadow-md opacity-80"
+              />
+          </div>
+
+          {/* Middle: Logo del Perfil Activo (Escapado de edición directa) */}
+          <div className="relative px-3 py-4 flex flex-col items-center justify-center min-h-[60px]">
             {(() => {
               const currentClient = clients.find(c => c.id === selectedClientId);
               return (
@@ -87,38 +82,13 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                     <img
                       src={currentClient.logo}
                       alt={currentClient?.name}
-                      className="max-w-full max-h-[40px] object-contain drop-shadow-md transition-opacity group-hover/logo:opacity-30"
+                      className="max-w-full max-h-[45px] object-contain drop-shadow-md"
                     />
                   ) : (
-                    <div className="flex flex-col items-center gap-1 opacity-30 transition-opacity group-hover/logo:opacity-10">
+                    <div className="flex flex-col items-center gap-1 opacity-20">
                       <Users className="w-6 h-6 text-gray-500 mb-1" />
                       <span className="text-[9px] text-gray-500 uppercase tracking-[0.2em] font-black">Sin Logo</span>
                     </div>
-                  )}
-
-                  {/* Overlay for uploading */}
-                  {currentClient && onUpdateClientLogo && (
-                    <label className="absolute inset-0 flex flex-col justify-center items-center cursor-pointer opacity-0 group-hover/logo:opacity-100 transition-opacity" title="Subir logo">
-                       <div className="bg-gray-950/80 backdrop-blur-sm rounded-xl p-2 px-4 border border-gray-700 shadow-xl flex flex-col items-center gap-1 scale-95 group-hover/logo:scale-100 transition-all">
-                          <Upload className="w-5 h-5 text-cyan-400" />
-                          <span className="text-[10px] text-white font-black uppercase tracking-widest text-center leading-tight">Cambiar<br/>Logo</span>
-                       </div>
-                       <input 
-                         type="file" 
-                         accept="image/*" 
-                         className="hidden" 
-                         onChange={(e) => {
-                             const file = e.target.files?.[0];
-                             if (!file) return;
-                             const reader = new FileReader();
-                             reader.onload = (ev) => {
-                                onUpdateClientLogo(currentClient.id, ev.target?.result as string);
-                             };
-                             reader.readAsDataURL(file);
-                             e.target.value = ''; // Reset
-                         }}
-                       />
-                    </label>
                   )}
                 </>
               );
