@@ -47,8 +47,9 @@ export const solveFeedFormulation = (
 
     // 5. Build Variables (Ingredients)
     ingredients.forEach(ing => {
+        const effectivePrice = (ing.price / (1 - (ing.shrinkage || 0) / 100)) + (ing.processingCost || 0);
         const variable: any = {
-            cost: ing.price,
+            cost: effectivePrice,
             totalWeight: 1,
             [`ing_limit_${ing.id}`]: 1
         };
@@ -85,10 +86,35 @@ export const solveFeedFormulation = (
         };
     }
 
+    const rejectedItems: NonNullable<FormulationResult['rejectedItems']> = [];
+
     const items = ingredients
         .map(ing => {
             const percentage = results[ing.id] || 0;
-            if (percentage <= 0.0001) return null;
+            const effectivePrice = (ing.price / (1 - (ing.shrinkage || 0) / 100)) + (ing.processingCost || 0);
+
+            if (percentage <= 0.0001) {
+                // Shadow Price Analysis (Opportunity Cost)
+                const oppModel = JSON.parse(JSON.stringify(model));
+                // Force 1% inclusion to calculate marginal cost penalty
+                oppModel.constraints[`ing_limit_${ing.id}`] = { 
+                    min: 1, 
+                    max: oppModel.constraints[`ing_limit_${ing.id}`]?.max || 100 
+                };
+                const oppResult = solver.Solve(oppModel);
+                
+                if (oppResult.feasible) {
+                    const costDiff = oppResult.result - results.result; // Delta Cost for 1%
+                    const oppPrice = effectivePrice - costDiff;
+                    rejectedItems.push({
+                        ingredientId: ing.id,
+                        effectivePrice: Number(effectivePrice.toFixed(2)),
+                        opportunityPrice: Number(oppPrice.toFixed(2)),
+                        viabilityGap: Number(costDiff.toFixed(2))
+                    });
+                }
+                return null;
+            }
 
             const weight = (percentage / 100) * batchSize;
             
@@ -96,10 +122,13 @@ export const solveFeedFormulation = (
                 ingredientId: ing.id,
                 percentage: Number(percentage.toFixed(4)),
                 weight: Number(weight.toFixed(4)),
-                cost: Number((weight * ing.price).toFixed(2))
+                cost: Number((weight * effectivePrice).toFixed(2))
             };
         })
         .filter(Boolean) as FormulationResult['items'];
+
+    // Sort rejected items: closest to entering the diet first (lowest viability gap)
+    rejectedItems.sort((a, b) => a.viabilityGap - b.viabilityGap);
 
     // Analysis
     const calculatedNutrients: Record<string, number> = {};
@@ -146,7 +175,8 @@ export const solveFeedFormulation = (
     return {
         status: 'OPTIMAL',
         totalCost: Number((results.result / 100 * batchSize).toFixed(2)), 
-        items: items.sort((a, b) => b.percentage - a.percentage), 
+        items: items.sort((a, b) => b.percentage - a.percentage),
+        rejectedItems,
         nutrientAnalysis,
         relationshipAnalysis
     };
@@ -203,13 +233,14 @@ export const solveGroupFormulation = (
 
     // 3. Variables: Ingredient_Per_Product
     ingredients.forEach(ing => {
+        const effectivePrice = (ing.price / (1 - (ing.shrinkage || 0) / 100)) + (ing.processingCost || 0);
         assignments.forEach(({ id, product, batchSize }) => {
             const aId = id;
             const varName = `${ing.id}_${aId}`;
             
             const variable: any = {
-                // Cost = Price * (Percentage/100 * BatchSize)
-                cost: ing.price * (batchSize / 100),
+                // Cost = EffectivePrice * (Percentage/100 * BatchSize)
+                cost: effectivePrice * (batchSize / 100),
                 
                 // Contributes to product weight
                 [`totalWeight_${aId}`]: 1,

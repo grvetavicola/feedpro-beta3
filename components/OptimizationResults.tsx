@@ -169,6 +169,43 @@ export const OptimizationResults: React.FC<OptimizationResultsProps> = ({ result
                         </tbody>
                     </table>
                 </div>
+
+                {/* --- ANALISIS DE SENSIBILIDAD (REJECTED ITEMS) --- */}
+                {result.rejectedItems && result.rejectedItems.length > 0 && (
+                    <div className="mt-4 border-t border-gray-700 pt-3 flex flex-col min-h-0">
+                        <h3 className="text-[10px] font-black text-orange-400 uppercase tracking-widest px-4 mb-2 flex items-center gap-1.5">
+                            <SparklesIcon className="w-3 h-3" /> Costos Absolutos
+                        </h3>
+                        <div className="overflow-x-auto flex-1 custom-scrollbar">
+                            <table className="w-full text-xs">
+                                <thead className="text-gray-500 uppercase font-black tracking-wider text-[9px] bg-gray-900/50 border-y border-gray-700/50">
+                                    <tr>
+                                        <th className="text-left py-1.5 px-4 font-bold">{t('common.name')}</th>
+                                        <th className="text-right py-1.5 px-3 font-bold">Precio Efectivo</th>
+                                        <th className="text-right py-1.5 px-3 font-bold text-orange-400">Precio Oportunidad</th>
+                                        <th className="text-right py-1.5 px-4 font-bold">Diferencia</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-800/50 text-[11px]">
+                                    {result.rejectedItems.slice(0, 5).map(rej => {
+                                        const ing = ingredients.find(i => i.id === rej.ingredientId);
+                                        return (
+                                            <tr key={rej.ingredientId} className="hover:bg-orange-500/5 transition-colors">
+                                                <td className="py-1.5 px-4 font-medium text-gray-400 truncate max-w-[150px]">{ing?.name || 'Unknown'}</td>
+                                                <td className="text-right py-1.5 px-3 font-mono text-gray-500">${rej.effectivePrice.toFixed(2)}</td>
+                                                <td className="text-right py-1.5 px-3 font-mono text-orange-400 font-bold">${rej.opportunityPrice.toFixed(2)}</td>
+                                                <td className="text-right py-1.5 px-4 font-mono text-red-500/70">-${rej.viabilityGap.toFixed(2)}</td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                            {result.rejectedItems.length > 5 && (
+                                <p className="text-center text-[9px] text-gray-600 mt-1 uppercase font-bold italic">Mostrando top 5 más ceranos</p>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
           </div>
 
