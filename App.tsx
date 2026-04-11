@@ -272,6 +272,10 @@ export default function App() {
           onEditCategory={(cat) => {
               setView('PRODUCTS');
           }}
+          onLogout={() => {
+              // Trigger save if needed or just clear user. The user is saved locally when changed, so setting state and localStorage will be sufficient here.
+              setUser(null);
+          }}
         />
         
         <main className="flex-1 relative flex flex-col bg-[radial-gradient(circle_at_50%_0%,rgba(6,182,212,0.05),transparent_50%)] overflow-hidden p-6">

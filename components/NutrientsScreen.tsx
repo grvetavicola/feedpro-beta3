@@ -88,7 +88,7 @@ export const NutrientsScreen: React.FC<NutrientsScreenProps> = ({ nutrients, set
           </div>
           <div className="col-span-1">
             <button type="submit" className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-1.5 px-3 rounded transition-colors flex items-center justify-center gap-2 text-[13px]">
-                <PlusIcon className="w-4 h-4" /> {t('nutrients.addBtn')}
+                <PlusIcon className="w-4 h-4" /> {t('nutrients.addNew')}
             </button>
           </div>
         </form>

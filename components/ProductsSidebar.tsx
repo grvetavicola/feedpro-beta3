@@ -19,6 +19,7 @@ interface ProductsSidebarProps {
   activeView: ViewState;
   onManageProfile?: () => void;
   onUpdateClientLogo?: (clientId: string, newLogo: string) => void;
+  onLogout?: () => void;
 }
 
 export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
@@ -36,7 +37,8 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
   onNavigate,
   activeView,
   onManageProfile,
-  onUpdateClientLogo
+  onUpdateClientLogo,
+  onLogout
 }) => {
   const filteredProducts = products.filter(p => !selectedClientId || p.clientId === selectedClientId);
 
@@ -122,13 +124,22 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                 { id: 'PRODUCTS', label: 'Dietas', img: '/icons/products.png', color: 'border-indigo-400', bg: 'hover:bg-indigo-500/10' },
                 { id: 'OPTIMIZATION', label: 'Optimización', img: '/icons/formulation.png', color: 'border-cyan-400', bg: 'hover:bg-cyan-500/10' },
                 { id: 'SIMULATION', label: 'Simular', img: '/icons/simulation.png', color: 'border-amber-400', bg: 'hover:bg-amber-500/10' },
+                { id: 'LOGOUT', label: 'Salir', img: '/icons/clients.png', color: 'border-red-400', bg: 'hover:bg-red-500/10' },
                 { id: 'SETTINGS', label: 'Ajustes', img: '/icons/settings.png', color: 'border-gray-400', bg: 'hover:bg-gray-500/10' },
               ].map(item => {
                 const isActive = activeView === item.id;
                 return (
                   <button
                     key={item.id}
-                    onClick={() => onNavigate(item.id as ViewState)}
+                    onClick={() => {
+                        if (item.id === 'LOGOUT') {
+                            if (window.confirm("¿Deseas guardar los cambios y aceptar antes de salir?")) {
+                                onLogout?.();
+                            }
+                        } else {
+                            onNavigate(item.id as ViewState);
+                        }
+                    }}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 group ${isActive
                       ? 'bg-gray-800 border border-cyan-500/50 shadow-md shadow-cyan-900/20'
                       : `border border-transparent ${item.bg}`
@@ -140,9 +151,10 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                         src={item.img}
                         alt={item.label}
                         className={`absolute inset-0 w-full h-full object-contain mix-blend-screen opacity-0`}
+                        title={item.label}
                       />
                       <div
-                        className={`absolute inset-0 w-full h-full ${isActive ? 'bg-cyan-500' : 'bg-cyan-600/70 group-hover:bg-cyan-500'}`}
+                        className={`absolute inset-0 w-full h-full ${isActive ? 'bg-cyan-500' : 'bg-cyan-600/70 group-hover:bg-cyan-500'} ${item.id === 'LOGOUT' ? 'bg-red-500/70 group-hover:bg-red-500' : ''}`}
                         style={{
                           WebkitMaskImage: `url('${item.img}')`,
                           WebkitMaskSize: 'contain',
@@ -155,7 +167,7 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                         }}
                       />
                     </div>
-                    <span className={`text-[11px] font-black uppercase tracking-[0.2em] transition-colors ${isActive ? 'text-white' : 'text-white/70 group-hover:text-white'}`}>
+                    <span className={`text-[11px] font-black uppercase tracking-[0.2em] transition-colors ${isActive ? 'text-white' : 'text-white/70 group-hover:text-white'} ${item.id === 'LOGOUT' ? 'text-red-400 group-hover:text-red-300' : ''}`}>
                       {item.label}
                     </span>
                   </button>
