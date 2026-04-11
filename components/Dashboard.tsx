@@ -152,7 +152,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
                       <div className="absolute -inset-2 bg-white/10 blur-xl rounded-full animate-pulse"></div>
                       <img 
                         src="/icons/ai_assistant.png" 
-                        className="w-12 h-12 object-contain filter brightness-0 invert relative z-20 group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]" 
+                        className="w-16 h-16 object-contain filter brightness-0 invert relative z-20 group-hover:scale-105 transition-transform duration-500 drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]" 
                         alt="VetIA" 
                       />
                   </div>
