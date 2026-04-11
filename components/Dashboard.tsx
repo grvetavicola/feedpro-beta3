@@ -5,6 +5,7 @@ import { TruckIcon, StarIcon, TrendingUpIcon, ShoppingCartIcon, ClockIcon, Arrow
 import { APP_NAME, APP_VERSION } from '../constants';
 import { InsumosAnalyticsModal } from './InsumosAnalyticsModal';
 import { DietStructureModal } from './DietStructureModal';
+import { FormulationHistoryModal } from './FormulationHistoryModal';
 
 interface DashboardProps {
   products: Product[];
@@ -21,6 +22,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
   const { t } = useTranslations();
   const [showInsumosBI, setShowInsumosBI] = React.useState(false);
   const [showDietBI, setShowDietBI] = React.useState(false);
+  const [showHistoryBI, setShowHistoryBI] = React.useState(false);
 
   const lastOp = savedFormulas.length > 0 ? new Date(savedFormulas[savedFormulas.length - 1].date).toLocaleDateString() : 'N/A';
 
@@ -101,11 +103,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
           {stats.map((stat, i) => {
              const isClickableInsumos = stat.label === 'Insumos Disponibles';
              const isClickableDietas = stat.label === 'Dietas Definidas';
-             const isClickable = isClickableInsumos || isClickableDietas;
+             const isClickableHistory = stat.label === 'Formulaciones Realizadas';
+             const isClickable = isClickableInsumos || isClickableDietas || isClickableHistory;
 
              const handleClick = () => {
                  if (isClickableInsumos) setShowInsumosBI(true);
                  if (isClickableDietas) setShowDietBI(true);
+                 if (isClickableHistory) setShowHistoryBI(true);
              };
 
              return (
@@ -207,6 +211,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
       {/* Global Modals for Dashboards */}
       {showInsumosBI && <InsumosAnalyticsModal onClose={() => setShowInsumosBI(false)} />}
       {showDietBI && <DietStructureModal onClose={() => setShowDietBI(false)} />}
+      {showHistoryBI && <FormulationHistoryModal onClose={() => setShowHistoryBI(false)} />}
     </div>
   );
 };
