@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { User, Ingredient, Nutrient, Product, ChatMessage } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
 import { chatWithAssistant } from '../services/geminiService';
-import { AIIcon, LockClosedIcon, UserIcon, PaperclipIcon, XCircleIcon } from './icons';
+import { AIIcon, LockClosedIcon, UserIcon, PaperclipIcon, XCircleIcon, MicrophoneIcon } from './icons';
 
 interface AIAssistantProps {
   ingredients: Ingredient[];
@@ -76,10 +76,47 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ user = { name: 'Admin'
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
+  const [isListening, setIsListening] = useState(false);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+  
+  useEffect(() => {
+    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRec) {
+      const recognition = new SpeechRec();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = language === 'en' ? 'en-US' : 'es-ES';
+
+      recognition.onstart = () => setIsListening(true);
+      recognition.onend = () => setIsListening(false);
+      recognition.onerror = (e: any) => {
+        console.error("Speech recognition error:", e.error);
+        setIsListening(false);
+      };
+      recognition.onresult = (e: any) => {
+        const transcript = e.results[0][0].transcript;
+        if (transcript) setUserInput(prev => prev + (prev ? ' ' : '') + transcript);
+      };
+      
+      recognitionRef.current = recognition;
+    }
+  }, [language]);
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) {
+        alert(t('common.error') || "Dictado por voz no soportado en este navegador. Usa Chrome o Edge.");
+        return;
+    }
+    if (isListening) {
+        recognitionRef.current.stop();
+    } else {
+        recognitionRef.current.start();
+    }
+  };
   
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -234,10 +271,18 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ user = { name: 'Admin'
                 <button 
                     type="button" 
                     onClick={() => fileInputRef.current?.click()} 
-                    className="p-2 text-gray-400 hover:text-cyan-400 bg-gray-700 rounded-lg"
+                    className="p-2 text-gray-400 hover:text-cyan-400 bg-gray-700 rounded-lg transition-colors shadow-sm"
                     aria-label="Attach file"
                 >
                     <PaperclipIcon />
+                </button>
+                <button
+                    type="button"
+                    onClick={toggleListening}
+                    className={`p-2 rounded-lg transition-all shadow-sm flex-shrink-0 ${isListening ? 'bg-red-500/20 text-red-500 border border-red-500/50 animate-pulse' : 'bg-gray-700 text-gray-400 hover:text-emerald-400'}`}
+                    aria-label="Dictate"
+                >
+                    <MicrophoneIcon />
                 </button>
                 <input
                     type="text"

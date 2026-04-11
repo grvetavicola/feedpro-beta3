@@ -232,6 +232,12 @@ export const RefreshIcon = ({ className = 'w-5 h-5' }) => (
     </svg>
 );
 
+export const MicrophoneIcon = ({ className = 'w-5 h-5' }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 10v2a7 7 0 01-14 0v-2m7 6v4m0 0H9m3 0h3m-3-10a3 3 0 00-3-3h0a3 3 0 00-3 3v4a3 3 0 003 3h0a3 3 0 003-3V7z" />
+    </svg>
+);
+
 export const SpriteIcon = ({ name, className = 'w-6 h-6' }: { name: 'nutrients' | 'products' | 'formulate' | 'ingredients' | 'ai' | 'ratios', className?: string }) => {
   let bg = '';
   let pos = '';
