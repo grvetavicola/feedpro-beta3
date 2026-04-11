@@ -56,41 +56,59 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
 
   return (
     <aside className="w-[240px] bg-gray-950 border-r border-gray-800 flex flex-col h-full overflow-hidden">
-      {/* Zona de Identidad de Marca */}
-      {/* Zona de Perfil Activo del Cliente */}
-      <div className="flex flex-col border-b border-gray-800 bg-gray-900/40">
-        <div className="px-4 py-4 flex flex-col gap-3">
-          <div className="w-full h-16 flex items-center justify-center overflow-hidden rounded-lg">
+      {/* Zona de Identidad Premium: Logo + Perfil */}
+      <div className="p-4 border-b border-gray-800 bg-gray-950 flex flex-col items-center shrink-0">
+        <div className="w-full flex justify-center mb-4 mt-2">
+            <button 
+                onClick={onManageProfile}
+                className="group outline-none w-full flex justify-center items-center"
+                title="Abrir Gestión de Perfiles"
+            >
+                <img
+                    src="/LOGOFEEDPRO.png"
+                    alt="FeedPro 360"
+                    className="w-full max-h-12 object-contain drop-shadow-md group-hover:drop-shadow-[0_0_8px_rgba(6,182,212,0.5)] group-hover:scale-[1.02] transition-all duration-300"
+                />
+            </button>
+        </div>
+
+        <div className="w-full flex flex-col bg-gray-900/60 border border-gray-800/80 rounded-2xl shadow-xl overflow-hidden relative group">
+          <div className="absolute inset-0 bg-gradient-to-b from-cyan-900/5 to-transparent pointer-events-none" />
+
+          {/* Middle: Logo del Perfil Activo */}
+          <div className="px-4 py-4 flex flex-col items-center justify-center min-h-[80px]">
             {(() => {
               const currentClient = clients.find(c => c.id === selectedClientId);
               return currentClient?.logo ? (
                 <img
                   src={currentClient.logo}
                   alt={currentClient.name}
-                  className="max-w-full max-h-full object-contain drop-shadow-md"
+                  className="max-w-full max-h-[60px] object-contain drop-shadow-md"
                 />
               ) : (
                 <div className="flex flex-col items-center gap-1 opacity-30">
-                  <Users className="w-6 h-6 text-gray-500" />
-                  <span className="text-[9px] text-gray-500 uppercase tracking-widest font-black">Sin logo</span>
+                  <Users className="w-6 h-6 text-gray-500 mb-1" />
+                  <span className="text-[9px] text-gray-500 uppercase tracking-[0.2em] font-black">Sin Logo</span>
                 </div>
               );
             })()}
           </div>
 
-          {/* Selector de Perfil Unificado */}
-          <div className="relative group w-full">
-            <select
-              value={selectedClientId}
-              onChange={(e) => onSelectClient(e.target.value)}
-              className="w-full bg-gray-800/80 hover:bg-gray-700 border border-gray-700/60 rounded-lg py-2 pl-3 pr-8 text-[11px] font-black text-white appearance-none focus:ring-1 focus:ring-cyan-500 outline-none transition-all cursor-pointer text-center uppercase tracking-widest"
-            >
-              {clients.map(c => (
-                <option key={c.id} value={c.id} className="bg-gray-900 font-bold normal-case text-left">{c.name}</option>
-              ))}
-            </select>
-            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400 group-hover:text-cyan-400">
-               <ChevronRight className="w-4 h-4 rotate-90" />
+          {/* Bottom: Selector de Perfil */}
+          <div className="px-3 pb-3">
+            <div className="relative w-full">
+              <select
+                value={selectedClientId}
+                onChange={(e) => onSelectClient(e.target.value)}
+                className="w-full bg-gray-950/80 hover:bg-gray-800 border border-gray-700/60 rounded-xl py-2 pl-3 pr-8 text-[11px] font-black text-cyan-400 appearance-none outline-none transition-all cursor-pointer text-center uppercase tracking-widest shadow-inner shadow-black/20"
+              >
+                {clients.map(c => (
+                  <option key={c.id} value={c.id} className="bg-gray-900 font-bold normal-case text-left text-white">{c.name}</option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-500">
+                 <ChevronRight className="w-3.5 h-3.5 rotate-90" />
+              </div>
             </div>
           </div>
         </div>
