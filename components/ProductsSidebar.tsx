@@ -121,11 +121,10 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                 { id: 'DASHBOARD', label: 'Inicio', img: '/icons/inicio.png', color: 'border-blue-400', bg: 'hover:bg-blue-500/10' },
                 { id: 'INGREDIENTS', label: 'Insumos', img: '/icons/ingredient.png', color: 'border-emerald-400', bg: 'hover:bg-emerald-500/10' },
                 { id: 'NUTRIENTS', label: 'Nutrientes', img: '/icons/nutrients.png', color: 'border-purple-400', bg: 'hover:bg-purple-500/10' },
+                { id: 'LOGOUT', label: 'Salir', img: '/icons/clients.png', color: 'border-red-400', bg: 'hover:bg-red-500/10' },
                 { id: 'PRODUCTS', label: 'Dietas', img: '/icons/products.png', color: 'border-indigo-400', bg: 'hover:bg-indigo-500/10' },
                 { id: 'OPTIMIZATION', label: 'Optimización', img: '/icons/formulation.png', color: 'border-cyan-400', bg: 'hover:bg-cyan-500/10' },
                 { id: 'SIMULATION', label: 'Simular', img: '/icons/simulation.png', color: 'border-amber-400', bg: 'hover:bg-amber-500/10' },
-                { id: 'LOGOUT', label: 'Salir', img: '/icons/clients.png', color: 'border-red-400', bg: 'hover:bg-red-500/10' },
-                { id: 'SETTINGS', label: 'Ajustes', img: '/icons/settings.png', color: 'border-gray-400', bg: 'hover:bg-gray-500/10' },
               ].map(item => {
                 const isActive = activeView === item.id;
                 return (

@@ -210,7 +210,11 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredient
                                     const catStyle = catColors[ing.category] || 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20';
 
                                     return (
-                                        <tr key={ing.id} className="hover:bg-gray-800/40 transition-colors group">
+                                        <tr 
+                                            key={ing.id} 
+                                            className="hover:bg-gray-800/40 transition-colors group cursor-pointer"
+                                            onClick={() => setEditingIngredient(ing)}
+                                        >
                                             <td className="px-3 py-3 font-mono text-gray-300 font-black text-[12px]">{ing.code}</td>
                                             <td className="px-3 py-3">
                                                 <div className="flex flex-col">
@@ -276,7 +280,7 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredient
                                 </thead>
                                 <tbody>
                                     {sortedIngredients.map(ing => (
-                                        <tr key={ing.id} className="hover:bg-gray-700/40">
+                                        <tr key={ing.id} className="hover:bg-gray-700/40 cursor-pointer" onClick={() => setEditingIngredient(ing)}>
                                             <td className="p-2 border border-gray-700 font-medium sticky left-0 bg-gray-800 z-20 whitespace-nowrap">
                                                 <span className="text-gray-500 font-mono text-[10px] mr-1">{ing.code}</span>
                                                 {ing.name}

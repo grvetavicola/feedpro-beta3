@@ -105,6 +105,12 @@ export default function App() {
     }
   }, [user]);
 
+  useEffect(() => {
+    const handleGlobalLogout = () => setUser(null);
+    window.addEventListener('feedpro:logout', handleGlobalLogout);
+    return () => window.removeEventListener('feedpro:logout', handleGlobalLogout);
+  }, []);
+
   // Persistence
   useEffect(() => {
     if (user) {

@@ -63,14 +63,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
             )}
           </div>
           <div className="flex gap-2 shrink-0">
-             <button onClick={() => onNavigate('OPTIMIZATION')} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-4 py-1.5 rounded flex items-center gap-2 transition-all text-[13px]">
-                <img src="/icons/formulation.png" className="w-4 h-4 object-contain brightness-0 invert opacity-90" alt="Icono" /> OPTIMIZACIÓN
+             <button onClick={() => onNavigate('SETTINGS')} className="bg-gray-800 hover:bg-gray-700 text-white font-bold px-4 py-1.5 rounded flex items-center gap-2 transition-all border border-gray-700 text-[13px]">
+                <img src="/icons/settings.png" className="w-4 h-4 object-contain brightness-0 invert opacity-90" alt="Icono" /> AJUSTES
              </button>
-             <button onClick={() => onNavigate('GROUP_OPTIMIZATION')} className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-1.5 rounded flex items-center gap-2 transition-all text-[13px] shadow-[0_0_15px_rgba(16,185,129,0.3)] border border-emerald-500/50">
-                <img src="/icons/simulation.png" className="w-4 h-4 object-contain brightness-0 invert opacity-90" alt="Icono" /> OPTIMIZACIÓN GRUPAL
-             </button>
-             <button onClick={() => onNavigate('PRODUCTS')} className="bg-gray-800 hover:bg-gray-700 text-white font-semibold px-4 py-1.5 rounded border border-gray-700 transition-all text-[13px] hidden sm:block">
-                Configurar
+             <button 
+                onClick={() => {
+                    if (window.confirm("¿Deseas guardar los cambios y aceptar antes de salir?")) {
+                        onNavigate('DASHBOARD'); // Safe fallback
+                        // This technically needs access to the logout function. 
+                        // I will pass a prop or use a window event? 
+                        // In App.tsx Dashboard is passed as a child. 
+                        // I'll add onLogout to Dashboard props.
+                        (window as any).dispatchEvent(new CustomEvent('feedpro:logout'));
+                    }
+                }} 
+                className="bg-red-600/20 hover:bg-red-600/40 text-red-500 font-bold px-4 py-1.5 rounded border border-red-500/30 flex items-center gap-2 transition-all text-[13px]"
+             >
+                <img src="/icons/clients.png" className="w-4 h-4 object-contain brightness-0 invert opacity-90" alt="Icono" /> SALIR
              </button>
           </div>
         </div>
