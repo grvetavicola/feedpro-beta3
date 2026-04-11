@@ -234,6 +234,9 @@ export default function App() {
           activeView={view}
           onSelectClient={handleSwitchClientRequest}
           onManageProfile={() => setShowProfileModal(true)}
+          onUpdateClientLogo={(id, newLogo) => {
+              setClients(prev => prev.map(c => c.id === id ? { ...c, logo: newLogo } : c));
+          }}
           onSelectProduct={(p) => {
               setView('OPTIMIZATION');
           }}

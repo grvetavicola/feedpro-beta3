@@ -1,6 +1,6 @@
 import React from 'react';
 import { Client, Product, ViewState } from '../types';
-import { Users, FileText, ChevronRight, LayoutGrid, Calculator, FlaskConical, Beaker, Package, Settings, PlayCircle, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Users, FileText, ChevronRight, LayoutGrid, Calculator, FlaskConical, Beaker, Package, Settings, PlayCircle, Plus, Edit2, Trash2, Upload } from 'lucide-react';
 import { APP_NAME, APP_VERSION } from '../constants';
 
 interface ProductsSidebarProps {
@@ -18,6 +18,7 @@ interface ProductsSidebarProps {
   onNavigate: (view: ViewState) => void;
   activeView: ViewState;
   onManageProfile?: () => void;
+  onUpdateClientLogo?: (clientId: string, newLogo: string) => void;
 }
 
 export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
@@ -34,7 +35,8 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
   onDeleteCategory,
   onNavigate,
   activeView,
-  onManageProfile
+  onManageProfile,
+  onUpdateClientLogo
 }) => {
   const filteredProducts = products.filter(p => !selectedClientId || p.clientId === selectedClientId);
 
@@ -76,20 +78,49 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
           <div className="absolute inset-0 bg-gradient-to-b from-cyan-900/5 to-transparent pointer-events-none" />
 
           {/* Middle: Logo del Perfil Activo */}
-          <div className="px-4 py-4 flex flex-col items-center justify-center min-h-[80px]">
+          <div className="relative px-4 py-4 flex flex-col items-center justify-center min-h-[80px] group/logo">
             {(() => {
               const currentClient = clients.find(c => c.id === selectedClientId);
-              return currentClient?.logo ? (
-                <img
-                  src={currentClient.logo}
-                  alt={currentClient.name}
-                  className="max-w-full max-h-[60px] object-contain drop-shadow-md"
-                />
-              ) : (
-                <div className="flex flex-col items-center gap-1 opacity-30">
-                  <Users className="w-6 h-6 text-gray-500 mb-1" />
-                  <span className="text-[9px] text-gray-500 uppercase tracking-[0.2em] font-black">Sin Logo</span>
-                </div>
+              return (
+                <>
+                  {currentClient?.logo ? (
+                    <img
+                      src={currentClient.logo}
+                      alt={currentClient?.name}
+                      className="max-w-full max-h-[60px] object-contain drop-shadow-md transition-opacity group-hover/logo:opacity-30"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center gap-1 opacity-30 transition-opacity group-hover/logo:opacity-10">
+                      <Users className="w-6 h-6 text-gray-500 mb-1" />
+                      <span className="text-[9px] text-gray-500 uppercase tracking-[0.2em] font-black">Sin Logo</span>
+                    </div>
+                  )}
+
+                  {/* Overlay for uploading */}
+                  {currentClient && onUpdateClientLogo && (
+                    <label className="absolute inset-0 flex flex-col justify-center items-center cursor-pointer opacity-0 group-hover/logo:opacity-100 transition-opacity" title="Subir logo">
+                       <div className="bg-gray-950/80 backdrop-blur-sm rounded-xl p-2 px-4 border border-gray-700 shadow-xl flex flex-col items-center gap-1 scale-95 group-hover/logo:scale-100 transition-all">
+                          <Upload className="w-5 h-5 text-cyan-400" />
+                          <span className="text-[10px] text-white font-black uppercase tracking-widest text-center leading-tight">Cambiar<br/>Logo</span>
+                       </div>
+                       <input 
+                         type="file" 
+                         accept="image/*" 
+                         className="hidden" 
+                         onChange={(e) => {
+                             const file = e.target.files?.[0];
+                             if (!file) return;
+                             const reader = new FileReader();
+                             reader.onload = (ev) => {
+                                onUpdateClientLogo(currentClient.id, ev.target?.result as string);
+                             };
+                             reader.readAsDataURL(file);
+                             e.target.value = ''; // Reset
+                         }}
+                       />
+                    </label>
+                  )}
+                </>
               );
             })()}
           </div>
