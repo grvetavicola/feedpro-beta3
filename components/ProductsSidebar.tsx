@@ -151,7 +151,7 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                         className={`absolute inset-0 w-full h-full object-contain mix-blend-screen opacity-0`} 
                       />
                       <div 
-                        className={`absolute inset-0 w-full h-full ${isActive ? 'bg-amber-400' : 'bg-amber-500/70 group-hover:bg-amber-400'}`}
+                        className={`absolute inset-0 w-full h-full ${isActive ? 'bg-cyan-500' : 'bg-cyan-600/70 group-hover:bg-cyan-500'}`}
                         style={{
                            WebkitMaskImage: `url('${item.img}')`,
                            WebkitMaskSize: 'contain',
