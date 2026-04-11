@@ -27,10 +27,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
   const lastOp = savedFormulas.length > 0 ? new Date(savedFormulas[savedFormulas.length - 1].date).toLocaleDateString() : 'N/A';
 
   const stats = [
-    { label: 'Insumos Disponibles', value: ingredients.length, img: '/icons/ingredient.png', color: 'text-green-400', bg: 'bg-green-900/20' },
-    { label: 'Dietas Definidas', value: products.length, img: '/icons/products.png', color: 'text-indigo-400', bg: 'bg-indigo-900/20' },
-    { label: 'Optimizaciones Realizadas', value: savedFormulas.length, img: '/icons/formulation.png', color: 'text-cyan-400', bg: 'bg-cyan-900/20' },
-    { label: 'Última Optimización', value: lastOp, img: '/icons/history.png', color: 'text-yellow-400', bg: 'bg-yellow-900/20' },
+    { label: 'Insumos', value: ingredients.length, img: '/icons/ingredient.png', color: 'text-green-400', bg: 'bg-green-900/20', showDate: false },
+    { label: 'Dietas', value: products.length, img: '/icons/products.png', color: 'text-indigo-400', bg: 'bg-indigo-900/20', showDate: false },
+    { label: 'Optimizaciones', value: savedFormulas.length, img: '/icons/formulation.png', color: 'text-cyan-400', bg: 'bg-cyan-900/20', showDate: true },
   ];
 
   return (
@@ -120,16 +119,42 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
                          ${isClickable ? `cursor-pointer hover:-translate-y-1 hover:border-${stat.color.split('-')[1]}-500/50 hover:shadow-${stat.color.split('-')[1]}-900/40` : 'hover:border-gray-500/50'}
                      `}
                  >
-                    <div className="space-y-1">
-                        <p className="text-[11px] text-white font-black uppercase tracking-wider">{stat.label}</p>
-                        <p className="text-2xl font-black text-white leading-none">{stat.value}</p>
+                    <div className="space-y-1 relative z-10 w-full">
+                        <p className="text-[11px] text-white font-black uppercase tracking-wider truncate">{stat.label}</p>
+                        <div className="flex items-end gap-3">
+                            <p className="text-2xl font-black text-white leading-none">{stat.value}</p>
+                            {stat.showDate && (
+                                <p className="text-[9px] text-cyan-400 font-bold uppercase mb-0.5">Última: {lastOp}</p>
+                            )}
+                        </div>
                     </div>
-                    <div className={`${stat.bg} p-2 rounded-lg transition-transform`}>
+                    <div className={`${stat.bg} p-2 rounded-lg transition-transform relative z-10 shrink-0 ml-1`}>
                         <img src={stat.img} className={`w-6 h-6 object-contain filter brightness-0 invert opacity-60`} alt={stat.label}/>
                     </div>
                  </div>
              );
           })}
+
+          {/* VETIA - Asistente AI (4th Spot) */}
+          <div className="bg-gradient-to-br from-indigo-950 to-purple-950 border border-purple-500/30 p-3 rounded-xl flex items-center justify-between shadow-lg shadow-purple-900/20 hover:-translate-y-1 transition-all overflow-hidden relative group">
+              <div className="absolute right-0 top-0 w-24 h-24 bg-purple-500/10 blur-xl rounded-full pointer-events-none group-hover:bg-purple-500/20 transition-colors"></div>
+              <div className="flex items-center gap-3 relative z-10">
+                  <div className="bg-purple-900/50 p-2 rounded-lg shrink-0 group-hover:scale-110 transition-transform">
+                      <img src="/icons/ai_assistant.png" className="w-5 h-5 object-contain filter brightness-0 invert animate-pulse" alt="VETIA" />
+                  </div>
+                  <div className="flex flex-col">
+                      <h3 className="text-[14px] font-black text-white tracking-widest uppercase">VETIA</h3>
+                      <p className="text-purple-300/80 text-[8px] font-bold uppercase tracking-widest leading-none mt-0.5">Asistente Nutricional</p>
+                  </div>
+              </div>
+              <button 
+                  onClick={() => onNavigate('ASSISTANT')}
+                  className="bg-purple-600 hover:bg-purple-500 text-white font-black px-2.5 py-1.5 rounded-lg text-[10px] uppercase tracking-widest shadow-[0_0_15px_rgba(168,85,247,0.4)] animate-pulse hover:animate-none transition-all relative z-10 shrink-0"
+              >
+                  Preguntar
+              </button>
+          </div>
+
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
@@ -171,24 +196,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
              </div>
           </div>
 
-          <div className="lg:col-span-4 space-y-3">
-             <div className="bg-gradient-to-br from-indigo-950/20 to-purple-950/20 rounded border border-indigo-500/10 p-3 flex flex-row items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <AIIcon className="w-5 h-5 text-indigo-400"/>
-                    <div>
-                        <h3 className="text-[15px] font-black text-white uppercase tracking-tight">Asistente AI</h3>
-                        <p className="text-indigo-200 text-[11px] font-bold leading-tight uppercase">Diagnóstico proactivo</p>
-                    </div>
-                </div>
-                <button 
-                  onClick={() => onNavigate('ASSISTANT')}
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-1 px-3 rounded shadow text-xs flex items-center"
-                >
-                    CONSULTAR
-                </button>
-             </div>
-
-             <div className="bg-gray-800/20 rounded border border-gray-700/20 p-3 flex flex-col gap-2">
+          <div className="lg:col-span-4 space-y-3 h-full">
+             <div className="bg-gray-800/20 rounded border border-gray-700/20 p-3 flex flex-col gap-2 h-full">
                 <h4 className="text-[11px] font-semibold text-gray-500 uppercase">Almacén Crítico</h4>
                 <div className="space-y-2">
                     {ingredients.slice(0, 3).map(ing => (
