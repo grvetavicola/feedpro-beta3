@@ -66,18 +66,7 @@ export const OptimizationResults: React.FC<OptimizationResultsProps> = ({ result
   }, [result, product, user, onUpgradeRequest, language, t]);
 
   const handleExportPDF = () => {
-    const input = document.getElementById('pdf-content');
-    if (!input) return;
-
-    html2canvas(input, { scale: 2, backgroundColor: '#111827' }).then(canvas => {
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const imgWidth = pdfWidth - 20; 
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
-      pdf.save(`Reporte_${product.name}.pdf`);
-    });
+    window.print();
   };
 
     const handleExportCSV = () => {
@@ -90,12 +79,15 @@ export const OptimizationResults: React.FC<OptimizationResultsProps> = ({ result
     csvContent += `--- FICHA DE INSUMOS ---\n`;
     csvContent += `${t('common.name').toUpperCase()},INCLUSION(%),PESO(KG),PRECIO(USD/KG),COSTO_PARCIAL(USD),PRECIO_SOMBRA(USD)\n`;
     
+    let totalBatchSize = 0;
+    
     result.items.forEach(item => {
         const ing = ingredients.find(i => i.id === item.ingredientId);
-        csvContent += `"${ing?.name || 'Insumo Eliminado'}",${item.percentage.toFixed(3)}%,${item.weight.toFixed(3)},${item.price?.toFixed(3) || 'N/A'},${item.cost.toFixed(3)},${item.shadowPrice !== undefined ? item.shadowPrice.toFixed(4) : 'N/A'}\n`;
+        totalBatchSize += item.weight;
+        csvContent += `"${ing?.name || 'Insumo Eliminado'}",${item.percentage.toFixed(3)}%,${item.weight.toFixed(3)},${ing?.price?.toFixed(3) || 'N/A'},${item.cost.toFixed(3)},${item.shadowPrice !== undefined ? item.shadowPrice.toFixed(4) : 'N/A'}\n`;
     });
     
-    csvContent += `\nTOTAL MEZCLA,,100.00%,${(batchSize || 1000).toFixed(2)},,${result.totalCost.toFixed(3)}\n\n`;
+    csvContent += `\nTOTAL MEZCLA,,100.00%,${totalBatchSize.toFixed(2)},,${result.totalCost.toFixed(3)}\n\n`;
 
     csvContent += `--- MATRIZ NUTRICIONAL FINAL ---\n`;
     csvContent += `${t('common.name').toUpperCase()},APORTE_FINAL,MIN_REQ,MAX_REQ,UNIDAD,ESTADO\n`;

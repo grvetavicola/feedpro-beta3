@@ -200,6 +200,38 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
     
     const displayTotalCost = Object.values(localSolutions).reduce((acc, curr) => acc + (curr.isSuccessful ? curr.currentCost : 0), 0);
 
+    const handleExportGroupCSV = () => {
+        let csvContent = "\uFEFF";
+        csvContent += `FEEDPRO - REPORTE DE OPTIMIZACION GRUPAL\n`;
+        csvContent += `FECHA:,${new Date().toLocaleDateString()}\n`;
+        csvContent += `COSTO TOTAL LOTE:,${displayTotalCost.toFixed(2)} USD\n\n`;
+
+        Object.values(localSolutions).forEach(sol => {
+            const product = products.find(p => p.id === sol.productId);
+            csvContent += `--- DIETA: ${product?.name || 'Desconocida'} ---\n`;
+            csvContent += `ESTADO:,${sol.isSuccessful ? 'OPTIMO' : 'FALLIDO'}\n`;
+            csvContent += `COSTO PARCIAL:,${sol.currentCost.toFixed(2)} USD\n`;
+            csvContent += `VOLUMEN BATCH:,${sol.totalBatch.toFixed(2)} KG\n\n`;
+
+            if (sol.isSuccessful) {
+                csvContent += `INSUMO,INCLUSION(%),PESO(KG)\n`;
+                sol.items.forEach(item => {
+                    csvContent += `"${item.name}",${item.percentage.toFixed(3)}%,${item.weight.toFixed(3)}\n`;
+                });
+            } else {
+                csvContent += `Fórmula infactible matemáticamente.\n`;
+            }
+            csvContent += `\n`;
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Optimizacion_Grupal_${new Date().toISOString().slice(0,10)}.csv`);
+        link.click();
+    };
+
     return (
         <div className="p-3 space-y-3 animate-fade-in flex flex-col h-full relative">
             
