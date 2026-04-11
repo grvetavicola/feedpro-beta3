@@ -136,23 +136,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
           })}
 
           {/* VETIA - Asistente AI (4th Spot) */}
-          <div className="bg-gradient-to-br from-indigo-950 to-purple-950 border border-purple-500/30 p-3 rounded-xl flex items-center justify-between shadow-lg shadow-purple-900/20 hover:-translate-y-1 transition-all overflow-hidden relative group">
+          <div 
+              onClick={() => onNavigate('ASSISTANT')}
+              className="bg-gradient-to-br from-indigo-950 to-purple-950 border border-purple-500/30 p-3 rounded-xl flex items-center shadow-lg shadow-purple-900/20 hover:-translate-y-1 hover:shadow-purple-700/30 hover:border-purple-400/50 transition-all overflow-hidden relative group cursor-pointer"
+          >
               <div className="absolute right-0 top-0 w-24 h-24 bg-purple-500/10 blur-xl rounded-full pointer-events-none group-hover:bg-purple-500/20 transition-colors"></div>
-              <div className="flex items-center gap-3 relative z-10">
-                  <div className="bg-purple-900/50 p-2 rounded-lg shrink-0 group-hover:scale-110 transition-transform">
-                      <img src="/icons/ai_assistant.png" className="w-5 h-5 object-contain filter brightness-0 invert animate-pulse" alt="VETIA" />
-                  </div>
+              <div className="flex items-center gap-3 relative z-10 w-full">
+                  <img src="/icons/ai_assistant.png" className="w-10 h-10 object-contain filter brightness-0 invert animate-pulse group-hover:scale-110 transition-transform" alt="VETIA" />
                   <div className="flex flex-col">
-                      <h3 className="text-[14px] font-black text-white tracking-widest uppercase">VETIA</h3>
-                      <p className="text-purple-300/80 text-[8px] font-bold uppercase tracking-widest leading-none mt-0.5">Asistente Nutricional</p>
+                      <h3 className="text-[15px] font-black text-white tracking-widest uppercase">VETIA</h3>
+                      <p className="text-purple-300/80 text-[10px] font-bold uppercase tracking-widest leading-none mt-0.5">Asistente Nutricional</p>
                   </div>
               </div>
-              <button 
-                  onClick={() => onNavigate('ASSISTANT')}
-                  className="bg-purple-600 hover:bg-purple-500 text-white font-black px-2.5 py-1.5 rounded-lg text-[10px] uppercase tracking-widest shadow-[0_0_15px_rgba(168,85,247,0.4)] animate-pulse hover:animate-none transition-all relative z-10 shrink-0"
-              >
-                  Preguntar
-              </button>
           </div>
 
       </div>
