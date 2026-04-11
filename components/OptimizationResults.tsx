@@ -4,7 +4,7 @@ import html2canvas from 'html2canvas';
 import { FormulationResult, Product, User, Ingredient, Nutrient, ProductConstraint } from '../types';
 import { analyzeFormulaWithGemini } from '../services/geminiService';
 import { useTranslations } from '../lib/i18n/LangContext';
-import { AIIcon, PrintIcon, TruckIcon, XCircleIcon, DownloadIcon, RatiosIcon } from './icons';
+import { AIIcon, PrintIcon, TruckIcon, XCircleIcon, DownloadIcon, RatiosIcon, SparklesIcon } from './icons';
 
 interface OptimizationResultsProps {
   result: FormulationResult;

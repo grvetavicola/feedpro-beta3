@@ -142,6 +142,38 @@ export const EditIngredientModal: React.FC<EditIngredientModalProps> = ({ ingred
                                 className="w-full bg-emerald-900/10 text-sm rounded-md p-2 border border-emerald-500/50 text-emerald-300 font-bold"
                             />
                         </div>
+                        
+                        {/* ADVANCED MATH SETTINGS */}
+                        <div className="col-span-12 md:col-span-4 bg-gray-900/50 border border-gray-700/50 p-2 rounded-lg">
+                            <label className="text-[10px] text-gray-500 block mb-1 uppercase font-bold tracking-tighter">Materia Seca (%)</label>
+                            <input
+                                type="number"
+                                step="0.1"
+                                value={editedIngredient.dryMatter !== undefined ? editedIngredient.dryMatter : 100}
+                                onChange={(e) => setEditedIngredient({ ...editedIngredient, dryMatter: parseFloat(e.target.value) || 0 })}
+                                className="w-full bg-gray-800 text-sm rounded p-1.5 border border-gray-600 text-gray-300 font-mono text-right outline-none focus:border-cyan-500"
+                            />
+                        </div>
+                        <div className="col-span-12 md:col-span-4 bg-gray-900/50 border border-gray-700/50 p-2 rounded-lg">
+                            <label className="text-[10px] text-orange-400/80 block mb-1 uppercase font-bold tracking-tighter">Merma Proc. (%)</label>
+                            <input
+                                type="number"
+                                step="0.1"
+                                value={editedIngredient.shrinkage || 0}
+                                onChange={(e) => setEditedIngredient({ ...editedIngredient, shrinkage: parseFloat(e.target.value) || 0 })}
+                                className="w-full bg-gray-800 text-sm rounded p-1.5 border border-orange-500/30 text-orange-300 font-mono text-right outline-none focus:border-orange-500"
+                            />
+                        </div>
+                        <div className="col-span-12 md:col-span-4 bg-gray-900/50 border border-gray-700/50 p-2 rounded-lg">
+                            <label className="text-[10px] text-purple-400/80 block mb-1 uppercase font-bold tracking-tighter">Costo Proc. ($/kg)</label>
+                            <input
+                                type="number"
+                                step="0.001"
+                                value={editedIngredient.processingCost || 0}
+                                onChange={(e) => setEditedIngredient({ ...editedIngredient, processingCost: parseFloat(e.target.value) || 0 })}
+                                className="w-full bg-gray-800 text-sm rounded p-1.5 border border-purple-500/30 text-purple-300 font-mono text-right outline-none focus:border-purple-500"
+                            />
+                        </div>
                     </div>
 
                     <div className="pt-4 border-t border-gray-600 flex justify-between items-center">
