@@ -27,9 +27,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
   const lastOp = savedFormulas.length > 0 ? new Date(savedFormulas[savedFormulas.length - 1].date).toLocaleDateString() : 'N/A';
 
   const stats = [
-    { label: 'Insumos', value: ingredients.length, img: '/icons/ingredient.png', color: 'text-green-400', bg: 'bg-green-900/20', showDate: false },
-    { label: 'Dietas', value: products.length, img: '/icons/products.png', color: 'text-indigo-400', bg: 'bg-indigo-900/20', showDate: false },
-    { label: 'Optimizaciones', value: savedFormulas.length, img: '/icons/formulation.png', color: 'text-cyan-400', bg: 'bg-cyan-900/20', showDate: true },
+    { label: 'Insumos Disponibles', value: ingredients.length, img: '/icons/ingredient.png', color: 'text-green-400', bg: 'bg-green-900/20', showDate: false },
+    { label: 'Dietas Definidas', value: products.length, img: '/icons/products.png', color: 'text-indigo-400', bg: 'bg-indigo-900/20', showDate: false },
+    { label: 'Optimizaciones Realizadas', value: savedFormulas.length, img: '/icons/formulation.png', color: 'text-cyan-400', bg: 'bg-cyan-900/20', showDate: true },
   ];
 
   return (
@@ -124,7 +124,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
                         <div className="flex items-end gap-3">
                             <p className="text-2xl font-black text-white leading-none">{stat.value}</p>
                             {stat.showDate && (
-                                <p className="text-[9px] text-cyan-400 font-bold uppercase mb-0.5">Última: {lastOp}</p>
+                                <p className="text-[9px] text-cyan-400 font-bold uppercase mb-0.5">Última optimización: {lastOp}</p>
                             )}
                         </div>
                     </div>
