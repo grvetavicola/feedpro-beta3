@@ -146,7 +146,7 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                     <img 
                       src={item.img} 
                       alt={item.label}
-                      className={`w-5 h-5 transition-transform group-hover:scale-105 object-contain ${isActive ? 'opacity-100' : 'opacity-60 group-hover:opacity-100 filter grayscale group-hover:grayscale-0'}`} 
+                      className={`w-7 h-7 transition-transform group-hover:scale-110 object-contain drop-shadow-md ${isActive ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`} 
                     />
                     <span className={`text-[11px] font-black uppercase tracking-[0.2em] transition-colors ${isActive ? 'text-white' : 'text-white/70 group-hover:text-white'}`}>
                       {item.label}
