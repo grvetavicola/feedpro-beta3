@@ -8,9 +8,11 @@ interface SettingsScreenProps {
     clients: Client[];
     setClients: React.Dispatch<React.SetStateAction<Client[]>>;
     onNavigate: (view: ViewState) => void;
+    uiScale: number;
+    setUiScale: (scale: number) => void;
 }
 
-export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClients, onNavigate }) => {
+export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClients, onNavigate, uiScale, setUiScale }) => {
     const { t, language, setLanguage } = useTranslations();
     const [newClientName, setNewClientName] = React.useState('');
     const [isSaving, setIsSaving] = React.useState(false);
@@ -118,6 +120,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                 <div className="space-y-6">
                     {/* 2. Language Section */}
                     <div className="bg-gray-900 border border-gray-800 p-6 rounded-3xl space-y-4">
+
                         <div className="flex items-center gap-3 border-b border-gray-800 pb-4">
                             <div className="bg-indigo-500/20 p-2 rounded-xl text-indigo-400">
                                 <GlobeIcon className="w-5 h-5" />
@@ -153,10 +156,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                         <div className="space-y-4">
                             <div>
                                  <label className="block text-[10px] text-gray-600 font-black uppercase mb-1 tracking-widest">Escala del Motor</label>
-                                 <select className="w-full bg-gray-950 border border-gray-800 text-gray-400 p-3 rounded-xl outline-none focus:border-cyan-500 font-bold text-xs appearance-none">
-                                     <option>90% (Ultra Compacto)</option>
-                                     <option selected>100% (Estándar)</option>
-                                     <option>110% (Panel Grande)</option>
+                                 <select 
+                                    value={uiScale}
+                                    onChange={(e) => setUiScale(parseFloat(e.target.value))}
+                                    className="w-full bg-gray-950 border border-gray-800 text-gray-400 p-3 rounded-xl outline-none focus:border-cyan-500 font-bold text-xs appearance-none"
+                                 >
+                                     <option value={0.9}>90% (Ultra Compacto)</option>
+                                     <option value={1.0}>100% (Estándar)</option>
+                                     <option value={1.1}>110% (Panel Grande)</option>
                                  </select>
                             </div>
                             <div className="flex items-center justify-between p-3 bg-gray-950 rounded-xl border border-gray-800">

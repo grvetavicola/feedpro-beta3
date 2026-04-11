@@ -64,11 +64,11 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
           <div className="absolute inset-0 bg-gradient-to-b from-cyan-900/5 to-transparent pointer-events-none" />
 
           {/* Top: Branding FeedPro (Fix) */}
-          <div className="w-full flex justify-center pt-3 pb-2 border-b border-gray-800/30">
+          <div className="w-full flex justify-center pt-4 pb-3 border-b border-gray-800/30">
               <img
                   src="/FeedPro-sinfondo.PNG"
                   alt="FeedPro 360"
-                  className="max-h-6 object-contain drop-shadow-md opacity-80"
+                  className="max-h-11 object-contain drop-shadow-md opacity-90"
               />
           </div>
 
