@@ -14,6 +14,8 @@ interface GroupOptimizationScreenProps {
   onOpenInNewWindow?: (data: any, name: string) => void;
   onUpdateProduct?: (p: Product) => void;
   setIsDirty?: (dirty: boolean) => void;
+  savedFormulas?: any[]; // Usually SavedFormula[] but simplified type here since it's passed from root
+  setSavedFormulas?: (val: any) => void;
 }
 
 export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = ({ 
@@ -24,7 +26,9 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     selectedDietIds,
     onOpenInNewWindow,
     onUpdateProduct,
-    setIsDirty
+    setIsDirty,
+    savedFormulas,
+    setSavedFormulas
 }) => {
     const { t } = useTranslations();
     const [isOptimizing, setIsOptimizing] = useState(false);
@@ -72,12 +76,20 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
             if (result.feasible) {
                 setResultsData({ result, assignments });
                 setIsDrawerOpen(true);
+                setIsDirty?.(true); // Flag to prevent accidental closure
             } else {
-                // Even if infeasible group, show it so user can fix it in agile workspace
                 setResultsData({ result, assignments });
                 setIsDrawerOpen(true);
             }
         }, 800);
+    };
+
+    const handleAttemptCloseDrawer = () => {
+        if (confirm("¿Estás seguro de cerrar el panel? Los resultados no guardados se perderán.")) {
+            setIsDrawerOpen(false);
+            setResultsData(null);
+            setIsDirty?.(false);
+        }
     };
 
     return (
@@ -196,10 +208,10 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
             {isDrawerOpen && resultsData && (
                 <>
                     {/* Backdrop */}
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90]" onClick={() => setIsDrawerOpen(false)} />
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90]" onClick={handleAttemptCloseDrawer} />
                     
                     {/* Drawer */}
-                    <div className="fixed inset-y-0 right-0 w-[950px] bg-gray-950 border-l border-gray-800 z-[100] shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col transform transition-transform animate-slide-in-right">
+                    <div className="fixed inset-y-0 right-0 w-[40vw] min-w-[450px] max-w-[800px] bg-gray-950 border-l border-gray-800 z-[100] shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col transform transition-transform animate-slide-in-right">
                         <div className="p-4 bg-gray-900 border-b border-gray-800 flex justify-between items-center shrink-0">
                             <div className="flex items-center gap-3">
                                 <SparklesIcon className="w-5 h-5 text-cyan-400" />
@@ -208,7 +220,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                     <p className="text-[10px] text-gray-400 uppercase tracking-widest">Feedback Loop Integrado</p>
                                 </div>
                             </div>
-                            <button onClick={() => setIsDrawerOpen(false)} className="text-gray-500 hover:text-white bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg flex items-center gap-2 transition-colors font-bold text-[11px] uppercase">
+                            <button onClick={handleAttemptCloseDrawer} className="text-gray-500 hover:text-white bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg flex items-center gap-2 transition-colors font-bold text-[11px] uppercase">
                                 Cerrar <XCircleIcon className="w-4 h-4" />
                             </button>
                         </div>
@@ -222,6 +234,13 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                 nutrients={nutrients} 
                                 isDynamicMatrix={matrixMode === 'dynamic'} 
                                 onUpdateProduct={onUpdateProduct || (() => {})} 
+                                onCloseDrawer={() => {
+                                    setIsDrawerOpen(false);
+                                    setResultsData(null);
+                                    setIsDirty?.(false);
+                                }}
+                                savedFormulas={savedFormulas}
+                                setSavedFormulas={setSavedFormulas}
                             />
                         </div>
                     </div>

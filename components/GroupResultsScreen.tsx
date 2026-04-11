@@ -12,6 +12,9 @@ interface GroupResultsScreenProps {
     nutrients: Nutrient[];
     isDynamicMatrix?: boolean;
     onUpdateProduct: (p: Product) => void;
+    onCloseDrawer?: () => void;
+    savedFormulas?: any[];
+    setSavedFormulas?: (val: any) => void;
 }
 
 // -----------------------------------------------------
@@ -61,7 +64,7 @@ const SmartInput = ({ value, onChange, placeholder, className, isMax = false }: 
 };
 
 
-export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results, assignments, products, ingredients, nutrients, isDynamicMatrix = false, onUpdateProduct }) => {
+export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results, assignments, products, ingredients, nutrients, isDynamicMatrix = false, onUpdateProduct, onCloseDrawer, savedFormulas, setSavedFormulas }) => {
     const { t } = useTranslations();
     
     // Custom Local State for Tracking Re-Optimizations
@@ -214,8 +217,8 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
                 </div>
             </div>
 
-            {/* Mosaico de Tarjetas */}
-            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 flex-1 ${activeAssignmentId ? 'pr-[45%]' : ''} transition-all duration-500`}>
+            {/* Agile Vertical Workspace - Pila de Tarjetas */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pb-20">
                 {assignments.map((assign, i) => {
                     const product = assign.product;
                     const solution = localSolutions[assign.id];
@@ -226,66 +229,121 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
                     const deltaCost = solution.prevCost !== null ? (solution.currentCost - solution.prevCost) : 0;
 
                     return (
-                        <div className="flex flex-col h-full min-h-[350px]" key={i}>
-                            <div className={`border p-4 rounded-2xl shadow-xl flex flex-col h-full transition-all group overflow-hidden relative ${isSuccessful ? 'bg-gray-800/80 border-gray-700/80 hover:border-emerald-500/30' : 'bg-red-950/20 border-red-900/50 hover:border-red-500/50'}`}>
-                                <div className={`absolute top-0 right-0 p-12 rounded-full -mr-10 -mt-10 blur-3xl transition-colors ${isSuccessful ? 'bg-emerald-500/5 group-hover:bg-cyan-500/10' : 'bg-red-500/10 group-hover:bg-red-500/20'}`}></div>
+                        <div className="flex flex-col" key={i}>
+                            <div className={`border p-4 rounded-2xl shadow-xl flex flex-col transition-all group overflow-hidden relative ${isSuccessful ? 'bg-gray-800/80 border-emerald-500/30' : 'bg-red-950/20 border-red-500/50'}`}>
+                                <div className={`absolute top-0 right-0 p-12 rounded-full -mr-10 -mt-10 blur-3xl transition-colors pointer-events-none ${isSuccessful ? 'bg-emerald-500/5 group-hover:bg-cyan-500/10' : 'bg-red-500/10 group-hover:bg-red-500/20'}`}></div>
                                 
                                 {/* Targeta Header con KPI Financiero */}
-                                <div className="flex justify-between items-start mb-2 z-10 relative">
+                                <div className="flex justify-between items-start mb-3 z-10 relative">
                                     <div>
-                                        <h4 className="font-black text-white uppercase text-lg leading-tight">{product?.name}</h4>
-                                        <p className="text-xs text-gray-400 font-black uppercase tracking-widest mt-0.5">Vol: <span className={isSuccessful ? 'text-emerald-400' : 'text-red-400'}>{assign.batchSize.toLocaleString()} kg</span></p>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <div className={`w-2.5 h-2.5 rounded-full ${isSuccessful ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'}`}></div>
+                                            <h4 className="font-black text-white uppercase text-xl leading-none">{product?.name}</h4>
+                                        </div>
+                                        <p className="text-xs text-gray-400 font-black uppercase tracking-widest pl-4">Volomen: <span className={isSuccessful ? 'text-emerald-400' : 'text-red-400'}>{assign.batchSize.toLocaleString()} kg</span></p>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-[10px] text-gray-500 uppercase font-black">Costo Lote</p>
-                                        <p className={`font-mono font-bold text-lg leading-none ${isSuccessful ? 'text-cyan-400' : 'text-gray-500'}`}>${solution.currentCost.toLocaleString(undefined, {maximumFractionDigits:0})}</p>
-                                        {/* Delta Rendering */}
-                                        {solution.prevCost !== null && deltaCost !== 0 && (
-                                            <p className={`text-[10px] font-bold font-mono mt-0.5 flex justify-end items-center gap-0.5 ${deltaCost > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                                                {deltaCost > 0 ? '🔺' : '🔽'} {deltaCost > 0 ? '+' : ''}${deltaCost.toLocaleString(undefined, {maximumFractionDigits:0})}
-                                            </p>
-                                        )}
+                                    <div className="flex items-center gap-3">
+                                        <div className="text-right flex flex-col justify-center">
+                                            <p className="text-[10px] text-gray-500 uppercase font-black">Costo Final</p>
+                                            <p className={`font-mono font-black text-xl leading-none ${isSuccessful ? 'text-cyan-400' : 'text-gray-500'}`}>${solution.currentCost.toLocaleString(undefined, {maximumFractionDigits:0})}</p>
+                                            {/* Delta Rendering */}
+                                            {solution.prevCost !== null && deltaCost !== 0 && (
+                                                <p className={`text-[10px] font-bold font-mono mt-0.5 flex justify-end items-center gap-0.5 ${deltaCost > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                                                    {deltaCost > 0 ? '🔺' : '🔽'} {deltaCost > 0 ? '+' : ''}${deltaCost.toLocaleString(undefined, {maximumFractionDigits:0})}
+                                                </p>
+                                            )}
+                                        </div>
+                                        
+                                        <div className="flex flex-col gap-1 ml-2">
+                                            <button 
+                                                onClick={() => handleLocalReoptimize(assign.id)}
+                                                disabled={isOptimizingLocal}
+                                                className={`p-2 rounded hover:bg-cyan-900 border border-transparent transition-colors shadow-lg ${isOptimizingLocal ? 'opacity-50 cursor-not-allowed' : 'hover:border-cyan-500 bg-gray-900'}`} title="Re-optimizar"
+                                            >
+                                                {isOptimizingLocal ? <RefreshIcon className="w-4 h-4 animate-spin text-cyan-400" /> : <RefreshIcon className="w-4 h-4 text-cyan-400" />}
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                {/* Inner Table */}
-                                <div className="flex-1 overflow-y-auto mb-3 pr-2 custom-scrollbar z-10 relative bg-gray-900/50 rounded-xl border border-gray-700/50 p-2 min-h-[140px] max-h-[300px]">
-                                    <table className="w-full text-left">
-                                        <thead className="text-[10px] uppercase font-black text-gray-300 border-b border-gray-600">
-                                            <tr>
-                                                <th className="pb-1.5">Ingrediente</th>
-                                                <th className="pb-1.5 text-right">Inc %</th>
-                                                <th className="pb-1.5 text-right">Vol</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="text-[12px] text-gray-200">
-                                            {solution.items.map((item, idx) => (
-                                                <tr key={idx} className="border-b border-gray-700/40 last:border-0 hover:bg-gray-700/60 transition-colors">
-                                                    <td className="py-1.5 truncate max-w-[120px] font-bold text-white" title={item.name}>{item.name}</td>
-                                                    <td className="py-1.5 text-right font-mono text-emerald-300 font-bold">{item.percentage.toFixed(2)}</td>
-                                                    <td className="py-1.5 text-right font-mono text-cyan-300">{item.weight.toFixed(1)}</td>
+                                <div className="flex flex-col xl:flex-row gap-4 relative z-10 w-full mb-3">
+                                    {/* Inner Table */}
+                                    <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar bg-gray-900/60 rounded-xl border border-gray-700/50 p-2 max-h-[160px]">
+                                        <table className="w-full text-left">
+                                            <thead className="text-[10px] uppercase font-black text-gray-400 border-b border-gray-600/50">
+                                                <tr>
+                                                    <th className="pb-1.5 pl-2">Insumo</th>
+                                                    <th className="pb-1.5 text-right px-2">Incl. %</th>
+                                                    <th className="pb-1.5 text-right px-2">Peso (kg)</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                    {!isSuccessful && (
-                                        <div className="flex flex-col items-center justify-center p-4 text-center mt-2">
-                                            <XCircleIcon className="w-8 h-8 text-red-500/50 mb-2" />
-                                            <p className="text-[12px] text-red-400 font-black uppercase tracking-wide">Fórmula Infactible</p>
+                                            </thead>
+                                            <tbody className="text-[12px] text-gray-200">
+                                                {solution.items.map((item, idx) => (
+                                                    <tr key={idx} className="border-b border-gray-700/30 last:border-0 hover:bg-gray-700/60 transition-colors">
+                                                        <td className="py-1.5 pl-2 truncate font-bold text-white px-1" title={item.name}>{item.name}</td>
+                                                        <td className="py-1.5 text-right font-mono text-emerald-300 font-bold px-2">{item.percentage.toFixed(2)}</td>
+                                                        <td className="py-1.5 text-right font-mono text-cyan-300 px-2">{item.weight.toFixed(1)}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                        {!isSuccessful && (
+                                            <div className="flex flex-col items-center justify-center p-3 text-center h-full">
+                                                <XCircleIcon className="w-6 h-6 text-red-500/50 mb-1" />
+                                                <p className="text-[11px] text-red-400 font-black uppercase tracking-wide">Fórmula Infactible</p>
+                                                <p className="text-[9px] text-red-300 mt-1">Revisa los límites de nutrientes o insumos.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    {/* Inline Ajuste Rápido (Micro-Form) */}
+                                    {activeAssignmentId === assign.id && (
+                                        <div className="w-[300px] shrink-0 bg-gray-950/80 rounded-xl border border-indigo-500/50 p-3 shadow-inner overflow-hidden animate-fade-in flex flex-col max-h-[160px]">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <h5 className="text-[10px] font-black uppercase text-indigo-400 tracking-wider">Límites Nutricionales</h5>
+                                                <button onClick={() => setActiveAssignmentId(null)} className="text-gray-500 hover:text-white"><XIcon className="w-3 h-3" /></button>
+                                            </div>
+                                            <div className="overflow-y-auto custom-scrollbar pr-1 flex-1">
+                                                <table className="w-full text-left">
+                                                    <thead className="text-[9px] uppercase font-black text-gray-500 border-b border-gray-700">
+                                                        <tr>
+                                                            <th className="pb-1">Nutr</th>
+                                                            <th className="pb-1 text-center">Mín</th>
+                                                            <th className="pb-1 text-center">Máx</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {nutrients.map(nut => {
+                                                            const con = product.constraints.find(c => c.nutrientId === nut.id) || { min: 0, max: 999 };
+                                                            const isConstrained = con.min > 0 || con.max < 999;
+                                                            return (
+                                                                <tr key={nut.id} className="border-b border-gray-800/50">
+                                                                    <td className="py-1 text-[10px] font-bold text-gray-300 truncate max-w-[80px]" title={nut.name}>{nut.name}</td>
+                                                                    <td className="py-1 text-center"><SmartInput className="!w-12 !text-[11px]" value={con.min} isMax={false} onChange={(v) => handleConstraintChange(product.id, nut.id, 'min', v)} /></td>
+                                                                    <td className="py-1 text-center"><SmartInput className="!w-12 !text-[11px]" value={con.max} isMax={true} onChange={(v) => handleConstraintChange(product.id, nut.id, 'max', v)} /></td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
 
                                 {/* Actions Footer */}
-                                <div className="z-10 relative mt-auto flex items-center justify-between gap-2">
-                                    <div className={`flex-1 p-2 rounded-lg border flex items-center justify-center gap-1.5 ${isSuccessful ? 'bg-gray-900 border-emerald-900/30 text-emerald-400' : 'bg-red-950/40 border-red-900/50 text-red-400'}`}>
-                                        <div className={`w-2 h-2 rounded-full ${isSuccessful ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></div> 
-                                        <span className="text-[10px] font-black uppercase tracking-widest">{isSuccessful ? 'ÓPTIMO' : 'FALLIDO'}</span>
+                                <div className="z-10 relative mt-auto flex items-center justify-between gap-2 border-t border-gray-700/50 pt-2">
+                                    <div className="flex items-center gap-2">
+                                        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${isSuccessful ? 'bg-emerald-900/30 text-emerald-400 border border-emerald-500/20' : 'bg-red-900/30 text-red-400 border border-red-500/20'}`}>
+                                            Estado: {isSuccessful ? 'Solucionado' : 'Fallido'}
+                                        </span>
+                                        {!isSuccessful && <span className="text-[9px] text-amber-500 uppercase tracking-widest">Revisa P. Sombra al ajustar</span>}
                                     </div>
+                                    
                                     <button 
-                                        onClick={() => setActiveAssignmentId(assign.id)}
-                                        className="flex-1 p-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-400 text-[10px] font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-1 shadow-lg shadow-indigo-900/50">
-                                        <SettingsIcon className="w-3 h-3" /> Ajustar 
+                                        onClick={() => setActiveAssignmentId(activeAssignmentId === assign.id ? null : assign.id)}
+                                        className={`px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 ${activeAssignmentId === assign.id ? 'bg-indigo-600 text-white border-indigo-400' : 'bg-gray-800 hover:bg-gray-700 text-gray-300 border-gray-600'}`}>
+                                        <SettingsIcon className="w-3 h-3" /> {activeAssignmentId === assign.id ? 'Cerrar Ajustes' : 'Ajuste Rápido'}
                                     </button>
                                 </div>
                             </div>
@@ -294,105 +352,51 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
                 })}
             </div>
 
-            {/* OFF-CANVAS DRAWER para "Agile Optimization Workspace" */}
-            {activeAssignmentId && (() => {
-                const assign = assignments.find(a => a.id === activeAssignmentId);
-                const product = assign?.product;
-                if (!product) return null;
-
-                return (
-                    <>
-                        {/* Backdrop */}
-                        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40" onClick={() => setActiveAssignmentId(null)}></div>
-                        
-                        {/* Right-Side Panel */}
-                        <div className="fixed inset-y-4 right-4 w-full max-w-[45%] bg-gray-800 border border-gray-600 rounded-3xl shadow-2xl z-50 flex flex-col animate-slide-left overflow-hidden">
-                            {/* Header */}
-                            <div className="bg-gray-900 border-b border-gray-700 p-5 flex items-center justify-between shadow-md">
-                                <div>
-                                    <h3 className="text-[11px] text-gray-400 font-black uppercase tracking-[0.2em] mb-1">Espacio de Iteración Ágil</h3>
-                                    <h2 className="text-2xl text-white font-black uppercase leading-none">{product.name}</h2>
-                                </div>
-                                <button onClick={() => setActiveAssignmentId(null)} className="p-2 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded-full transition-colors">
-                                    <XIcon className="w-6 h-6" />
-                                </button>
-                            </div>
-                        
-                        {/* Body - Advanced Data Grid */}
-                        <div className="flex-1 p-5 overflow-y-auto custom-scrollbar bg-gray-800/50">
-                            
-                            <h4 className="text-[10px] text-gray-500 uppercase tracking-widest font-black mb-3 ml-1">Restricciones Nutricionales</h4>
-                            <div className="bg-gray-900/60 rounded-xl border border-gray-700 overflow-hidden shadow-inner mb-6">
-                                <table className="w-full text-left">
-                                    <thead className="bg-gray-800/80 text-[10px] text-indigo-300 font-black uppercase">
-                                        <tr>
-                                            <th className="py-2.5 px-3">Nutriente</th>
-                                            <th className="py-2.5 px-2 text-center w-20">Mínimo</th>
-                                            <th className="py-2.5 px-2 text-center w-20">Máximo</th>
-                                            <th className="py-2.5 px-3 text-right bg-gray-950/30 text-amber-500/70" title="Coste Marginal (Shadow Price) no disponible en solver simple">P. Sombra</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="text-[13px] text-white">
-                                        {nutrients.map(nut => {
-                                            const con = product.constraints.find(c => c.nutrientId === nut.id) || { min: 0, max: 999 };
-                                            // Mock Shadow Price visual logic (normally returned by advanced solver)
-                                            const isConstrained = con.min > 0 || con.max < 999;
-                                            
-                                            return (
-                                                <tr key={nut.id} className="border-b border-gray-700/50 hover:bg-gray-800 transition-colors">
-                                                    <td className="py-1.5 px-3 font-medium flex items-center justify-between">
-                                                        <span>{nut.name}</span>
-                                                        <span className="text-[9px] text-gray-600 font-mono ml-2">{nut.unit}</span>
-                                                    </td>
-                                                    <td className="py-1.5 px-2 text-center">
-                                                        <SmartInput 
-                                                            value={con.min} 
-                                                            isMax={false} 
-                                                            onChange={(v) => handleConstraintChange(product.id, nut.id, 'min', v)} 
-                                                        />
-                                                    </td>
-                                                    <td className="py-1.5 px-2 text-center">
-                                                        <SmartInput 
-                                                            value={con.max} 
-                                                            isMax={true} 
-                                                            onChange={(v) => handleConstraintChange(product.id, nut.id, 'max', v)} 
-                                                        />
-                                                    </td>
-                                                    <td className="py-1.5 px-3 text-right font-mono text-amber-500/50 text-[11px] bg-gray-950/20">
-                                                        {isConstrained ? '-' : '0.00'}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        {/* Footer Action */}
-                        <div className="bg-gray-900 border-t border-gray-700 p-4 flex justify-between items-center shadow-[0_-10px_20px_rgba(0,0,0,0.2)]">
-                            <div className="flex flex-col">
-                                <span className="text-[10px] text-gray-500 uppercase font-black">Costo (Pre-Iteración)</span>
-                                <span className="text-lg font-mono font-bold text-gray-300">
-                                    ${localSolutions[activeAssignmentId]?.currentCost.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) || "0.00"}
-                                </span>
-                            </div>
-                            <button 
-                                onClick={() => handleLocalReoptimize(activeAssignmentId)}
-                                disabled={isOptimizingLocal}
-                                className={`px-8 py-3 rounded-xl font-black uppercase tracking-widest text-[12px] flex items-center gap-2 transition-all shadow-lg ${isOptimizingLocal ? 'bg-indigo-900 text-indigo-400 cursor-not-allowed border border-indigo-800' : 'bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-400 hover:shadow-indigo-500/30 hover:scale-[1.02]'}`}>
-                                {isOptimizingLocal ? (
-                                    <><RefreshIcon className="w-5 h-5 animate-spin" /> Procesando...</>
-                                ) : (
-                                    <><CalculatorIcon className="w-5 h-5" /> Re-Optimizar</>
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                        </>
-                    );
-                })()}
-            {/* Fin OFF-CANVAS DRAWER */}
+            {/* Global Guardar Todo Footer Toolbar */}
+            <div className="absolute bottom-0 left-0 w-full bg-gray-950 border-t border-gray-800 p-4 shadow-[0_-20px_50px_rgba(0,0,0,0.8)] z-50 flex items-center justify-between">
+                <div>
+                   <p className="text-[11px] font-black text-gray-500 uppercase tracking-widest">Resumen del Lote Operacional</p>
+                   {successfulCount === assignments.length ? (
+                       <p className="text-sm font-black text-emerald-400">100% de dietas optimizadas con éxito. Listo para guardar.</p>
+                   ) : (
+                       <p className="text-sm font-black text-red-400">Existen fórmulas infactibles pendientes de corrección.</p>
+                   )}
+                </div>
+                <button
+                    onClick={() => {
+                        if (setSavedFormulas) {
+                           // Persist global results here
+                           const successResults = Object.values(localSolutions).filter(sol => sol.isSuccessful);
+                           successResults.forEach(sol => {
+                               const theFormula = {
+                                   id: `formula_${Date.now()}_${sol.productId}`,
+                                   name: products.find(p => p.id === sol.productId)?.name || 'Dieta Modificada',
+                                   date: Date.now(),
+                                   result: {
+                                        feasible: true,
+                                        totalCost: sol.currentCost,
+                                        items: sol.items.map(it => {
+                                            const ingrDef = ingredients.find(i => i.name === it.name);
+                                            return {
+                                                ingredientId: ingrDef ? ingrDef.id : 'unknown',
+                                                percentage: it.percentage,
+                                                weight: it.weight
+                                            }
+                                        }),
+                                        // Empty structure to satisfy SavedFormula
+                                        nutrients: []
+                                   }
+                               };
+                               setSavedFormulas((prev: any) => [...prev, theFormula]);
+                           });
+                        }
+                        if (onCloseDrawer) onCloseDrawer();
+                    }}
+                    className="bg-cyan-600 hover:bg-cyan-500 text-white font-black px-8 py-3 rounded-xl uppercase tracking-widest text-[13px] shadow-[0_0_15px_rgba(8,145,178,0.4)] hover:shadow-cyan-500/50 transition-all flex items-center gap-2"
+                >
+                    <DatabaseIcon className="w-5 h-5" /> Guardar Todo
+                </button>
+            </div>
             
         </div>
     );
