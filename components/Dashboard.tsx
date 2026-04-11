@@ -45,7 +45,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
               <StarIcon className="w-3 h-3"/> {APP_NAME} {APP_VERSION}
             </div>
             <h1 className="text-2xl font-black text-white leading-tight">Optimización Nutricional</h1>
-            <p className="text-gray-100 font-bold text-[14px] leading-snug">Motor táctico de formulación agropecuaria sincronizado.</p>
+            <p className="text-gray-100 font-bold text-[14px] leading-snug">Motor táctico de optimización agropecuaria sincronizado.</p>
             
             {user?.trialEndsAt && user.trialEndsAt < (Date.now() + 1000 * 365 * 24 * 60 * 60 * 1.5) && (
                 (() => {

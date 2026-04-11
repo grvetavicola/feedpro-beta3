@@ -65,11 +65,11 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
 
           {/* Top: Branding FeedPro (Fix) */}
           <div className="w-full flex justify-center pt-4 pb-3 border-b border-gray-800/30">
-              <img
-                  src="/FeedPro-sinfondo.PNG"
-                  alt="FeedPro 360"
-                  className="max-h-11 object-contain drop-shadow-md opacity-90"
-              />
+            <img
+              src="/FeedPro-sinfondo.PNG"
+              alt="FeedPro 360"
+              className="max-h-11 object-contain drop-shadow-md opacity-90"
+            />
           </div>
 
           {/* Middle: Logo del Perfil Activo (Escapado de edición directa) */}
@@ -108,7 +108,7 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                 ))}
               </select>
               <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-500">
-                 <ChevronRight className="w-3.5 h-3.5 rotate-90" />
+                <ChevronRight className="w-3.5 h-3.5 rotate-90" />
               </div>
             </div>
           </div>
@@ -128,7 +128,7 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                 { id: 'DASHBOARD', label: 'Inicio', img: '/inicio.png', color: 'border-blue-400', bg: 'hover:bg-blue-500/10' },
                 { id: 'INGREDIENTS', label: 'Insumos', img: '/ingredients.png', color: 'border-emerald-400', bg: 'hover:bg-emerald-500/10' },
                 { id: 'NUTRIENTS', label: 'Nutrientes', img: '/nutrients.png', color: 'border-purple-400', bg: 'hover:bg-purple-500/10' },
-                { id: 'PRODUCTS', label: 'Productos', img: '/products.png', color: 'border-indigo-400', bg: 'hover:bg-indigo-500/10' },
+                { id: 'PRODUCTS', label: 'Dietas', img: '/products.png', color: 'border-indigo-400', bg: 'hover:bg-indigo-500/10' },
                 { id: 'OPTIMIZATION', label: 'Optimización', img: '/formulation.png', color: 'border-cyan-400', bg: 'hover:bg-cyan-500/10' },
                 { id: 'SIMULATION', label: 'Simular', img: '/simulation.png', color: 'border-amber-400', bg: 'hover:bg-amber-500/10' },
                 { id: 'SETTINGS', label: 'Ajustes', img: '/settings.png', color: 'border-gray-400', bg: 'hover:bg-gray-500/10' },
@@ -139,28 +139,28 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                     key={item.id}
                     onClick={() => onNavigate(item.id as ViewState)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 group ${isActive
-                        ? 'bg-gray-800 border border-cyan-500/50 shadow-md shadow-cyan-900/20'
-                        : `border border-transparent ${item.bg}`
+                      ? 'bg-gray-800 border border-cyan-500/50 shadow-md shadow-cyan-900/20'
+                      : `border border-transparent ${item.bg}`
                       }`}
                   >
                     <div className="relative w-7 h-7 transition-transform group-hover:scale-110">
                       {/* Generar color solido usando filtros CSS avanzados (drop-shadow technique) */}
-                      <img 
-                        src={item.img} 
+                      <img
+                        src={item.img}
                         alt={item.label}
-                        className={`absolute inset-0 w-full h-full object-contain mix-blend-screen opacity-0`} 
+                        className={`absolute inset-0 w-full h-full object-contain mix-blend-screen opacity-0`}
                       />
-                      <div 
+                      <div
                         className={`absolute inset-0 w-full h-full ${isActive ? 'bg-cyan-500' : 'bg-cyan-600/70 group-hover:bg-cyan-500'}`}
                         style={{
-                           WebkitMaskImage: `url('${item.img}')`,
-                           WebkitMaskSize: 'contain',
-                           WebkitMaskPosition: 'center',
-                           WebkitMaskRepeat: 'no-repeat',
-                           maskImage: `url('${item.img}')`,
-                           maskSize: 'contain',
-                           maskPosition: 'center',
-                           maskRepeat: 'no-repeat',
+                          WebkitMaskImage: `url('${item.img}')`,
+                          WebkitMaskSize: 'contain',
+                          WebkitMaskPosition: 'center',
+                          WebkitMaskRepeat: 'no-repeat',
+                          maskImage: `url('${item.img}')`,
+                          maskSize: 'contain',
+                          maskPosition: 'center',
+                          maskRepeat: 'no-repeat',
                         }}
                       />
                     </div>
@@ -281,9 +281,9 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
 
       {/* Copyright Footer */}
       <div className="p-3 border-t border-gray-800 shrink-0 text-center">
-          <p className="text-[9px] text-gray-600 uppercase tracking-widest font-black leading-tight">
-              &copy; 2026 {APP_NAME}.<br/>Todos los derechos reservados.
-          </p>
+        <p className="text-[9px] text-gray-600 uppercase tracking-widest font-black leading-tight">
+          &copy; 2026 {APP_NAME}.<br />Todos los derechos reservados.
+        </p>
       </div>
     </aside>
   );

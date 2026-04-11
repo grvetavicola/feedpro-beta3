@@ -98,7 +98,7 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
                      const weight = (percentage / 100) * assign.batchSize;
                      const ing = ingredients.find(i => i.id === ingId);
                      return { 
-                         name: ing?.name || 'Ingrediente Desconocido',
+                         name: ing?.name || 'Insumo Desconocido',
                          percentage,
                          weight
                      };
@@ -209,7 +209,7 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
                     <h2 className={`text-[12px] uppercase tracking-[0.2em] font-black flex items-center gap-2 ${isTotalFailure ? 'text-red-200' : 'text-emerald-200'}`}>
                         <DatabaseIcon className="w-4 h-4"/> {isTotalFailure ? 'OPTIMIZACIÓN GRUPAL FALLIDA' : 'Lote Multi-Mezcla Terminado'}
                     </h2>
-                    <p className="text-2xl font-black text-white mt-1 leading-none">{successfulCount} <span className={isTotalFailure ? 'text-red-400' : 'text-emerald-400'}>Productos Óptimos</span> de {assignments.length}</p>
+                    <p className="text-2xl font-black text-white mt-1 leading-none">{successfulCount} <span className={isTotalFailure ? 'text-red-400' : 'text-emerald-400'}>Dietas Óptimas</span> de {assignments.length}</p>
                 </div>
                 <div className="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-md w-full md:w-auto flex flex-col justify-center">
                     <p className="text-[11px] text-gray-400 font-black uppercase tracking-widest">Costo Total del Grupo Operativo</p>
@@ -290,7 +290,7 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
                                         {!isSuccessful && (
                                             <div className="flex flex-col items-center justify-center p-3 text-center h-full">
                                                 <XCircleIcon className="w-6 h-6 text-red-500/50 mb-1" />
-                                                <p className="text-[11px] text-red-400 font-black uppercase tracking-wide">Fórmula Infactible</p>
+                                                <p className="text-[11px] text-red-400 font-black uppercase tracking-wide">Dieta Infactible</p>
                                                 <p className="text-[9px] text-red-300 mt-1">Revisa los límites de nutrientes o insumos.</p>
                                             </div>
                                         )}
