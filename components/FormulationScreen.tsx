@@ -79,12 +79,12 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
             setLocalResult(result);
             if (result.status === 'OPTIMAL') {
                 if (onOpenInNewWindow) {
-                    onOpenInNewWindow(result, `Fórmula: ${currentProductData.name}`);
+                    onOpenInNewWindow(result, `Dieta: ${currentProductData.name}`);
                 } else {
                     setShowResultsModal(true);
                 }
             } else {
-                alert("La fórmula es matemáticamente inviable con las restricciones actuales.");
+                alert("La dieta es matemáticamente inviable con las restricciones actuales.");
             }
         } catch (error: any) {
             console.error(error);
@@ -106,7 +106,7 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
       };
       setSavedFormulas(prev => [...prev, newFormula]);
       setShowResultsModal(false);
-      alert("✓ Fórmula guardada y enviada a producción.");
+      alert("✓ Dieta guardada y enviada a producción.");
   };
 
   const sortedIngredients = [...ingredients].sort((a,b) => (a.code || 0) - (b.code || 0));
@@ -119,19 +119,19 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
       <div className="bg-gray-800 rounded p-2 px-4 border border-gray-700 shadow flex flex-col md:flex-row justify-between items-center gap-3">
           <div className="flex items-center gap-3">
               <CalculatorIcon className="text-cyan-400 w-5 h-5 ml-1"/>
-              <div><h2 className="text-[15px] font-bold text-white tracking-tight leading-none">Consola de Formulación</h2><p className="text-[11px] text-gray-500 font-medium leading-none mt-1">Motor táctico de optimización multivariable.</p></div>
+              <div><h2 className="text-[15px] font-bold text-white tracking-tight leading-none">Consola de Optimización</h2><p className="text-[11px] text-gray-500 font-medium leading-none mt-1">Motor táctica de optimización multivariable.</p></div>
           </div>
           <div className="flex gap-2 bg-gray-900/50 p-1.5 rounded border border-gray-700/50">
-             <div className="flex flex-col"><label className="text-[9px] text-gray-500 font-bold uppercase ml-1 mb-0.5">Producto</label><select value={selectedProductId || ''} onChange={e => setSelectedProductId(e.target.value)} className="bg-gray-800 text-[13px] text-white px-2 py-1 rounded border border-gray-700 outline-none focus:border-cyan-500 min-w-[150px]">{products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+             <div className="flex flex-col"><label className="text-[9px] text-gray-500 font-bold uppercase ml-1 mb-0.5">Dieta</label><select value={selectedProductId || ''} onChange={e => setSelectedProductId(e.target.value)} className="bg-gray-800 text-[13px] text-white px-2 py-1 rounded border border-gray-700 outline-none focus:border-cyan-500 min-w-[150px]">{products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
              <div className="flex flex-col"><label className="text-[9px] text-gray-500 font-bold uppercase ml-1 mb-0.5">Lote (kg)</label><input type="number" value={batchSize} onChange={e => setBatchSize(Number(e.target.value))} className="bg-gray-800 text-[13px] text-white px-2 py-1 rounded border border-gray-700 outline-none focus:border-cyan-500 w-20 text-center" /></div>
           </div>
       </div>
 
       <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 min-h-0 overflow-hidden">
-          {/* Ingredients Picker */}
+          {/* Insumos Picker */}
           <div className="bg-gray-800/40 rounded border border-gray-700 flex flex-col overflow-hidden shadow-sm">
               <div className="p-2 bg-gray-800 border-b border-gray-700 flex justify-between items-center">
-                  <h3 className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Existencias & Disponibilidad</h3>
+                  <h3 className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Insumos & Disponibilidad</h3>
                   <div className="flex gap-1"><button onClick={() => setAvailableIngredientIds(new Set(ingredients.map(i => i.id)))} className="text-[9px] bg-gray-700 px-1.5 py-0.5 rounded text-gray-400 hover:text-white uppercase">Todos</button><button onClick={() => setAvailableIngredientIds(new Set())} className="text-[9px] bg-gray-700 px-1.5 py-0.5 rounded text-gray-400 hover:text-white uppercase">Cero</button></div>
               </div>
               <div className="flex-1 overflow-y-auto p-1.5 space-y-0.5 custom-scrollbar">
@@ -213,7 +213,7 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
               <div className="p-3 bg-gray-900/50 border-t border-gray-700 flex justify-center shrink-0">
                   <button onClick={handleOptimizeSingle} disabled={isLoading || !currentProductData} className="bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white font-semibold py-2 px-8 rounded shadow text-[13px] transform hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50 disabled:grayscale uppercase">
                       {isLoading ? <LoadingSpinner/> : <SparklesIcon className="w-4 h-4 animate-pulse"/>}
-                      <span>{isLoading ? 'Calculando...' : 'Optimizar Fórmula'}</span>
+                      <span>{isLoading ? 'Calculando...' : 'Optimizar Dieta'}</span>
                   </button>
               </div>
           </div>
@@ -239,7 +239,7 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
                         if (previousCost) result.previousCost = previousCost;
                         setLocalResult(result);
                         if (result.status !== 'OPTIMAL') {
-                            alert("La fórmula es matemáticamente inviable con los nuevos requerimientos.");
+                            alert("La dieta es matemáticamente inviable con los nuevos requerimientos.");
                         }
                     } catch (error: any) {
                         alert(`Error en la optimización: ${error.message}`);
