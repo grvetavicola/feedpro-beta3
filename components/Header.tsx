@@ -35,24 +35,37 @@ export const Header: React.FC<HeaderProps> = ({
     const { t } = useTranslations();
 
     return (
-        <header className="shrink-0 h-20 border-b border-gray-800/60 z-50 flex items-center px-6 gap-8 relative overflow-hidden">
-            {/* Banner FeedPro como fondo CSS controlado */}
+        <header className="shrink-0 h-20 border-b border-gray-800/60 z-50 flex items-center px-6 gap-6 relative overflow-hidden">
+            {/* Banner FeedPro como fondo CSS controlado - ajustado a la derecha para mostrar la gallina completa */}
             <div
                 className="absolute inset-0 pointer-events-none select-none"
                 style={{
                     backgroundImage: 'url("/banner feedpro.jpg")',
                     backgroundSize: 'cover',
-                    backgroundPosition: 'center 20%',
+                    backgroundPosition: 'right 35%',
                     backgroundRepeat: 'no-repeat'
                 }}
                 aria-hidden="true"
             />
-            {/* Overlays de oscurecimiento para legibilidad */}
-            <div className="absolute inset-0 bg-gray-950/55 pointer-events-none" />
-            <div className="absolute top-0 left-0 w-48 h-full bg-gradient-to-r from-gray-950/80 to-transparent pointer-events-none" />
+            {/* Overlays de oscurecimiento para legibilidad (más oscuro a la izquierda para el logo) */}
+            <div className="absolute inset-0 bg-gray-950/60 pointer-events-none" />
+            <div className="absolute top-0 left-0 w-80 h-full bg-gradient-to-r from-gray-950 to-transparent pointer-events-none" />
             <div className="absolute top-0 right-0 w-48 h-full bg-gradient-to-l from-gray-950/80 to-transparent pointer-events-none" />
 
-            <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth flex-1 relative z-10 w-full pl-6">
+            {/* Global FeedPro Logo (Izquierda) */}
+            <button
+                onClick={() => onManageProfile && onManageProfile()}
+                className="relative z-10 w-40 flex flex-col items-start gap-1 p-1 outline-none group shrink-0 hover:bg-white/5 rounded-xl transition-all"
+                title="Gestión de Perfiles Globales"
+            >
+                <img
+                    src="/LOGOFEEDPRO.png"
+                    alt="FeedPro 360"
+                    className="w-full max-h-12 object-contain drop-shadow-lg group-hover:opacity-90 transition-opacity"
+                />
+            </button>
+
+            <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth flex-1 relative z-10 w-full">
                 {/* Active Tasks Section */}
                 <div className="flex items-center gap-2">
                     {activeTasks.map(task => {
