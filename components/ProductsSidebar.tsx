@@ -40,8 +40,6 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
   onUpdateClientLogo,
   onLogout
 }) => {
-  onLogout
-}) => {
   const [expandedCategories, setExpandedCategories] = React.useState<string[]>([]);
   const filteredProducts = products.filter(p => !selectedClientId || p.clientId === selectedClientId);
 
@@ -49,22 +47,6 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
     setExpandedCategories(prev => 
         prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
     );
-  };
-
-  const attemptDeleteProduct = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (window.confirm("¿Estás seguro de que deseas eliminar esta dieta? Esta acción no se puede deshacer.")) {
-      onDeleteProduct?.(id);
-    }
-  };
-
-  const attemptDeleteCategory = (e: React.MouseEvent, cat: string) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (window.confirm("¿Estás seguro de que deseas eliminar la categoría completa? Esta acción no se puede deshacer.")) {
-      onDeleteCategory?.(cat);
-    }
   };
 
   const groupedProducts = filteredProducts.reduce((acc, p) => {
@@ -150,7 +132,6 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                         onClick={() => {
                             if (isOptim) {
                                 onNavigate('OPTIMIZATION');
-                                // Could also auto-expand?
                             } else {
                                 onNavigate(item.id as ViewState);
                             }
@@ -243,10 +224,6 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                                     </div>
                                 );
                             })}
-                            
-                            {filteredProducts.length === 0 && (
-                                <p className="text-[10px] text-gray-600 italic">No hay dietas definidas</p>
-                            )}
                         </div>
                     )}
                   </div>
@@ -254,8 +231,6 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
               })}
             </div>
           </div>
-        </div>
-      </div>
         </div>
       </div>
 
