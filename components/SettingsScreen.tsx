@@ -178,7 +178,18 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
             </div>
 
             {/* Bottom Floating Bar */}
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-gray-950/80 backdrop-blur-md border-t border-gray-800 flex justify-center z-50">
+            <div className="fixed bottom-0 left-0 right-0 p-4 bg-gray-950/80 backdrop-blur-md border-t border-gray-800 flex justify-center items-center gap-6 z-50">
+                <button 
+                    onClick={() => {
+                        if(window.confirm('¿Estás seguro de restaurar y borrar tu perfil local? Se cargarán los insumos maestros nuevamente.')) {
+                            localStorage.clear();
+                            window.location.reload();
+                        }
+                    }}
+                    className="text-red-500 hover:text-red-400 font-bold px-6 py-4 rounded-2xl hover:bg-red-500/10 transition-all text-xs uppercase tracking-widest border border-transparent hover:border-red-500/30"
+                >
+                    Restaurar Valores de Fábrica
+                </button>
                 <button 
                     onClick={handleSave}
                     disabled={isSaving}
