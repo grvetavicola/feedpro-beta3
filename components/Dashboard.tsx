@@ -4,6 +4,7 @@ import { useTranslations } from '../lib/i18n/LangContext';
 import { TruckIcon, StarIcon, TrendingUpIcon, ShoppingCartIcon, ClockIcon, ArrowRightIcon, AIIcon, ProductsIcon, IngredientsIcon, FormulateIcon, NutrientsIcon, DatabaseIcon, FlaskIcon, CalculatorIcon } from './icons';
 import { APP_NAME, APP_VERSION } from '../constants';
 import { InsumosAnalyticsModal } from './InsumosAnalyticsModal';
+import { DietStructureModal } from './DietStructureModal';
 
 interface DashboardProps {
   products: Product[];
@@ -19,6 +20,7 @@ interface DashboardProps {
 export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, savedFormulas, clients, onNavigate, isDynamicMatrix, setIsDynamicMatrix, user }) => {
   const { t } = useTranslations();
   const [showInsumosBI, setShowInsumosBI] = React.useState(false);
+  const [showDietBI, setShowDietBI] = React.useState(false);
 
   const lastOp = savedFormulas.length > 0 ? new Date(savedFormulas[savedFormulas.length - 1].date).toLocaleDateString() : 'N/A';
 
@@ -97,13 +99,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
       {/* Stats Matrix (Compact) */}
       <div className="grid grid-cols-4 gap-3">
           {stats.map((stat, i) => {
-             const isClickable = stat.label === 'Insumos Disponibles';
+             const isClickableInsumos = stat.label === 'Insumos Disponibles';
+             const isClickableDietas = stat.label === 'Dietas Definidas';
+             const isClickable = isClickableInsumos || isClickableDietas;
+
+             const handleClick = () => {
+                 if (isClickableInsumos) setShowInsumosBI(true);
+                 if (isClickableDietas) setShowDietBI(true);
+             };
+
              return (
                  <div 
                      key={i} 
-                     onClick={() => isClickable && setShowInsumosBI(true)}
+                     onClick={handleClick}
                      className={`bg-gray-800 border border-gray-700 p-3 rounded-xl flex items-center justify-between shadow-lg transition-all
-                         ${isClickable ? 'cursor-pointer hover:-translate-y-1 hover:border-cyan-500/50 hover:shadow-cyan-900/40' : 'hover:border-gray-500/50'}
+                         ${isClickable ? `cursor-pointer hover:-translate-y-1 hover:border-${stat.color.split('-')[1]}-500/50 hover:shadow-${stat.color.split('-')[1]}-900/40` : 'hover:border-gray-500/50'}
                      `}
                  >
                     <div className="space-y-1">
@@ -196,6 +206,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
 
       {/* Global Modals for Dashboards */}
       {showInsumosBI && <InsumosAnalyticsModal onClose={() => setShowInsumosBI(false)} />}
+      {showDietBI && <DietStructureModal onClose={() => setShowDietBI(false)} />}
     </div>
   );
 };
