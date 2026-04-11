@@ -63,17 +63,8 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
         <div className="w-full flex flex-col bg-gray-900/60 border border-gray-800/80 rounded-2xl shadow-xl overflow-hidden relative group">
           <div className="absolute inset-0 bg-gradient-to-b from-cyan-900/5 to-transparent pointer-events-none" />
 
-          {/* Top: Branding FeedPro (Fix) */}
-          <div className="w-full flex justify-center pt-4 pb-3 border-b border-gray-800/30">
-            <img
-              src="/FeedPro-sinfondo.PNG"
-              alt="FeedPro 360"
-              className="max-h-11 object-contain drop-shadow-md opacity-90"
-            />
-          </div>
-
-          {/* Middle: Logo del Perfil Activo (Escapado de edición directa) */}
-          <div className="relative px-3 py-4 flex flex-col items-center justify-center min-h-[60px]">
+          {/* Logo del Perfil Activo */}
+          <div className="relative px-3 py-3 flex flex-col items-center justify-center min-h-[50px] border-b border-gray-800/30">
             {(() => {
               const currentClient = clients.find(c => c.id === selectedClientId);
               return (

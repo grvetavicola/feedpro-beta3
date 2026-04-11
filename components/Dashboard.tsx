@@ -27,10 +27,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
   const lastOp = savedFormulas.length > 0 ? new Date(savedFormulas[savedFormulas.length - 1].date).toLocaleDateString() : 'N/A';
 
   const stats = [
-    { label: 'Insumos Disponibles', value: ingredients.length, icon: DatabaseIcon, color: 'text-green-400', bg: 'bg-green-900/20' },
-    { label: 'Dietas Definidas', value: products.length, icon: FlaskIcon, color: 'text-indigo-400', bg: 'bg-indigo-900/20' },
-    { label: 'Optimizaciones Realizadas', value: savedFormulas.length, icon: CalculatorIcon, color: 'text-cyan-400', bg: 'bg-cyan-900/20' },
-    { label: 'Última Optimización', value: lastOp, icon: TrendingUpIcon, color: 'text-yellow-400', bg: 'bg-yellow-900/20' },
+    { label: 'Insumos Disponibles', value: ingredients.length, img: '/icons/ingredient.png', color: 'text-green-400', bg: 'bg-green-900/20' },
+    { label: 'Dietas Definidas', value: products.length, img: '/icons/products.png', color: 'text-indigo-400', bg: 'bg-indigo-900/20' },
+    { label: 'Optimizaciones Realizadas', value: savedFormulas.length, img: '/icons/formulation.png', color: 'text-cyan-400', bg: 'bg-cyan-900/20' },
+    { label: 'Última Optimización', value: lastOp, img: '/icons/history.png', color: 'text-yellow-400', bg: 'bg-yellow-900/20' },
   ];
 
   return (
@@ -125,7 +125,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
                         <p className="text-2xl font-black text-white leading-none">{stat.value}</p>
                     </div>
                     <div className={`${stat.bg} p-2 rounded-lg transition-transform`}>
-                        <stat.icon className={`w-6 h-6 ${stat.color}`}/>
+                        <img src={stat.img} className={`w-6 h-6 object-contain filter brightness-0 invert opacity-60`} alt={stat.label}/>
                     </div>
                  </div>
              );
