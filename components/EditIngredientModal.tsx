@@ -74,12 +74,12 @@ export const EditIngredientModal: React.FC<EditIngredientModalProps> = ({ ingred
         <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in shadow-black/80">
             <div className="bg-gray-800 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col scale-100 transition-transform">
                 <div className="p-4 border-b border-gray-600 bg-gray-900/40 rounded-t-2xl">
-                    <h3 className="text-lg font-bold text-cyan-400">Edición: {ingredient.name}</h3>
+                    <h3 className="text-lg font-bold text-cyan-400">{t('common.edit')}: {ingredient.name}</h3>
                 </div>
                 <div className="p-6 overflow-y-auto space-y-4 custom-scrollbar">
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                          <div className="col-span-2">
-                            <label className="text-xs text-gray-400 block mb-1 uppercase font-bold tracking-tighter">Cód</label>
+                            <label className="text-xs text-gray-400 block mb-1 uppercase font-bold tracking-tighter">{t('common.code')}</label>
                             <input
                                 type="number"
                                 value={editedIngredient.code}
@@ -88,7 +88,7 @@ export const EditIngredientModal: React.FC<EditIngredientModalProps> = ({ ingred
                             />
                         </div>
                         <div className="col-span-12 md:col-span-4">
-                            <label className="text-xs text-gray-400 block mb-1 uppercase font-bold tracking-tighter">Nombre Comercial</label>
+                            <label className="text-xs text-gray-400 block mb-1 uppercase font-bold tracking-tighter">{t('ingredients.commercialName')}</label>
                             <input
                                 type="text"
                                 value={editedIngredient.name}
@@ -97,7 +97,7 @@ export const EditIngredientModal: React.FC<EditIngredientModalProps> = ({ ingred
                             />
                         </div>
                         <div className="col-span-3">
-                            <label className="text-xs text-gray-400 block mb-1 uppercase font-bold tracking-tighter">C. Principal</label>
+                            <label className="text-xs text-gray-400 block mb-1 uppercase font-bold tracking-tighter">{t('ingredients.mainCategory')}</label>
                             <select 
                                 value={editedIngredient.category || 'Macro'}
                                 onChange={(e) => setEditedIngredient({ ...editedIngredient, category: e.target.value })}
@@ -108,7 +108,7 @@ export const EditIngredientModal: React.FC<EditIngredientModalProps> = ({ ingred
                             </select>
                         </div>
                         <div className="col-span-3">
-                             <label className="text-xs text-gray-400 block mb-1 uppercase font-bold tracking-tighter">Subcategoría</label>
+                             <label className="text-xs text-gray-400 block mb-1 uppercase font-bold tracking-tighter">{t('common.subcategory')}</label>
                             <select 
                                 value={editedIngredient.subcategory || 'Energético'}
                                 onChange={(e) => setEditedIngredient({ ...editedIngredient, subcategory: e.target.value })}
@@ -124,7 +124,7 @@ export const EditIngredientModal: React.FC<EditIngredientModalProps> = ({ ingred
                             </select>
                         </div>
                         <div className="col-span-3">
-                             <label className="text-xs text-blue-400 block mb-1 uppercase font-bold tracking-tighter">Costo / kg</label>
+                             <label className="text-xs text-blue-400 block mb-1 uppercase font-bold tracking-tighter">{t('common.price')} / kg</label>
                             <input
                                 type="number"
                                 step="0.001"
@@ -134,7 +134,7 @@ export const EditIngredientModal: React.FC<EditIngredientModalProps> = ({ ingred
                             />
                         </div>
                         <div className="col-span-3">
-                             <label className="text-xs text-emerald-400 block mb-1 uppercase font-bold tracking-tighter">Stock Inicial (kg)</label>
+                             <label className="text-xs text-emerald-400 block mb-1 uppercase font-bold tracking-tighter">{t('common.stock')} ({t('common.unit')})</label>
                             <input
                                 type="number"
                                 value={editedIngredient.stock || 0}
@@ -145,10 +145,10 @@ export const EditIngredientModal: React.FC<EditIngredientModalProps> = ({ ingred
                     </div>
 
                     <div className="pt-4 border-t border-gray-600 flex justify-between items-center">
-                        <h4 className="font-bold text-gray-200 uppercase text-[12px] tracking-widest">Matriz de Composición</h4>
+                        <h4 className="font-bold text-gray-200 uppercase text-[12px] tracking-widest">{t('ingredients.compositionMatrix')}</h4>
                         <div className="flex items-center gap-2">
                             <select id="add_nut_select" className="bg-gray-700 text-xs text-white rounded p-1 outline-none border border-gray-600">
-                                <option value="">+ Nutriente</option>
+                                <option value="">{t('ingredients.addNutrient')}</option>
                                 {sortedNutrients.filter(n => editedIngredient.nutrients[n.id] === undefined).map(n => (
                                     <option key={n.id} value={n.id}>{n.name} ({n.unit})</option>
                                 ))}
@@ -166,9 +166,9 @@ export const EditIngredientModal: React.FC<EditIngredientModalProps> = ({ ingred
                     </div>
 
                     <div className="grid grid-cols-12 gap-2 text-[10px] text-gray-500 mb-1 font-black px-1 uppercase tracking-tighter">
-                        <div className="col-span-6">Nutriente de Referencia</div>
-                        <div className="col-span-3 text-right text-cyan-500/80">Estándar % / Val</div>
-                        <div className="col-span-3 text-right text-purple-500/80">Laboratorio</div>
+                        <div className="col-span-6">{t('ingredients.referenceNutrient')}</div>
+                        <div className="col-span-3 text-right text-cyan-500/80">{t('ingredients.standardVal')}</div>
+                        <div className="col-span-3 text-right text-purple-500/80">{t('ingredients.laboratory')}</div>
                     </div>
                     
                     <div className="space-y-1.5">
@@ -212,8 +212,8 @@ export const EditIngredientModal: React.FC<EditIngredientModalProps> = ({ ingred
                     </div>
                 </div>
                 <div className="p-4 border-t border-gray-700 flex justify-end gap-3 bg-gray-900/20 rounded-b-2xl">
-                    <button onClick={onClose} className="bg-gray-700 hover:bg-gray-600 text-gray-300 font-bold py-2 px-6 rounded-xl transition-all border border-gray-600">Cancelar</button>
-                    <button onClick={handleSave} className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-black uppercase tracking-widest text-[12px] py-2 px-8 rounded-xl shadow-lg transition-all transform hover:scale-[1.02]">Guardar Cambios</button>
+                    <button onClick={onClose} className="bg-gray-700 hover:bg-gray-600 text-gray-300 font-bold py-2 px-6 rounded-xl transition-all border border-gray-600">{t('common.cancel')}</button>
+                    <button onClick={handleSave} className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-black uppercase tracking-widest text-[12px] py-2 px-8 rounded-xl shadow-lg transition-all transform hover:scale-[1.02]">{t('common.saveChanges')}</button>
                 </div>
             </div>
         </div>

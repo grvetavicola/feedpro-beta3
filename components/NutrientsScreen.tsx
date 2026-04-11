@@ -44,7 +44,7 @@ export const NutrientsScreen: React.FC<NutrientsScreenProps> = ({ nutrients, set
         <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">{t('nutrients.addNew')}</h3>
         <form onSubmit={handleAddNutrient} className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
            <div className="col-span-1">
-             <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Código</label>
+             <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">{t('common.code')}</label>
               <input
                 type="number"
                 placeholder="Auto"
@@ -54,7 +54,7 @@ export const NutrientsScreen: React.FC<NutrientsScreenProps> = ({ nutrients, set
               />
           </div>
           <div className="col-span-1">
-            <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Nombre</label>
+            <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">{t('common.name')}</label>
             <input
                 type="text"
                 placeholder={t('nutrients.namePlaceholder')}
@@ -65,7 +65,7 @@ export const NutrientsScreen: React.FC<NutrientsScreenProps> = ({ nutrients, set
             />
           </div>
           <div className="col-span-1">
-            <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Unidad</label>
+            <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">{t('common.unit')}</label>
             <input
                 type="text"
                 placeholder="e.g. %, kcal/kg"
@@ -76,7 +76,7 @@ export const NutrientsScreen: React.FC<NutrientsScreenProps> = ({ nutrients, set
             />
           </div>
           <div className="col-span-1">
-             <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">Grupo</label>
+             <label className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 block">{t('common.group')}</label>
              <input
                 type="text"
                 placeholder="e.g. Minos, Macros"
@@ -123,7 +123,7 @@ export const NutrientsScreen: React.FC<NutrientsScreenProps> = ({ nutrients, set
                 {nutrients.length === 0 && (
                     <tr>
                         <td colSpan={5} className="px-3 py-6 text-center text-gray-500 italic text-[11px]">
-                            No hay perfiles nutricionales definidos. 
+                            {t('nutrients.noNutrients')}
                         </td>
                     </tr>
                 )}

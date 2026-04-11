@@ -2,6 +2,7 @@ import React from 'react';
 import { Client, Product, ViewState } from '../types';
 import { Users, FileText, ChevronRight, LayoutGrid, Calculator, FlaskConical, Beaker, Package, Settings, PlayCircle, Plus, Edit2, Trash2, Upload } from 'lucide-react';
 import { APP_NAME, APP_VERSION } from '../constants';
+import { useTranslations } from '../lib/i18n/LangContext';
 
 interface ProductsSidebarProps {
   clients: Client[];
@@ -40,6 +41,7 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
   onUpdateClientLogo,
   onLogout
 }) => {
+  const { t } = useTranslations();
   const [expandedCategories, setExpandedCategories] = React.useState<string[]>([]);
   const filteredProducts = products.filter(p => !selectedClientId || p.clientId === selectedClientId);
 
@@ -50,7 +52,7 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
   };
 
   const groupedProducts = filteredProducts.reduce((acc, p) => {
-    const cat = p.category || 'Sin Categoría';
+    const cat = p.category || t('common.uncategorized') || 'Sin Categoría';
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(p);
     return acc;
@@ -78,7 +80,7 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                   ) : (
                     <div className="flex flex-col items-center gap-1 opacity-20">
                       <Users className="w-6 h-6 text-gray-500 mb-1" />
-                      <span className="text-[9px] text-gray-500 uppercase tracking-[0.2em] font-black">Sin Logo</span>
+                      <span className="text-[9px] text-gray-500 uppercase tracking-[0.2em] font-black">{t('common.loading')}</span>
                     </div>
                   )}
                 </>
@@ -112,16 +114,16 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
           {/* General Navigation Shortcuts */}
           <div>
             <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 block px-1">
-              Módulos Críticos
+              {t('common.category').toUpperCase()}
             </label>
             <div className="space-y-0.5">
               {[
-                { id: 'DASHBOARD', label: 'Inicio', img: '/icons/inicio.png' },
-                { id: 'INGREDIENTS', label: 'Insumos', img: '/icons/ingredient.png' },
-                { id: 'NUTRIENTS', label: 'Nutrientes', img: '/icons/nutrients.png' },
-                { id: 'PRODUCTS', label: 'Dietas', img: '/icons/products.png' },
-                { id: 'SIMULATION', label: 'Simular', img: '/icons/simulation.png' },
-                { id: 'OPTIMIZATION', label: 'Optimización', img: '/icons/formulation.png' },
+                { id: 'DASHBOARD', label: t('nav.dashboard'), img: '/icons/inicio.png' },
+                { id: 'INGREDIENTS', label: t('nav.ingredients'), img: '/icons/ingredient.png' },
+                { id: 'NUTRIENTS', label: t('nav.nutrients'), img: '/icons/nutrients.png' },
+                { id: 'PRODUCTS', label: t('nav.products'), img: '/icons/products.png' },
+                { id: 'SIMULATION', label: t('nav.simulation'), img: '/icons/simulation.png' },
+                { id: 'OPTIMIZATION', label: t('nav.formulation'), img: '/icons/formulation.png' },
               ].map(item => {
                 const isActive = activeView === item.id;
                 const isOptim = item.id === 'OPTIMIZATION';
@@ -237,7 +239,7 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
       {/* Copyright Footer */}
       <div className="p-3 border-t border-gray-800 shrink-0 text-center">
         <p className="text-[9px] text-gray-600 uppercase tracking-widest font-black leading-tight">
-          &copy; 2026 {APP_NAME}.<br />Todos los derechos reservados.
+          &copy; 2026 {APP_NAME}.<br />{t('common.confirm')} feedpro 360.
         </p>
       </div>
     </aside>

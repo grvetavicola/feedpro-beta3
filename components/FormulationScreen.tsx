@@ -119,11 +119,11 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
       <div className="bg-gray-800 rounded p-2 px-4 border border-gray-700 shadow flex flex-col md:flex-row justify-between items-center gap-3">
           <div className="flex items-center gap-3">
               <CalculatorIcon className="text-cyan-400 w-5 h-5 ml-1"/>
-              <div><h2 className="text-[15px] font-bold text-white tracking-tight leading-none">Consola de Optimización</h2><p className="text-[11px] text-gray-500 font-medium leading-none mt-1">Motor táctica de optimización multivariable.</p></div>
+              <div><h2 className="text-[15px] font-bold text-white tracking-tight leading-none">{t('optimization.consoleTitle')}</h2><p className="text-[11px] text-gray-500 font-medium leading-none mt-1">{t('optimization.consoleSubtitle')}</p></div>
           </div>
           <div className="flex gap-2 bg-gray-900/50 p-1.5 rounded border border-gray-700/50">
-             <div className="flex flex-col"><label className="text-[9px] text-gray-500 font-bold uppercase ml-1 mb-0.5">Dieta</label><select value={selectedProductId || ''} onChange={e => setSelectedProductId(e.target.value)} className="bg-gray-800 text-[13px] text-white px-2 py-1 rounded border border-gray-700 outline-none focus:border-cyan-500 min-w-[150px]">{products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
-             <div className="flex flex-col"><label className="text-[9px] text-gray-500 font-bold uppercase ml-1 mb-0.5">Lote (kg)</label><input type="number" value={batchSize} onChange={e => setBatchSize(Number(e.target.value))} className="bg-gray-800 text-[13px] text-white px-2 py-1 rounded border border-gray-700 outline-none focus:border-cyan-500 w-20 text-center" /></div>
+             <div className="flex flex-col"><label className="text-[9px] text-gray-500 font-bold uppercase ml-1 mb-0.5">{t('common.diet')}</label><select value={selectedProductId || ''} onChange={e => setSelectedProductId(e.target.value)} className="bg-gray-800 text-[13px] text-white px-2 py-1 rounded border border-gray-700 outline-none focus:border-cyan-500 min-w-[150px]">{products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+             <div className="flex flex-col"><label className="text-[9px] text-gray-500 font-bold uppercase ml-1 mb-0.5">{t('optimization.batchSize')} (kg)</label><input type="number" value={batchSize} onChange={e => setBatchSize(Number(e.target.value))} className="bg-gray-800 text-[13px] text-white px-2 py-1 rounded border border-gray-700 outline-none focus:border-cyan-500 w-20 text-center" /></div>
           </div>
       </div>
 
@@ -131,8 +131,8 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
           {/* Insumos Picker */}
           <div className="bg-gray-800/40 rounded border border-gray-700 flex flex-col overflow-hidden shadow-sm">
               <div className="p-2 bg-gray-800 border-b border-gray-700 flex justify-between items-center">
-                  <h3 className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Insumos & Disponibilidad</h3>
-                  <div className="flex gap-1"><button onClick={() => setAvailableIngredientIds(new Set(ingredients.map(i => i.id)))} className="text-[9px] bg-gray-700 px-1.5 py-0.5 rounded text-gray-400 hover:text-white uppercase">Todos</button><button onClick={() => setAvailableIngredientIds(new Set())} className="text-[9px] bg-gray-700 px-1.5 py-0.5 rounded text-gray-400 hover:text-white uppercase">Cero</button></div>
+                  <h3 className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">{t('optimization.suppliesAvailability')}</h3>
+                  <div className="flex gap-1"><button onClick={() => setAvailableIngredientIds(new Set(ingredients.map(i => i.id)))} className="text-[9px] bg-gray-700 px-1.5 py-0.5 rounded text-gray-400 hover:text-white uppercase">{t('common.all')}</button><button onClick={() => setAvailableIngredientIds(new Set())} className="text-[9px] bg-gray-700 px-1.5 py-0.5 rounded text-gray-400 hover:text-white uppercase">{t('common.none')}</button></div>
               </div>
               <div className="flex-1 overflow-y-auto p-1.5 space-y-0.5 custom-scrollbar">
                   {sortedIngredients.map(ing => (
@@ -146,7 +146,7 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
                               <div 
                                 onClick={(e) => { e.stopPropagation(); setEditingIngredient(ing); }}
                                 className="font-medium text-gray-200 text-[13px] hover:text-cyan-400 hover:underline decoration-cyan-500/30 underline-offset-4"
-                                title="Click para editar composición completa"
+                                title={t('optimization.clickToEdit')}
                               >
                                   {ing.name}
                               </div>
@@ -162,7 +162,7 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
                                       setIngredients(prev => prev.map(i => i.id === ing.id ? { ...i, price: newPrice } : i));
                                   }}
                                   className="bg-gray-900/80 text-cyan-400 font-mono font-bold text-[13px] w-14 text-right rounded border border-cyan-500/10 focus:border-cyan-500/50 outline-none p-0.5"
-                                  title="Editar precio directamente"
+                                  title={t('optimization.editPriceDirectly')}
                               />
                               <span className="text-[10px] text-gray-600 font-normal">/ kg</span>
                           </div>
@@ -173,12 +173,12 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
 
           {/* Constraints Monitor */}
           <div className="bg-gray-800/40 rounded border border-gray-700 flex flex-col overflow-hidden shadow-sm">
-              <div className="p-2 bg-gray-800 border-b border-gray-700 font-bold text-[10px] text-gray-300 uppercase tracking-widest">Requerimientos del Perfil</div>
+              <div className="p-2 bg-gray-800 border-b border-gray-700 font-bold text-[10px] text-gray-300 uppercase tracking-widest">{t('optimization.profileRequirements')}</div>
               <div className="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar">
                   {currentProductData ? (
                       <div className="space-y-2">
                         <div className="bg-gray-900/50 rounded p-2 border border-gray-700/50">
-                            <p className="text-[9px] text-gray-500 font-bold uppercase mb-1.5 border-b border-gray-700/50 pb-0.5">Nutrientes ({currentProductData.constraints.length})</p>
+                            <p className="text-[9px] text-gray-500 font-bold uppercase mb-1.5 border-b border-gray-700/50 pb-0.5">{t('nav.nutrients')} ({currentProductData.constraints.length})</p>
                             <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-3 gap-y-1">
                                 {currentProductData.constraints.map(c => {
                                     const nut = nutrients.find(n => n.id === c.nutrientId);
@@ -196,7 +196,7 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
 
                         {currentProductData.relationships.length > 0 && (
                             <div className="bg-yellow-900/05 rounded p-2 border border-yellow-700/10">
-                                <p className="text-[9px] text-yellow-600/80 font-bold uppercase mb-1.5 border-b border-yellow-700/10 pb-0.5">Ratios Bio-Técnicos</p>
+                                <p className="text-[9px] text-yellow-600/80 font-bold uppercase mb-1.5 border-b border-yellow-700/10 pb-0.5">{t('products.ratiosTitle')}</p>
                                 <div className="space-y-1">
                                     {currentProductData.relationships.map(r => (
                                         <div key={r.id} className="flex justify-between text-[11px] p-1 border-l-2 border-yellow-500/20 bg-yellow-500/05 rounded-r">
@@ -208,12 +208,12 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
                             </div>
                         )}
                       </div>
-                  ) : <div className="p-6 text-center text-[13px] text-gray-500 italic">No hay producto seleccionado.</div>}
+                  ) : <div className="p-6 text-center text-[13px] text-gray-500 italic">{t('optimization.noProductSelected')}</div>}
               </div>
               <div className="p-3 bg-gray-900/50 border-t border-gray-700 flex justify-center shrink-0">
                   <button onClick={handleOptimizeSingle} disabled={isLoading || !currentProductData} className="bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white font-semibold py-2 px-8 rounded shadow text-[13px] transform hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50 disabled:grayscale uppercase">
                       {isLoading ? <LoadingSpinner/> : <SparklesIcon className="w-4 h-4 animate-pulse"/>}
-                      <span>{isLoading ? 'Calculando...' : 'Optimizar Dieta'}</span>
+                      <span>{isLoading ? t('optimization.calculating') : t('nav.formulation')}</span>
                   </button>
               </div>
           </div>

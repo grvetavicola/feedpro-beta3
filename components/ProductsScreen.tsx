@@ -76,6 +76,7 @@ const SelectionModal = ({
     triggerLabel: string;
     disabled?: boolean;
 }) => {
+    const { t } = useTranslations();
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -115,7 +116,7 @@ const SelectionModal = ({
                 <div className="p-4 border-b border-gray-700">
                     <input 
                         type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
-                        placeholder="Buscar..." className="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2 text-sm text-white focus:border-cyan-500 outline-none"
+                        placeholder={t('common.search') + "..."} className="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2 text-sm text-white focus:border-cyan-500 outline-none"
                     />
                 </div>
                 <div className="flex-1 overflow-y-auto p-4 grid grid-cols-2 gap-2 custom-scrollbar">
@@ -127,8 +128,8 @@ const SelectionModal = ({
                     ))}
                 </div>
                 <div className="p-4 border-t border-gray-700 flex justify-end gap-3">
-                    <button onClick={() => setIsOpen(false)} className="text-sm text-gray-400 hover:text-white font-bold">Cancelar</button>
-                    <button onClick={handleAdd} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg text-sm transition-all transform hover:scale-105">Añadir ({selectedIds.size})</button>
+                    <button onClick={() => setIsOpen(false)} className="text-sm text-gray-400 hover:text-white font-bold">{t('common.cancel')}</button>
+                    <button onClick={handleAdd} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg text-sm transition-all transform hover:scale-105">{t('common.add')} ({selectedIds.size})</button>
                 </div>
             </div>
         </div>
@@ -139,7 +140,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
     const { t } = useTranslations();
     const [selectedProductId, setSelectedProductId] = useState<string | null>(products[0]?.id || null);
     const [newProductName, setNewProductName] = useState('');
-    const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set([products[0]?.category || 'Sin Categoría']));
+    const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set([products[0]?.category || t('common.uncategorized')]));
     
     const currentProduct = useMemo(() => products.find(p => p.id === selectedProductId), [products, selectedProductId]);
 
@@ -174,7 +175,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
             ...p,
             relationships: [
                 ...p.relationships,
-                { id: `rel_${Date.now()}`, name: 'Nueva Relación', nutrientAId: nutrients[0]?.id, nutrientBId: nutrients[1]?.id, min: 0, max: 999 }
+                { id: `rel_${Date.now()}`, name: t('products.newRelation'), nutrientAId: nutrients[0]?.id, nutrientBId: nutrients[1]?.id, min: 0, max: 999 }
             ]
         }));
     };
@@ -185,7 +186,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
 
     const applyBase = (base: NutritionalBase) => {
         if (!currentProduct) return;
-        if (window.confirm(`¿Desea aplicar la base "${base.name}"? Esto sobrescribirá las restricciones actuales.`)) {
+        if (window.confirm(`${t('products.confirmApplyBase')} "${base.name}"?`)) {
             handleUpdate(p => ({
                 ...p,
                 constraints: [...base.constraints],
@@ -200,13 +201,13 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
                 <div className="flex items-center gap-3">
                     <FlaskIcon className="text-cyan-400 w-5 h-5 ml-1" />
                     <div>
-                        <h2 className="text-[15px] font-bold text-white leading-tight">Perfiles Nutricionales</h2>
-                        <p className="text-[11px] text-gray-500 leading-tight">Configuración de requerimientos</p>
+                        <h2 className="text-[15px] font-bold text-white leading-tight">{t('products.profilesTitle')}</h2>
+                        <p className="text-[11px] text-gray-500 leading-tight">{t('products.profilesSubtitle')}</p>
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <input value={newProductName} onChange={e => setNewProductName(e.target.value)} placeholder="Nombre Dieta..." className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-[13px] text-white focus:border-cyan-500 outline-none w-40 font-bold"/>
-                    <input id="new-product-category" placeholder="Categoría (opc)..." className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-[13px] text-white focus:border-cyan-500 outline-none w-32 font-bold"/>
+                    <input value={newProductName} onChange={e => setNewProductName(e.target.value)} placeholder={t('products.dietNamePlaceholder')} className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-[13px] text-white focus:border-cyan-500 outline-none w-40 font-bold"/>
+                    <input id="new-product-category" placeholder={t('common.category') + "..."} className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-[13px] text-white focus:border-cyan-500 outline-none w-32 font-bold"/>
                     <button onClick={() => {
                         if (!newProductName) return;
                         const catInput = document.getElementById('new-product-category') as HTMLInputElement;
@@ -216,7 +217,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
                         setNewProductName('');
                         if (catInput) catInput.value = '';
                     }} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-4 py-1 rounded text-[13px] transition-all flex items-center gap-1 shadow-lg shadow-cyan-900/20">
-                        <PlusIcon className="w-3 h-3"/> Crear
+                        <PlusIcon className="w-3 h-3"/> {t('common.create')}
                     </button>
                 </div>
             </div>
@@ -225,19 +226,19 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
                 {/* List */}
                 <div className="col-span-3 bg-gray-800/40 rounded border border-gray-700 flex flex-col overflow-hidden">
                     <div className="p-2 bg-gray-800 border-b border-gray-700 font-black text-[10px] uppercase tracking-widest text-gray-500 flex justify-between items-center px-3">
-                        <span>Productos Disponibles</span>
+                        <span>{t('products.availableProducts')}</span>
                         <span className="bg-gray-900 border border-gray-700 px-1.5 py-0.5 rounded text-[9px] text-cyan-400">{products.length}</span>
                     </div>
                     <div className="flex-1 overflow-y-auto space-y-2 p-2 custom-scrollbar bg-gray-950/20">
                         {(() => {
                             const grouped = products.reduce((acc, p) => {
-                                const cat = p.category || 'Sin Categoría';
+                                const cat = p.category || t('common.uncategorized');
                                 if (!acc[cat]) acc[cat] = [];
                                 acc[cat].push(p);
                                 return acc;
                             }, {} as Record<string, Product[]>);
 
-                            const categories = Object.keys(grouped).sort((a, b) => a === 'Sin Categoría' ? 1 : b === 'Sin Categoría' ? -1 : a.localeCompare(b));
+                            const categories = Object.keys(grouped).sort((a, b) => a === t('common.uncategorized') ? 1 : b === t('common.uncategorized') ? -1 : a.localeCompare(b));
 
                             return categories.map((cat, catIdx) => {
                                 const isOpen = expandedCategories.has(cat);
@@ -249,7 +250,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
                                     'border-indigo-500/30 bg-indigo-500/5 text-indigo-400',
                                     'border-purple-500/30 bg-purple-500/5 text-purple-400'
                                 ];
-                                const colorClass = cat === 'Sin Categoría' ? 'border-gray-700 bg-gray-800/40 text-gray-400' : catColors[catIdx % catColors.length];
+                                const colorClass = cat === t('common.uncategorized') ? 'border-gray-700 bg-gray-800/40 text-gray-400' : catColors[catIdx % catColors.length];
 
                                 return (
                                     <div key={cat} className="space-y-1">
@@ -263,7 +264,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
                                             className={`w-full flex items-center justify-between p-2.5 rounded-xl border font-black text-[11px] uppercase tracking-wider transition-all shadow-sm ${colorClass} hover:brightness-125 active:scale-[0.98] outline-none`}
                                         >
                                             <div className="flex items-center gap-2">
-                                                <div className={`w-1.5 h-1.5 rounded-full ${cat === 'Sin Categoría' ? 'bg-gray-600' : 'bg-current pulse'}`}></div>
+                                                <div className={`w-1.5 h-1.5 rounded-full ${cat === t('common.uncategorized') ? 'bg-gray-600' : 'bg-current pulse'}`}></div>
                                                 {cat}
                                             </div>
                                             <div className="flex items-center gap-3">
@@ -290,7 +291,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
                                                         <button 
                                                             onClick={(e) => { e.stopPropagation(); setProducts(prev => prev.filter(x => x.id !== p.id)); }} 
                                                             className="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-500/10 rounded-lg"
-                                                            title="Eliminar Dieta"
+                                                            title={t('products.deleteDiet')}
                                                         >
                                                             <TrashIcon className="w-3.5 h-3.5"/>
                                                         </button>
@@ -312,13 +313,13 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
                             <div className="p-2 px-3 border-b border-gray-700 flex justify-between items-center bg-gray-900/20">
                                 <div className="flex items-center gap-4">
                                     <div className="flex flex-col">
-                                        <label className="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none mb-1">Nombre de Dieta</label>
+                                        <label className="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none mb-1">{t('products.dietNameLabel')}</label>
                                         <input value={currentProduct.name} onChange={e => handleUpdate(p => ({...p, name: e.target.value}))} className="bg-transparent text-[16px] font-black text-white focus:outline-none focus:border-b border-cyan-500 w-64" />
                                     </div>
                                     <div className="h-8 w-px bg-gray-700 mx-2"></div>
                                     <div className="flex flex-col">
-                                        <label className="text-[9px] text-emerald-400 font-bold uppercase tracking-widest leading-none mb-1">Categoría / Grupo</label>
-                                        <input value={currentProduct.category || ''} placeholder="Ej: Crianzas, Postura..." onChange={e => handleUpdate(p => ({...p, category: e.target.value}))} className="bg-transparent text-[14px] font-black text-emerald-400 focus:outline-none focus:border-b border-emerald-500 w-48" />
+                                        <label className="text-[9px] text-emerald-400 font-bold uppercase tracking-widest leading-none mb-1">{t('common.category')}</label>
+                                        <input value={currentProduct.category || ''} placeholder={t('products.categoryHelp')} onChange={e => handleUpdate(p => ({...p, category: e.target.value}))} className="bg-transparent text-[14px] font-black text-emerald-400 focus:outline-none focus:border-b border-emerald-500 w-48" />
                                     </div>
                                 </div>
                                 <div className="flex gap-2">
@@ -327,7 +328,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
                                     ))}
                                     {onOpenInNewWindow && (
                                         <button onClick={() => onOpenInNewWindow(null, `Optimizar: ${currentProduct.name}`)} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-4 py-1 rounded shadow text-[11px] uppercase flex items-center gap-1 transition-all">
-                                            <SparklesIcon className="w-3 h-3 animate-pulse" /> Optimizar
+                                            <SparklesIcon className="w-3 h-3 animate-pulse" /> {t('nav.formulation')}
                                         </button>
                                     )}
                                 </div>
@@ -337,16 +338,16 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
                                 <details className="group bg-yellow-900/10 border border-yellow-500/20 rounded-xl overflow-hidden shadow-sm">
                                     <summary className="cursor-pointer px-4 py-3 hover:bg-yellow-900/20 transition-colors flex justify-between items-center outline-none list-none [&::-webkit-details-marker]:hidden">
                                         <h3 className="font-black text-[13px] text-yellow-400 flex items-center gap-2 uppercase tracking-wide">
-                                            <RatiosIcon className="w-4 h-4"/> Relaciones (Ratios)
+                                            <RatiosIcon className="w-4 h-4"/> {t('products.ratiosTitle')}
                                         </h3>
                                         <ChevronDownIcon className="w-4 h-4 text-yellow-500 group-open:rotate-180 transition-transform duration-300" />
                                     </summary>
                                     <div className="p-3 bg-gray-900/40 border-t border-yellow-500/20">
                                         <div className="flex justify-end mb-3">
-                                            <button onClick={addRelationship} className="bg-yellow-600 hover:bg-yellow-500 text-white font-bold px-4 py-1.5 rounded-lg text-xs transition-all shadow-lg shadow-yellow-900/20 flex items-center gap-2">+ Añadir Relación</button>
+                                            <button onClick={addRelationship} className="bg-yellow-600 hover:bg-yellow-500 text-white font-bold px-4 py-1.5 rounded-lg text-xs transition-all shadow-lg shadow-yellow-900/20 flex items-center gap-2">+ {t('products.addRelation')}</button>
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 max-h-[30vh] overflow-y-auto custom-scrollbar pr-2">
-                                            {currentProduct.relationships.length === 0 ? <p className="text-[12px] text-gray-500 italic px-2">No se han definido relaciones.</p> : (
+                                            {currentProduct.relationships.length === 0 ? <p className="text-[12px] text-gray-500 italic px-2">{t('products.noRelations')}</p> : (
                                                 currentProduct.relationships.map((rel, idx) => (
                                                     <div key={rel.id} className="bg-gray-800 p-3 rounded-xl border border-gray-700 hover:border-yellow-500/50 flex flex-col items-center gap-3 group shadow-sm transition-colors">
                                                         <div className="w-full flex justify-between items-center border-b border-gray-700/50 pb-2">
@@ -358,14 +359,14 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
                                                                 <select value={rel.nutrientAId} onChange={e => handleUpdate(p => ({...p, relationships: p.relationships.map(r => r.id === rel.id ? {...r, nutrientAId: e.target.value} : r)}))} className="w-full bg-gray-900 text-[10px] font-bold text-gray-300 p-2 rounded-lg outline-none border border-gray-700 focus:border-yellow-500">
                                                                     {nutrients.map(n => <option key={n.id} value={n.id} className="bg-gray-800">#{n.code} {n.name}</option>)}
                                                                 </select>
-                                                                <div className="text-center text-gray-600 text-[10px] font-black">DIVIDIDO POR (÷)</div>
+                                                                <div className="text-center text-gray-600 text-[10px] font-black">{t('products.dividedBy')} (÷)</div>
                                                                 <select value={rel.nutrientBId} onChange={e => handleUpdate(p => ({...p, relationships: p.relationships.map(r => r.id === rel.id ? {...r, nutrientBId: e.target.value} : r)}))} className="w-full bg-gray-900 text-[10px] font-bold text-gray-300 p-2 rounded-lg outline-none border border-gray-700 focus:border-yellow-500">
                                                                     {nutrients.map(n => <option key={n.id} value={n.id} className="bg-gray-800">#{n.code} {n.name}</option>)}
                                                                 </select>
                                                             </div>
                                                             <div className="flex flex-col gap-2 w-20 justify-center">
-                                                                <div className="flex flex-col"><label className="text-[9px] text-gray-400 uppercase font-bold text-center mb-1">Mín</label><SmartInput value={rel.min} onChange={v => handleUpdate(p => ({...p, relationships: p.relationships.map(r => r.id === rel.id ? {...r, min: v} : r)}))} className="w-full bg-gray-900 border border-gray-600 rounded-lg px-2 py-1.5 text-[12px] text-yellow-500 focus:border-yellow-500 outline-none font-bold transition-all" /></div>
-                                                                <div className="flex flex-col"><label className="text-[9px] text-gray-400 uppercase font-bold text-center mb-1">Máx</label><SmartInput value={rel.max} isMax={true} onChange={v => handleUpdate(p => ({...p, relationships: p.relationships.map(r => r.id === rel.id ? {...r, max: v} : r)}))} className="w-full bg-gray-900 border border-gray-600 rounded-lg px-2 py-1.5 text-[12px] text-yellow-500 focus:border-yellow-500 outline-none font-bold transition-all" /></div>
+                                                                <div className="flex flex-col"><label className="text-[9px] text-gray-400 uppercase font-bold text-center mb-1">{t('common.min')}</label><SmartInput value={rel.min} onChange={v => handleUpdate(p => ({...p, relationships: p.relationships.map(r => r.id === rel.id ? {...r, min: v} : r)}))} className="w-full bg-gray-900 border border-gray-600 rounded-lg px-2 py-1.5 text-[12px] text-yellow-500 focus:border-yellow-500 outline-none font-bold transition-all" /></div>
+                                                                <div className="flex flex-col"><label className="text-[9px] text-gray-400 uppercase font-bold text-center mb-1">{t('common.max')}</label><SmartInput value={rel.max} isMax={true} onChange={v => handleUpdate(p => ({...p, relationships: p.relationships.map(r => r.id === rel.id ? {...r, max: v} : r)}))} className="w-full bg-gray-900 border border-gray-600 rounded-lg px-2 py-1.5 text-[12px] text-yellow-500 focus:border-yellow-500 outline-none font-bold transition-all" /></div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -381,8 +382,8 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
                                 {/* Left Column: Ingredients (60%) */}
                                 <div className="w-[60%] flex flex-col bg-gray-800/40 rounded-xl border border-gray-700/80 shadow-inner overflow-hidden">
                                     <div className="flex justify-between items-center p-3 bg-green-900/20 border-b border-gray-700/80 shrink-0">
-                                        <h3 className="font-black text-[14px] text-green-400 flex items-center gap-2 uppercase tracking-wide"><FlaskIcon className="w-4 h-4"/> Inclusión de Ingredientes</h3>
-                                        <div className="w-48"><SelectionModal title="Seleccionar Ingredientes" triggerLabel="+ Inclusión" options={ingredients.map(i => ({id: i.id, name: i.name, sub: '$' + i.price, code: i.code}))} onAdd={addIngredients} /></div>
+                                        <h3 className="font-black text-[14px] text-green-400 flex items-center gap-2 uppercase tracking-wide"><FlaskIcon className="w-4 h-4"/> {t('products.ingredientsInclusion')}</h3>
+                                        <div className="w-48"><SelectionModal title={t('products.selectIngredients')} triggerLabel={"+ " + t('common.inclusion')} options={ingredients.map(i => ({id: i.id, name: i.name, sub: '$' + i.price, code: i.code}))} onAdd={addIngredients} /></div>
                                     </div>
                                     <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
                                         <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-3">
@@ -395,8 +396,8 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
                                                             <button onClick={() => handleUpdate(p => ({...p, ingredientConstraints: p.ingredientConstraints.filter((_, i) => i !== idx)}))} className="text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 p-1.5 rounded-lg"><TrashIcon className="w-3.5 h-3.5"/></button>
                                                         </div>
                                                         <div className="flex gap-2">
-                                                            <div className="flex-1"><label className="text-[9px] text-gray-400 uppercase font-bold text-center block mb-1">Mín %</label><SmartInput value={ic.min} onChange={v => handleUpdate(p => ({...p, ingredientConstraints: p.ingredientConstraints.map((x, i) => i === idx ? {...x, min: v} : x)}))} placeholder="0" className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 text-[14px] text-green-400 focus:border-green-500 focus:ring-1 focus:ring-green-500/50 outline-none font-bold transition-all" /></div>
-                                                            <div className="flex-1"><label className="text-[9px] text-gray-400 uppercase font-bold text-center block mb-1">Máx %</label><SmartInput value={ic.max} isMax={true} onChange={v => handleUpdate(p => ({...p, ingredientConstraints: p.ingredientConstraints.map((x, i) => i === idx ? {...x, max: v} : x)}))} placeholder="Máx" className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 text-[14px] text-green-400 focus:border-green-500 focus:ring-1 focus:ring-green-500/50 outline-none font-bold transition-all" /></div>
+                                                            <div className="flex-1"><label className="text-[9px] text-gray-400 uppercase font-bold text-center block mb-1">{t('common.min')} %</label><SmartInput value={ic.min} onChange={v => handleUpdate(p => ({...p, ingredientConstraints: p.ingredientConstraints.map((x, i) => i === idx ? {...x, min: v} : x)}))} placeholder="0" className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 text-[14px] text-green-400 focus:border-green-500 focus:ring-1 focus:ring-green-500/50 outline-none font-bold transition-all" /></div>
+                                                            <div className="flex-1"><label className="text-[9px] text-gray-400 uppercase font-bold text-center block mb-1">{t('common.max')} %</label><SmartInput value={ic.max} isMax={true} onChange={v => handleUpdate(p => ({...p, ingredientConstraints: p.ingredientConstraints.map((x, i) => i === idx ? {...x, max: v} : x)}))} placeholder={t('common.max')} className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 text-[14px] text-green-400 focus:border-green-500 focus:ring-1 focus:ring-green-500/50 outline-none font-bold transition-all" /></div>
                                                         </div>
                                                     </div>
                                                 );
@@ -408,8 +409,8 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
                                 {/* Right Column: Nutrients (40%) */}
                                 <div className="w-[40%] flex flex-col bg-gray-800/40 rounded-xl border border-gray-700/80 shadow-inner overflow-hidden">
                                     <div className="flex justify-between items-center p-3 bg-indigo-900/20 border-b border-gray-700/80 shrink-0">
-                                        <h3 className="font-black text-[14px] text-indigo-400 flex items-center gap-2 uppercase tracking-wide"><FlaskIcon className="w-4 h-4"/> Requerimientos</h3>
-                                        <div className="w-48"><SelectionModal title="Seleccionar Nutrientes" triggerLabel="+ Nutriente" options={nutrients.map(n => ({id: n.id, name: n.name, sub: n.unit, code: n.code}))} onAdd={addNutrients} /></div>
+                                        <h3 className="font-black text-[14px] text-indigo-400 flex items-center gap-2 uppercase tracking-wide"><FlaskIcon className="w-4 h-4"/> {t('nav.nutrients')}</h3>
+                                        <div className="w-48"><SelectionModal title={t('products.selectNutrients')} triggerLabel={"+ " + t('common.nutrient')} options={nutrients.map(n => ({id: n.id, name: n.name, sub: n.unit, code: n.code}))} onAdd={addNutrients} /></div>
                                     </div>
                                     <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
                                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
@@ -423,12 +424,12 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
                                                         </div>
                                                         <div className="flex gap-2">
                                                             <div className="flex-1 group/field">
-                                                                <label className="text-[9px] text-gray-400 uppercase font-bold block mb-1 text-center">Mín</label>
+                                                                <label className="text-[9px] text-gray-400 uppercase font-bold block mb-1 text-center">{t('common.min')}</label>
                                                                 <SmartInput value={c.min} onChange={v => handleUpdate(p => ({...p, constraints: p.constraints.map((x, i) => i === idx ? {...x, min: v} : x)}))} placeholder="0" className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 text-[14px] text-indigo-300 focus:border-indigo-500 border focus:ring-1 focus:ring-indigo-500/50 outline-none font-bold transition-all" />
                                                             </div>
                                                             <div className="flex-1 group/field">
-                                                                <label className="text-[9px] text-gray-400 uppercase font-bold block mb-1 text-center">Máx</label>
-                                                                <SmartInput value={c.max} isMax={true} onChange={v => handleUpdate(p => ({...p, constraints: p.constraints.map((x, i) => i === idx ? {...x, max: v} : x)}))} placeholder="Máx" className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 text-[14px] text-indigo-300 focus:border-indigo-500 border focus:ring-1 focus:ring-indigo-500/50 outline-none font-bold transition-all" />
+                                                                <label className="text-[9px] text-gray-400 uppercase font-bold block mb-1 text-center">{t('common.max')}</label>
+                                                                <SmartInput value={c.max} isMax={true} onChange={v => handleUpdate(p => ({...p, constraints: p.constraints.map((x, i) => i === idx ? {...x, max: v} : x)}))} placeholder={t('common.max')} className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 text-[14px] text-indigo-300 focus:border-indigo-500 border focus:ring-1 focus:ring-indigo-500/50 outline-none font-bold transition-all" />
                                                             </div>
                                                         </div>
                                                     </div>
@@ -440,7 +441,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
                             </div>
                         </div>
                     ) : (
-                        <div className="flex-1 flex items-center justify-center text-gray-500 italic">Seleccione o cree un producto para comenzar.</div>
+                        <div className="flex-1 flex items-center justify-center text-gray-500 italic">{t('products.selectOrCreateProduct')}</div>
                     )}
                 </div>
             </div>

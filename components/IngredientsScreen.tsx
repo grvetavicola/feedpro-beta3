@@ -161,13 +161,13 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredient
                             onClick={() => setViewMode('list')}
                             className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${viewMode === 'list' ? 'bg-cyan-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}
                         >
-                            Lista
+                            {t('common.list')}
                         </button>
                         <button 
                             onClick={() => setViewMode('matrix')}
                             className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${viewMode === 'matrix' ? 'bg-cyan-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}
                         >
-                            Matriz
+                            {t('common.matrix')}
                         </button>
                     </div>
 
@@ -176,7 +176,7 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredient
                         className="bg-gray-700 hover:bg-gray-600 border border-gray-600 text-white font-medium py-1 px-3 rounded flex items-center gap-2 transition-colors text-[13px]"
                     >
                         <UploadIcon className="w-3 h-3" /> 
-                        {isImporting ? "Analizando..." : t('ingredients.importButton')}
+                        {isImporting ? t('common.analyzing') : t('ingredients.importButton')}
                     </button>
                     <input type="file" ref={fileInputRef} className="hidden" accept=".xlsx,.xls,.csv,.pdf,image/*" onChange={handleFileSelect} disabled={isImporting} />
                     <button onClick={handleAddNew} className="bg-cyan-600 hover:bg-cyan-500 text-white font-semibold py-1 px-3 rounded flex items-center gap-2 text-[13px]">
@@ -330,7 +330,7 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredient
                             {importPreview.newNutrients && importPreview.newNutrients.length > 0 && (
                                 <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-4">
                                     <h4 className="text-yellow-400 font-bold mb-3 flex items-center gap-2">
-                                        <FlaskIcon className="w-5 h-5"/> New Nutrients Detected ({importPreview.newNutrients.length})
+                                        <FlaskIcon className="w-5 h-5"/> {t('ingredients.newNutrientsDetected')} ({importPreview.newNutrients.length})
                                     </h4>
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                         {importPreview.newNutrients.map((nut, idx) => (
@@ -343,17 +343,17 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredient
                                 </div>
                             )}
                             <div>
-                                <h4 className="text-gray-300 font-semibold mb-2">Ingredients Preview ({importPreview.ingredients.length})</h4>
+                                <h4 className="text-gray-300 font-semibold mb-2">{t('ingredients.ingredientsPreview')} ({importPreview.ingredients.length})</h4>
                                 <table className="w-full text-sm text-left text-gray-300">
                                     <thead className="text-xs text-gray-400 uppercase bg-gray-900 sticky top-0">
-                                        <tr><th className="px-4 py-3">Name</th><th className="px-4 py-3">Price</th><th className="px-4 py-3">Nutrients</th></tr>
+                                        <tr><th className="px-4 py-3">{t('common.name')}</th><th className="px-4 py-3">{t('common.price')}</th><th className="px-4 py-3">{t('nav.nutrients')}</th></tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-700">
                                         {importPreview.ingredients.map((imp, idx) => (
                                             <tr key={idx} className="hover:bg-gray-700/30">
                                                 <td className="px-4 py-3 font-medium text-white">{imp.name}</td>
                                                 <td className="px-4 py-3">{imp.price || 0}</td>
-                                                <td className="px-4 py-3 text-xs text-gray-400">{Object.keys(imp.nutrients).length} mapped</td>
+                                                <td className="px-4 py-3 text-xs text-gray-400">{Object.keys(imp.nutrients).length} {t('ingredients.mapped')}</td>
                                             </tr>
                                         ))}
                                     </tbody>
