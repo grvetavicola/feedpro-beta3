@@ -22,6 +22,7 @@ export interface Ingredient {
   name: string;
   category: string; 
   subcategory?: string;
+  family?: string;
   price: number; 
   stock: number;
   nutrients: Record<string, number>; 
