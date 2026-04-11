@@ -75,71 +75,7 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredient
 
     // --- IMPORT LOGIC (Same as before) ---
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        setIsImporting(true);
-        try {
-            let inputData: { type: 'text' | 'file', data: string, mimeType?: string } | null = null;
-            const fileName = file.name.toLowerCase();
-            if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.csv')) {
-               if (window.XLSX) {
-                   const data = await file.arrayBuffer();
-                   const workbook = window.XLSX.read(data);
-                   const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                   const csvText = window.XLSX.utils.sheet_to_csv(firstSheet);
-                   inputData = { type: 'text', data: csvText };
-               } else { alert("Excel lib error"); setIsImporting(false); return; }
-            } else if (file.type.startsWith('image/') || file.type === 'application/pdf') {
-                const base64 = await new Promise<string>((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve((reader.result as string).split(',')[1]);
-                    reader.readAsDataURL(file);
-                });
-                inputData = { type: 'file', data: base64, mimeType: file.type };
-            }
-            if (inputData) {
-                const parsed = await parseIngredientsWithGemini(inputData, nutrients);
-                if (parsed.ingredients && parsed.ingredients.length > 0) {
-                    setImportPreview(parsed);
-                } else { alert(t('ingredients.importEmptyError')); }
-            }
-        } catch (error) { console.error(error); alert(t('products.importError')); } finally { setIsImporting(false); if(fileInputRef.current) fileInputRef.current.value = ''; }
-    };
-
-    const confirmImport = () => {
-        if (!importPreview) return;
-        const { ingredients: parsedIngredients, newNutrients } = importPreview;
-        const tempIdToRealIdMap: {[key: string]: string} = {};
-        if (newNutrients.length > 0 && setNutrients) {
-            const addedNutrients: Nutrient[] = [];
-            let nextNutCode = nutrients.length > 0 ? Math.max(...nutrients.map(n => n.code || 0)) + 1 : 1;
-            newNutrients.forEach(n => {
-                const realId = `n${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-                tempIdToRealIdMap[n.tempId] = realId;
-                addedNutrients.push({ id: realId, code: nextNutCode++, name: n.name, unit: n.unit, group: 'Imported' });
-            });
-            setNutrients(prev => [...prev, ...addedNutrients]);
-        }
-        let nextIngCode = getNextCode();
-        const newIngredients = parsedIngredients.map(imp => {
-            const remappedComposition: {[key: string]: number} = {};
-            Object.entries(imp.nutrients).forEach(([key, value]) => {
-                const finalKey = tempIdToRealIdMap[key] || key;
-                remappedComposition[finalKey] = value as number;
-            });
-            return {
-                id: `i${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                code: nextIngCode++,
-                name: imp.name,
-                category: 'Macro',
-                price: imp.price || 0,
-                stock: 0,
-                nutrients: remappedComposition
-            } as Ingredient;
-        });
-        setIngredients(prev => [...prev, ...newIngredients]);
-        setImportPreview(null);
-    };
+    // The import logic has been moved to SettingsScreen as native DB Matrix Import
 
     // Sort for display
     const sortedIngredients = [...ingredients].sort((a,b) => (a.code || 0) - (b.code || 0));
