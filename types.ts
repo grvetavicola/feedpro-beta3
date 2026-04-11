@@ -25,6 +25,9 @@ export interface Ingredient {
   family?: string;
   price: number; 
   stock: number;
+  dryMatter?: number;      // % Dry Matter
+  shrinkage?: number;      // % Processing Loss (Merma)
+  processingCost?: number; // $/kg Processing cost
   nutrients: Record<string, number>; 
   dynamicNutrients?: Record<string, number>; // Dynamic precision matrix overrides
 }
