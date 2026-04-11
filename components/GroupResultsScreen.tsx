@@ -394,7 +394,7 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
                     }}
                     className="bg-cyan-600 hover:bg-cyan-500 text-white font-black px-8 py-3 rounded-xl uppercase tracking-widest text-[13px] shadow-[0_0_15px_rgba(8,145,178,0.4)] hover:shadow-cyan-500/50 transition-all flex items-center gap-2"
                 >
-                    <DatabaseIcon className="w-5 h-5" /> Guardar Todo
+                    <DatabaseIcon className="w-5 h-5" /> Aprobar y Guardar como Definitivo
                 </button>
             </div>
             
