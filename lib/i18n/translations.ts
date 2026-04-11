@@ -288,6 +288,11 @@ export const translations = {
         sendButton: "Send",
         upgradeTitle: "Locked",
         upgradeMessage: "Pro required."
+    },
+    clients: {
+        title: "Client Portfolio",
+        subtitle: "Manage your clients and assign custom formulas.",
+        namePlaceholder: "New client name...",
     }
   },
   pt: {
