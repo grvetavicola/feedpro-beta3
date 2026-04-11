@@ -29,7 +29,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
   const stats = [
     { label: 'Insumos Disponibles', value: ingredients.length, icon: DatabaseIcon, color: 'text-green-400', bg: 'bg-green-900/20' },
     { label: 'Dietas Definidas', value: products.length, icon: FlaskIcon, color: 'text-indigo-400', bg: 'bg-indigo-900/20' },
-    { label: 'Formulaciones Realizadas', value: savedFormulas.length, icon: CalculatorIcon, color: 'text-cyan-400', bg: 'bg-cyan-900/20' },
+    { label: 'Optimizaciones Realizadas', value: savedFormulas.length, icon: CalculatorIcon, color: 'text-cyan-400', bg: 'bg-cyan-900/20' },
     { label: 'Última Optimización', value: lastOp, icon: TrendingUpIcon, color: 'text-yellow-400', bg: 'bg-yellow-900/20' },
   ];
 
@@ -65,10 +65,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
           </div>
           <div className="flex gap-2 shrink-0">
              <button onClick={() => onNavigate('OPTIMIZATION')} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-4 py-1.5 rounded flex items-center gap-2 transition-all text-[13px]">
-                <CalculatorIcon className="w-3 h-3"/> OPTIMIZACIÓN
+                <img src="/icons/formulation.png" className="w-4 h-4 object-contain brightness-0 invert opacity-90" alt="Icono" /> OPTIMIZACIÓN
              </button>
              <button onClick={() => onNavigate('GROUP_OPTIMIZATION')} className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-1.5 rounded flex items-center gap-2 transition-all text-[13px] shadow-[0_0_15px_rgba(16,185,129,0.3)] border border-emerald-500/50">
-                <DatabaseIcon className="w-3 h-3"/> OPTIMIZACIÓN GRUPAL
+                <img src="/icons/simulation.png" className="w-4 h-4 object-contain brightness-0 invert opacity-90" alt="Icono" /> OPTIMIZACIÓN GRUPAL
              </button>
              <button onClick={() => onNavigate('PRODUCTS')} className="bg-gray-800 hover:bg-gray-700 text-white font-semibold px-4 py-1.5 rounded border border-gray-700 transition-all text-[13px] hidden sm:block">
                 Configurar
@@ -103,7 +103,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
           {stats.map((stat, i) => {
              const isClickableInsumos = stat.label === 'Insumos Disponibles';
              const isClickableDietas = stat.label === 'Dietas Definidas';
-             const isClickableHistory = stat.label === 'Formulaciones Realizadas';
+             const isClickableHistory = stat.label === 'Optimizaciones Realizadas';
              const isClickable = isClickableInsumos || isClickableDietas || isClickableHistory;
 
              const handleClick = () => {
@@ -151,7 +151,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
                         <table className="w-full text-left">
                             <thead className="bg-gray-950/20 text-[10px] uppercase font-semibold text-gray-500">
                                 <tr>
-                                    <th className="px-4 py-2 font-black text-white">Fórmula / Producto</th>
+                                    <th className="px-4 py-2 font-black text-white">DIETA</th>
                                     <th className="px-4 py-2 font-black text-white">Fecha</th>
                                     <th className="px-4 py-2 font-black text-white text-right">Costo / kg</th>
                                 </tr>
