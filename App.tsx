@@ -296,7 +296,7 @@ export default function App() {
                                     }
                                     return <ClientsScreen clients={clients} setClients={setClients} selectedClientId={selectedClientId} setSelectedClientId={setSelectedClientId} />;
                                 case 'ASSISTANT': return <AIAssistant user={user} ingredients={ingredients} nutrients={nutrients} products={products} />;
-                                case 'SETTINGS': return <SettingsScreen clients={clients} setClients={setClients} />;
+                                case 'SETTINGS': return <SettingsScreen clients={clients} setClients={setClients} onNavigate={setView} />;
                                 default: return <Dashboard products={products} ingredients={effectiveIngredients} savedFormulas={savedFormulas} clients={clients} onNavigate={setView} isDynamicMatrix={isDynamicMatrix} setIsDynamicMatrix={setIsDynamicMatrix} user={user} />;
                             }
                         })()
