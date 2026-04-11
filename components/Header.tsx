@@ -35,40 +35,41 @@ export const Header: React.FC<HeaderProps> = ({
     const { t } = useTranslations();
 
     return (
-        <header className="shrink-0 h-14 border-b border-gray-100 z-50 flex items-center px-4 gap-4 relative overflow-hidden">
-            {/* Banner Unificado con Difuminado de Unión (Blending) */}
+        <header className="shrink-0 h-14 border-b border-black/10 z-50 flex items-center px-4 gap-4 relative overflow-hidden bg-white">
+            {/* Banner Unificado con Difuminado de Unión (Blending) y Cobertura Total */}
             <div className="absolute inset-0 pointer-events-none select-none">
                 {/* Capa Base C (Fondo de conexión) */}
                 <div 
                     className="absolute inset-0"
                     style={{
                         backgroundImage: 'url("/banner C.jpg")',
-                        backgroundSize: '100% 100%',
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
                         backgroundRepeat: 'no-repeat'
                     }}
                 />
                 {/* Logo A (Izquierda) con Difuminado a la Derecha */}
                 <div 
-                    className="absolute left-0 top-0 h-full w-1/3"
+                    className="absolute left-0 top-0 h-full w-[40%]"
                     style={{
                         backgroundImage: 'url("/banner A.jpg")',
-                        backgroundSize: 'contain',
+                        backgroundSize: 'cover',
                         backgroundPosition: 'left center',
                         backgroundRepeat: 'no-repeat',
-                        WebkitMaskImage: 'linear-gradient(to right, black 70%, transparent 100%)',
-                        maskImage: 'linear-gradient(to right, black 70%, transparent 100%)'
+                        WebkitMaskImage: 'linear-gradient(to right, black 80%, transparent 100%)',
+                        maskImage: 'linear-gradient(to right, black 80%, transparent 100%)'
                     }}
                 />
                 {/* Logo B (Derecha) con Difuminado a la Izquierda */}
                 <div 
-                    className="absolute right-0 top-0 h-full w-1/3"
+                    className="absolute right-0 top-0 h-full w-[40%]"
                     style={{
                         backgroundImage: 'url("/banner B.jpg")',
-                        backgroundSize: 'contain',
+                        backgroundSize: 'cover',
                         backgroundPosition: 'right center',
                         backgroundRepeat: 'no-repeat',
-                        WebkitMaskImage: 'linear-gradient(to left, black 70%, transparent 100%)',
-                        maskImage: 'linear-gradient(to left, black 70%, transparent 100%)'
+                        WebkitMaskImage: 'linear-gradient(to left, black 80%, transparent 100%)',
+                        maskImage: 'linear-gradient(to left, black 80%, transparent 100%)'
                     }}
                 />
             </div>
