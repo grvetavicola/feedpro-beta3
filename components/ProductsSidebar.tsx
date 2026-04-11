@@ -125,13 +125,13 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
             </label>
             <div className="space-y-0.5">
               {[
-                { id: 'DASHBOARD', label: 'Inicio', icon: LayoutGrid, color: 'text-blue-400', bg: 'hover:bg-blue-500/10' },
-                { id: 'INGREDIENTS', label: 'Insumos', icon: Beaker, color: 'text-emerald-400', bg: 'hover:bg-emerald-500/10' },
-                { id: 'NUTRIENTS', label: 'Nutrientes', icon: FlaskConical, color: 'text-purple-400', bg: 'hover:bg-purple-500/10' },
-                { id: 'PRODUCTS', label: 'Productos', icon: Package, color: 'text-indigo-400', bg: 'hover:bg-indigo-500/10' },
-                { id: 'OPTIMIZATION', label: 'Optimización', icon: Calculator, color: 'text-cyan-400', bg: 'hover:bg-cyan-500/10' },
-                { id: 'SIMULATION', label: 'Simular', icon: PlayCircle, color: 'text-amber-400', bg: 'hover:bg-amber-500/10' },
-                { id: 'SETTINGS', label: 'Ajustes', icon: Settings, color: 'text-gray-400', bg: 'hover:bg-gray-500/10' },
+                { id: 'DASHBOARD', label: 'Inicio', img: '/inicio.png', color: 'border-blue-400', bg: 'hover:bg-blue-500/10' },
+                { id: 'INGREDIENTS', label: 'Insumos', img: '/ingredients.png', color: 'border-emerald-400', bg: 'hover:bg-emerald-500/10' },
+                { id: 'NUTRIENTS', label: 'Nutrientes', img: '/nutrients.png', color: 'border-purple-400', bg: 'hover:bg-purple-500/10' },
+                { id: 'PRODUCTS', label: 'Productos', img: '/products.png', color: 'border-indigo-400', bg: 'hover:bg-indigo-500/10' },
+                { id: 'OPTIMIZATION', label: 'Optimización', img: '/formulation.png', color: 'border-cyan-400', bg: 'hover:bg-cyan-500/10' },
+                { id: 'SIMULATION', label: 'Simular', img: '/simulation.png', color: 'border-amber-400', bg: 'hover:bg-amber-500/10' },
+                { id: 'SETTINGS', label: 'Ajustes', img: '/settings.png', color: 'border-gray-400', bg: 'hover:bg-gray-500/10' },
               ].map(item => {
                 const isActive = activeView === item.id;
                 return (
@@ -143,7 +143,11 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                         : `border border-transparent ${item.bg}`
                       }`}
                   >
-                    <item.icon className={`w-5 h-5 transition-transform group-hover:scale-105 ${isActive ? item.color : 'text-gray-400 group-hover:' + item.color}`} />
+                    <img 
+                      src={item.img} 
+                      alt={item.label}
+                      className={`w-5 h-5 transition-transform group-hover:scale-105 object-contain ${isActive ? 'opacity-100' : 'opacity-60 group-hover:opacity-100 filter grayscale group-hover:grayscale-0'}`} 
+                    />
                     <span className={`text-[11px] font-black uppercase tracking-[0.2em] transition-colors ${isActive ? 'text-white' : 'text-white/70 group-hover:text-white'}`}>
                       {item.label}
                     </span>
