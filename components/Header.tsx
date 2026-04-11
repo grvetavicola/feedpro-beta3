@@ -35,28 +35,17 @@ export const Header: React.FC<HeaderProps> = ({
     const { t } = useTranslations();
 
     return (
-        <header className="shrink-0 h-14 border-b border-gray-100 z-50 flex items-center px-4 gap-4 relative overflow-hidden bg-white">
-            {/* Doble Banner Simétrico: A (Izquierda) y B (Derecha) */}
-            <div className="absolute inset-0 flex pointer-events-none select-none">
-                <div 
-                    className="w-1/2 h-full"
-                    style={{
-                        backgroundImage: 'url("/banner A.jpg")',
-                        backgroundSize: 'contain',
-                        backgroundPosition: 'left center',
-                        backgroundRepeat: 'no-repeat'
-                    }}
-                />
-                <div 
-                    className="w-1/2 h-full"
-                    style={{
-                        backgroundImage: 'url("/banner B.jpg")',
-                        backgroundSize: 'contain',
-                        backgroundPosition: 'right center',
-                        backgroundRepeat: 'no-repeat'
-                    }}
-                />
-            </div>
+        <header className="shrink-0 h-14 border-b border-gray-100 z-50 flex items-center px-4 gap-4 relative overflow-hidden">
+            {/* Banner Unificado: Base C con Extremos A y B */}
+            <div 
+                className="absolute inset-0 pointer-events-none select-none"
+                style={{
+                    backgroundImage: 'url("/banner A.jpg"), url("/banner B.jpg"), url("/banner C.jpg")',
+                    backgroundPosition: 'left center, right center, center center',
+                    backgroundSize: 'contain, contain, 100% 100%',
+                    backgroundRepeat: 'no-repeat, no-repeat, no-repeat',
+                }}
+            />
             
             <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth flex-1 relative z-10 w-full">
                 {/* Active Tasks Section */}
