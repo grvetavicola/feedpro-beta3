@@ -239,7 +239,7 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
       {/* Copyright Footer */}
       <div className="p-3 border-t border-gray-800 shrink-0 text-center">
         <p className="text-[9px] text-gray-600 uppercase tracking-widest font-black leading-tight">
-          &copy; 2026 {APP_NAME}.<br />{t('common.confirm')} feedpro 360.
+          &copy; 2026 {APP_NAME}.<br />{t('common.rights')}
         </p>
       </div>
     </aside>

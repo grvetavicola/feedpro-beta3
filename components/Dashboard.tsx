@@ -105,9 +105,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
       {/* Stats Matrix (Compact) */}
       <div className="grid grid-cols-4 gap-3">
           {stats.map((stat, i) => {
-             const isClickableInsumos = stat.label === 'Insumos Disponibles';
-             const isClickableDietas = stat.label === 'Dietas Definidas';
-             const isClickableHistory = stat.label === 'Optimizaciones Realizadas';
+             const isClickableInsumos = stat.label === t('dashboard.availableIngredients');
+             const isClickableDietas = stat.label === t('dashboard.definedProducts');
+             const isClickableHistory = stat.label === t('dashboard.madeOptimizations');
              const isClickable = isClickableInsumos || isClickableDietas || isClickableHistory;
 
              const handleClick = () => {
@@ -176,9 +176,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ products, ingredients, sav
                         <table className="w-full text-left">
                             <thead className="bg-gray-950/20 text-[10px] uppercase font-semibold text-gray-500">
                                 <tr>
-                                    <th className="px-4 py-2 font-black text-white">DIETA</th>
-                                    <th className="px-4 py-2 font-black text-white">Fecha</th>
-                                    <th className="px-4 py-2 font-black text-white text-right">Costo / kg</th>
+                                    <th className="px-4 py-2 font-black text-white">{t('common.diet').toUpperCase()}</th>
+                                    <th className="px-4 py-2 font-black text-white">{t('common.date')}</th>
+                                    <th className="px-4 py-2 font-black text-white text-right">{t('common.price')} / kg</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-700/20">

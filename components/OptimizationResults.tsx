@@ -59,11 +59,11 @@ export const OptimizationResults: React.FC<OptimizationResultsProps> = ({ result
         setAiAnalysis(analysis);
     } catch (e) {
         console.error(e);
-        setAiAnalysis("Error analizando con IA.");
+        setAiAnalysis(t('common.analyzing') + " error.");
     } finally {
         setIsLoading(false);
     }
-  }, [result, product, user, onUpgradeRequest, language]);
+  }, [result, product, user, onUpgradeRequest, language, t]);
 
   const handleExportPDF = () => {
     const input = document.getElementById('pdf-content');
@@ -82,12 +82,12 @@ export const OptimizationResults: React.FC<OptimizationResultsProps> = ({ result
 
   const handleExportCSV = () => {
     let csvContent = "\uFEFF"; 
-    csvContent += "FEEDPRO - REPORTE DE FABRICACION\n";
-    csvContent += `Producto:,${product.name}\n`;
-    csvContent += `Fecha:,${new Date().toLocaleDateString()}\n`;
-    csvContent += `Costo Total:,${result.totalCost.toFixed(2)} USD\n\n`;
+    csvContent += `FEEDPRO - ${t('nav.dashboard').toUpperCase()}\n`;
+    csvContent += `${t('common.diet')}:,${product.name}\n`;
+    csvContent += `${t('common.date')}:,${new Date().toLocaleDateString()}\n`;
+    csvContent += `${t('common.price')} Total:,${result.totalCost.toFixed(2)} USD\n\n`;
 
-    csvContent += "INGREDIENTE,% (PORCENTAJE),PESO (KG),COSTO (USD)\n";
+    csvContent += `${t('common.name').toUpperCase()},% (PORCENTAJE),PESO (KG),COSTO (USD)\n`;
     result.items.forEach(item => {
         const ing = ingredients.find(i => i.id === item.ingredientId);
         csvContent += `"${ing?.name || 'N/A'}",${item.percentage.toFixed(3)},${item.weight.toFixed(2)},${item.cost.toFixed(2)}\n`;
@@ -95,8 +95,8 @@ export const OptimizationResults: React.FC<OptimizationResultsProps> = ({ result
     
     csvContent += `\nTOTAL,,100.000,${result.totalCost.toFixed(2)}\n\n`;
 
-    csvContent += "ANALISIS GARANTIZADO\n";
-    csvContent += "NUTRIENTE,VALOR,UNIDAD,ESTADO\n";
+    csvContent += `${t('results.finalComposition')}\n`;
+    csvContent += `${t('common.name').toUpperCase()},VALOR,UNIDAD,ESTADO\n`;
     result.nutrientAnalysis.forEach(na => {
         const nut = nutrients.find(n => n.id === na.nutrientId);
         csvContent += `"${nut?.name}",${na.value.toFixed(3)},${nut?.unit || ''},${na.met ? 'CUMPLE' : 'FUERA DE RANGO'}\n`;
@@ -118,7 +118,7 @@ export const OptimizationResults: React.FC<OptimizationResultsProps> = ({ result
         <div className="p-5 border-b border-gray-700 flex justify-between items-center bg-gray-900/40">
           <div className="flex items-center gap-3">
              <div className="bg-cyan-900/50 p-2 rounded-lg"><AIIcon className="text-cyan-400 w-6 h-6"/></div>
-             <h2 className="text-xl font-bold text-white">{t('results.title')}: <span className="text-cyan-400">{product.name}</span></h2>
+             <h2 className="text-xl font-bold text-white">{t('optimization.consoleTitle')}: <span className="text-cyan-400">{product.name}</span></h2>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-gray-700 rounded-full transition-colors text-gray-400 hover:text-white">
             <XCircleIcon className="w-8 h-8" />
@@ -129,14 +129,14 @@ export const OptimizationResults: React.FC<OptimizationResultsProps> = ({ result
           <div className="lg:col-span-5 space-y-3">
             <div className="bg-gradient-to-br from-gray-800 to-gray-950 p-3 rounded border border-gray-700 shadow-sm relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-8 bg-cyan-500/5 rounded-full -mr-10 -mt-10 blur-2xl group-hover:bg-cyan-500/10 transition-colors"></div>
-                <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Costo Total del Lote</p>
+                <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">{t('common.price')} Total {t('optimization.batchSize')}</p>
                 <div className="flex items-baseline gap-2">
                     <h3 className="font-black text-4xl text-white drop-shadow-sm">{formattedTotalCost}</h3>
                     <span className="text-gray-500 text-sm font-mono tracking-tighter">USD</span>
                 </div>
                 {result.previousCost && (
                     <div className="mt-2 pt-2 border-t border-gray-700/50 flex justify-between items-center">
-                        <span className="text-[10px] text-gray-500 uppercase tracking-widest">Prueba Previa:</span>
+                        <span className="text-[10px] text-gray-500 uppercase tracking-widest">{t('dashboard.lastOptimization')}:</span>
                         <span className={`text-xs font-mono font-bold ${result.totalCost < result.previousCost ? 'text-green-400' : result.totalCost > result.previousCost ? 'text-red-400' : 'text-gray-400'}`}>
                             {result.totalCost < result.previousCost ? '▼' : result.totalCost > result.previousCost ? '▲' : ''} ${result.previousCost.toFixed(2)}
                         </span>
@@ -146,17 +146,17 @@ export const OptimizationResults: React.FC<OptimizationResultsProps> = ({ result
 
             <div className="bg-gray-800/40 rounded-xl border border-gray-700 flex flex-col overflow-hidden">
                 <div className="p-3 bg-gray-800 border-b border-gray-700 flex justify-between items-center">
-                    <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">{t('results.formula')}</h3>
+                    <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">{t('optimization.suppliesAvailability')}</h3>
                     <span className="text-[10px] bg-cyan-900 text-cyan-300 px-2 py-0.5 rounded-full font-bold">{result.items.length} Componentes</span>
                 </div>
                 <div className="p-0 overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead className="bg-gray-950/50 text-gray-500 text-[10px] uppercase">
                             <tr>
-                                <th className="text-left py-2 px-4">Ingrediente</th>
+                                <th className="text-left py-2 px-4">{t('common.name')}</th>
                                 <th className="text-right py-2 px-4">%</th>
                                 <th className="text-right py-2 px-4">kg</th>
-                                <th className="text-right py-2 px-4" title="Ahorro de Oportunidad">Shadow</th>
+                                <th className="text-right py-2 px-4" title="Shadow Price">Shadow</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-700/30">
@@ -185,10 +185,10 @@ export const OptimizationResults: React.FC<OptimizationResultsProps> = ({ result
                 <div className="p-4 space-y-4 overflow-y-auto custom-scrollbar flex-1 max-h-[500px]">
                     <div className="space-y-1">
                         <div className="flex justify-between items-center mb-2">
-                             <p className="text-[10px] text-gray-500 uppercase font-bold">Nutrientes</p>
+                             <p className="text-[10px] text-gray-500 uppercase font-bold">{t('nav.nutrients')}</p>
                              {hasEdits && onReoptimize && (
                                  <button onClick={handleReoptimizeClick} className="bg-cyan-600 hover:bg-cyan-500 text-white text-[10px] font-bold py-1 px-3 rounded shadow animate-pulse">
-                                     Re-Optimizar
+                                     {t('nav.formulation')}
                                  </button>
                              )}
                         </div>
@@ -204,12 +204,12 @@ export const OptimizationResults: React.FC<OptimizationResultsProps> = ({ result
                                         <div className="flex flex-col">
                                             <span className="text-gray-300 font-bold text-xs">{nut?.name}</span>
                                             {c.shadowPrice !== undefined && c.shadowPrice !== 0 && (
-                                                <span className="text-[9px] text-orange-400 font-bold">Precio Sombra: ${c.shadowPrice.toFixed(4)}</span>
+                                                <span className="text-[9px] text-orange-400 font-bold">Shadow: ${c.shadowPrice.toFixed(4)}</span>
                                             )}
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <div className="flex items-center gap-1 bg-gray-900 rounded p-0.5 border border-gray-700 focus-within:border-cyan-500">
-                                                <span className="text-[9px] text-gray-500 pl-1 uppercase font-bold">Mín</span>
+                                                <span className="text-[9px] text-gray-500 pl-1 uppercase font-bold">{t('common.min')}</span>
                                                 <input type="number" 
                                                     value={minVal || ''} 
                                                     onChange={e => handleConstraintChange(c.nutrientId, 'min', e.target.value)}
@@ -217,7 +217,7 @@ export const OptimizationResults: React.FC<OptimizationResultsProps> = ({ result
                                                 />
                                             </div>
                                             <div className="flex items-center gap-1 bg-gray-900 rounded p-0.5 border border-gray-700 focus-within:border-cyan-500">
-                                                <span className="text-[9px] text-gray-500 pl-1 uppercase font-bold">Máx</span>
+                                                <span className="text-[9px] text-gray-500 pl-1 uppercase font-bold">{t('common.max')}</span>
                                                 <input type="number" 
                                                     value={maxVal < 999 ? maxVal : ''} 
                                                     onChange={e => handleConstraintChange(c.nutrientId, 'max', e.target.value)}
@@ -232,13 +232,13 @@ export const OptimizationResults: React.FC<OptimizationResultsProps> = ({ result
                                          <div className={`h-full ${c.met ? 'bg-green-500' : 'bg-red-500'}`} style={{width: `${Math.min(100, (c.value / (maxVal < 999 ? maxVal : Math.max(minVal * 2, c.value * 2, 100))) * 100)}%`}}></div>
                                     </div>
                                 </div>
-                            );
+                             );
                         })}
                     </div>
 
                     {result.relationshipAnalysis.length > 0 && (
                         <div className="space-y-1 pt-4 border-t border-gray-700">
-                            <p className="text-[10px] text-yellow-500 uppercase font-bold mb-2 flex items-center gap-1.5"><RatiosIcon className="w-3 h-3" /> Ratios & Bio-Relaciones</p>
+                            <p className="text-[10px] text-yellow-500 uppercase font-bold mb-2 flex items-center gap-1.5"><RatiosIcon className="w-3 h-3" /> {t('products.ratiosTitle')}</p>
                             {result.relationshipAnalysis.map(r => (
                                 <div key={r.relationId} className="flex justify-between items-center p-2 rounded bg-yellow-900/5 hover:bg-yellow-900/10 transition-colors border-l-2 border-yellow-600/30">
                                     <div className="flex flex-col">
@@ -257,25 +257,31 @@ export const OptimizationResults: React.FC<OptimizationResultsProps> = ({ result
           <div className="lg:col-span-3 space-y-3">
             <div className="bg-gray-800/40 rounded border border-gray-700 flex flex-col h-full">
                 <div className="p-2 bg-gray-800 border-b border-gray-700 shrink-0">
-                    <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">Resumen Analítico</h3>
+                    <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">{t('common.analyzing')}</h3>
                 </div>
                 <div className="p-3 overflow-y-auto custom-scrollbar flex-1 flex flex-col items-center justify-center text-center space-y-4">
                     <div className="bg-indigo-900/20 p-4 rounded-full"><AIIcon className="w-6 h-6 text-indigo-500/50"/></div>
-                    <p className="text-xs text-gray-400">Visualización avanzada AI próximamente.</p>
-                    {handleAnalyze && (
-                        <div className="pt-2 w-full border-t border-gray-700/50">
-                            <button onClick={handleAnalyze} className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-1.5 px-4 rounded shadow transition-all transform hover:scale-105">Iniciar Análisis IA</button>
-                        </div>
+                    {aiAnalysis ? (
+                        <div className="text-xs text-gray-300 text-left whitespace-pre-wrap">{aiAnalysis}</div>
+                    ) : (
+                        <>
+                            <p className="text-xs text-gray-400">{t('assistant.welcomeMessage')}</p>
+                            <div className="pt-2 w-full border-t border-gray-700/50">
+                                <button onClick={handleAnalyze} disabled={isLoading} className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-1.5 px-4 rounded shadow transition-all transform hover:scale-105 disabled:opacity-50">
+                                    {isLoading ? <LoadingSpinner /> : t('assistant.sendButton')}
+                                </button>
+                            </div>
+                        </>
                     )}
                 </div>
             </div>
 
             <div className="bg-gray-800/20 rounded border border-gray-700/50 p-2 shrink-0">
-                <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Acciones</h3>
+                <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">{t('common.actions')}</h3>
                 <div className="flex flex-col gap-2">
                 <button onClick={handleExportPDF} className="bg-gray-700 hover:bg-gray-600 text-white text-[13px] font-bold py-1.5 px-4 rounded border border-gray-600 flex items-center gap-2 transition-all"><PrintIcon className="w-4 h-4"/> PDF</button>
                 <button onClick={handleExportCSV} className="bg-gray-700 hover:bg-gray-600 text-white text-[13px] font-bold py-1.5 px-4 rounded border border-gray-600 flex items-center gap-2 transition-all"><DownloadIcon className="w-4 h-4"/> EXCEL (CSV)</button>
-                <button onClick={onProduce} className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white text-[13px] font-bold py-1.5 px-4 rounded flex items-center justify-center gap-1 shadow-sm transition-all transform hover:scale-[1.02]"><TruckIcon className="w-4 h-4"/> PRODUCCIÓN</button>
+                <button onClick={onProduce} className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white text-[13px] font-bold py-1.5 px-4 rounded flex items-center justify-center gap-1 shadow-sm transition-all transform hover:scale-[1.02] uppercase tracking-widest">{t('common.confirm')}</button>
                 </div>
             </div>
           </div>

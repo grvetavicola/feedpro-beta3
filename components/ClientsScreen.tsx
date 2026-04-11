@@ -30,22 +30,22 @@ export const ClientsScreen: React.FC<ClientsScreenProps> = ({ clients, setClient
           <div className="flex items-center gap-4">
               <BriefcaseIcon className="text-cyan-400 w-10 h-10" />
               <div>
-                  <h2 className="text-2xl font-bold text-white">Cartera de Clientes</h2>
-                  <p className="text-sm text-gray-500">Gestione sus clientes y asigne fórmulas personalizadas.</p>
+                  <h2 className="text-2xl font-bold text-white">{t('clients.title')}</h2>
+                  <p className="text-sm text-gray-500">{t('clients.subtitle')}</p>
               </div>
           </div>
           <div className="flex gap-2">
               <input 
                 value={newClientName} 
                 onChange={e => setNewClientName(e.target.value)} 
-                placeholder="Nombre del nuevo cliente..." 
+                placeholder={t('clients.namePlaceholder')} 
                 className="bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:border-cyan-500 outline-none w-72"
               />
               <button 
                 onClick={handleAddClient}
                 className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-6 py-3 rounded-xl flex items-center gap-2 transition-all"
               >
-                  <PlusIcon className="w-5 h-5"/> Añadir
+                  <PlusIcon className="w-5 h-5"/> {t('common.add')}
               </button>
           </div>
       </div>
@@ -58,11 +58,11 @@ export const ClientsScreen: React.FC<ClientsScreenProps> = ({ clients, setClient
                     type="text" 
                     value={searchTerm} 
                     onChange={e => setSearchTerm(e.target.value)}
-                    placeholder="Buscar cliente..." 
+                    placeholder={t('common.search') + "..."} 
                     className="w-full bg-gray-900 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-sm text-gray-300 focus:border-cyan-500 outline-none"
                    />
                </div>
-               <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">{filteredClients.length} Registros</p>
+               <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">{filteredClients.length} {t('common.list')}</p>
           </div>
           <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -112,7 +112,7 @@ export const ClientsScreen: React.FC<ClientsScreenProps> = ({ clients, setClient
                               <TrashIcon className="w-5 h-5"/>
                           </button>
                           {selectedClientId === client.id && (
-                              <div className="absolute -top-2 -right-2 bg-cyan-500 text-[10px] font-black text-white px-2 py-0.5 rounded-full shadow-lg">ACTIVO</div>
+                              <div className="absolute -top-2 -right-2 bg-cyan-500 text-[10px] font-black text-white px-2 py-0.5 rounded-full shadow-lg">{t('common.confirm').toUpperCase()}</div>
                           )}
                       </div>
                   ))}

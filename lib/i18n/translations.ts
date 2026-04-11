@@ -25,6 +25,9 @@ export const translations = {
       saveChanges: "Guardar Cambios",
       loading: "Cargando...",
       confirm: "Confirmar",
+      diet: "Dieta",
+      date: "Fecha",
+      rights: "Todos los derechos reservados",
     },
     saveStatus: {
       saving: "Guardando...",
@@ -32,12 +35,12 @@ export const translations = {
     },
     nav: {
       dashboard: "Panel de Control",
-      formulation: "Productos Activos",
-      ingredients: "Ingredientes (Matriz)",
-      products: "Definición Productos",
+      formulation: "Optimización",
+      ingredients: "Insumos (Matriz)",
+      products: "Definición de Dietas",
       nutrients: "Nutrientes (Matriz)",
       assistant: "Asistente IA",
-      simulation: "Simulación de Productos",
+      simulation: "Simulación de Dietas",
       settings: "Ajustes",
       exit: "Salir",
     },
@@ -101,11 +104,11 @@ export const translations = {
       noNutrients: "No hay perfiles nutricionales definidos.",
     },
     products: {
-      title: "Catastro de Productos",
-      addNew: "Definir Producto",
-      namePlaceholder: "Descripción del Producto",
+      title: "Catastro de Dietas",
+      addNew: "Definir Dieta",
+      namePlaceholder: "Descripción de la Dieta",
       createButton: "Ingresar",
-      listTitle: "Productos Definidos",
+      listTitle: "Dietas Definidas",
       constraintsFor: "Restricciones de",
       ingredientConstraintNote: "",
       deleteConfirm: "¿Eliminar definición de {{name}}?",
@@ -115,7 +118,7 @@ export const translations = {
       importButton: "Importar Req.",
       importError: "Error de archivo.",
       importReviewTitle: "Revisar Requerimientos",
-      importProductName: "Producto Detectado",
+      importProductName: "Dieta Detectada",
       saveImportButton: "Guardar Definición",
     },
     upgrade: {
@@ -137,6 +140,11 @@ export const translations = {
         sendButton: "Enviar",
         upgradeTitle: "Asistente Bloqueado",
         upgradeMessage: "Requiere licencia Pro."
+    },
+    clients: {
+        title: "Cartera de Clientes",
+        subtitle: "Gestione sus clientes y asigne fórmulas personalizadas.",
+        namePlaceholder: "Nombre del nuevo cliente...",
     }
   },
   en: {
@@ -165,6 +173,9 @@ export const translations = {
       saveChanges: "Save Changes",
       loading: "Loading...",
       confirm: "Confirm",
+      diet: "Diet",
+      date: "Date",
+      rights: "All rights reserved",
     },
     saveStatus: {
       saving: "Saving...",
