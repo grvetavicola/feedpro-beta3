@@ -73,10 +73,7 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredient
         }
     };
 
-    // --- IMPORT LOGIC (Same as before) ---
-    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    // The import logic has been moved to SettingsScreen as native DB Matrix Import
-
+    // --- IMPORT LOGIC MOVED TO SETTINGS ROOM ---
     // Sort for display
     const sortedIngredients = [...ingredients].sort((a,b) => (a.code || 0) - (b.code || 0));
     const sortedNutrients = [...nutrients].sort((a,b) => (a.code || 0) - (b.code || 0));
