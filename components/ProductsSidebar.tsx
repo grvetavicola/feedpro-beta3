@@ -59,8 +59,8 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
   return (
     <aside className="w-[240px] bg-gray-950 border-r border-gray-800 flex flex-col h-full overflow-hidden">
       {/* Zona de Identidad Premium: Logo + Perfil */}
-      <div className="p-4 border-b border-gray-800 bg-gray-950 flex flex-col items-center shrink-0">
-        <div className="w-full flex justify-center mb-4 mt-2">
+      <div className="p-2 border-b border-gray-800 bg-gray-950 flex flex-col items-center shrink-0">
+        <div className="w-full flex justify-center mb-2 mt-1">
             <button 
                 onClick={onManageProfile}
                 className="group outline-none w-full flex justify-center items-center"
@@ -69,7 +69,7 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                 <img
                     src="/FeedPro-sinfondo.PNG"
                     alt="FeedPro 360"
-                    className="w-full max-h-12 object-contain drop-shadow-md group-hover:drop-shadow-[0_0_8px_rgba(6,182,212,0.5)] group-hover:scale-[1.02] transition-all duration-300"
+                    className="w-full max-h-8 object-contain drop-shadow-md group-hover:drop-shadow-[0_0_8px_rgba(6,182,212,0.5)] group-hover:scale-[1.02] transition-all duration-300"
                 />
             </button>
         </div>
@@ -78,7 +78,7 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
           <div className="absolute inset-0 bg-gradient-to-b from-cyan-900/5 to-transparent pointer-events-none" />
 
           {/* Middle: Logo del Perfil Activo */}
-          <div className="relative px-4 py-4 flex flex-col items-center justify-center min-h-[80px] group/logo">
+          <div className="relative px-3 py-2 flex flex-col items-center justify-center min-h-[50px] group/logo">
             {(() => {
               const currentClient = clients.find(c => c.id === selectedClientId);
               return (
@@ -87,7 +87,7 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                     <img
                       src={currentClient.logo}
                       alt={currentClient?.name}
-                      className="max-w-full max-h-[60px] object-contain drop-shadow-md transition-opacity group-hover/logo:opacity-30"
+                      className="max-w-full max-h-[40px] object-contain drop-shadow-md transition-opacity group-hover/logo:opacity-30"
                     />
                   ) : (
                     <div className="flex flex-col items-center gap-1 opacity-30 transition-opacity group-hover/logo:opacity-10">
@@ -126,7 +126,7 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
           </div>
 
           {/* Bottom: Selector de Perfil */}
-          <div className="px-3 pb-3">
+          <div className="px-2 pb-2">
             <div className="relative w-full">
               <select
                 value={selectedClientId}
@@ -147,13 +147,13 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
 
       {/* Navigation / Products List */}
       <div className="flex-1 overflow-y-auto custom-scrollbar">
-        <div className="p-4 space-y-6">
+        <div className="p-3 space-y-4">
           {/* General Navigation Shortcuts */}
           <div>
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 block">
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 block px-1">
               Módulos Críticos
             </label>
-            <div className="space-y-1.5 p-1">
+            <div className="space-y-0.5">
               {[
                 { id: 'DASHBOARD', label: 'Inicio', icon: LayoutGrid, color: 'text-blue-400', bg: 'hover:bg-blue-500/10' },
                 { id: 'INGREDIENTS', label: 'Insumos', icon: Beaker, color: 'text-emerald-400', bg: 'hover:bg-emerald-500/10' },
@@ -168,13 +168,13 @@ export const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
                   <button
                     key={item.id}
                     onClick={() => onNavigate(item.id as ViewState)}
-                    className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl transition-all duration-300 group ${isActive
-                        ? 'bg-gray-800 border-2 border-cyan-500/50 shadow-lg shadow-cyan-900/20'
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 group ${isActive
+                        ? 'bg-gray-800 border border-cyan-500/50 shadow-md shadow-cyan-900/20'
                         : `border border-transparent ${item.bg}`
                       }`}
                   >
-                    <item.icon className={`w-6 h-6 transition-transform group-hover:scale-110 ${isActive ? item.color : 'text-gray-100 group-hover:' + item.color}`} />
-                    <span className={`text-[12px] font-black uppercase tracking-[0.2em] transition-colors ${isActive ? 'text-white' : 'text-white/70 group-hover:text-white'}`}>
+                    <item.icon className={`w-5 h-5 transition-transform group-hover:scale-105 ${isActive ? item.color : 'text-gray-400 group-hover:' + item.color}`} />
+                    <span className={`text-[11px] font-black uppercase tracking-[0.2em] transition-colors ${isActive ? 'text-white' : 'text-white/70 group-hover:text-white'}`}>
                       {item.label}
                     </span>
                   </button>
