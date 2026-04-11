@@ -48,16 +48,20 @@ export const Header: React.FC<HeaderProps> = ({
                         backgroundRepeat: 'no-repeat'
                     }}
                 />
+                {/* Logo FeedPro (Centro Absoluto encima de Banners) */}
+                <div className="absolute inset-0 flex items-center justify-center z-10 mix-blend-screen opacity-90 pr-6">
+                    <img src="/FeedPro-sinfondo.PNG" alt="FeedPro 360" className="max-h-[38px] object-contain drop-shadow-xl" />
+                </div>
                 {/* Logo A (Izquierda) */}
                 <div 
                     className="absolute left-0 top-0 h-full w-[40%]"
                     style={{
                         backgroundImage: 'url("/banner A.jpg")',
-                        backgroundSize: 'auto 100%',
+                        backgroundSize: 'auto 105%',
                         backgroundPosition: 'left center',
                         backgroundRepeat: 'no-repeat',
-                        WebkitMaskImage: 'linear-gradient(to right, black 85%, transparent 100%)',
-                        maskImage: 'linear-gradient(to right, black 85%, transparent 100%)'
+                        WebkitMaskImage: 'linear-gradient(to right, black 80%, transparent 100%)',
+                        maskImage: 'linear-gradient(to right, black 80%, transparent 100%)'
                     }}
                 />
                 {/* Logo B (Derecha) */}
@@ -65,11 +69,11 @@ export const Header: React.FC<HeaderProps> = ({
                     className="absolute right-0 top-0 h-full w-[40%]"
                     style={{
                         backgroundImage: 'url("/banner B.jpg")',
-                        backgroundSize: 'auto 100%',
+                        backgroundSize: 'auto 105%',
                         backgroundPosition: 'right center',
                         backgroundRepeat: 'no-repeat',
-                        WebkitMaskImage: 'linear-gradient(to left, black 85%, transparent 100%)',
-                        maskImage: 'linear-gradient(to left, black 85%, transparent 100%)'
+                        WebkitMaskImage: 'linear-gradient(to left, black 80%, transparent 100%)',
+                        maskImage: 'linear-gradient(to left, black 80%, transparent 100%)'
                     }}
                 />
             </div>
