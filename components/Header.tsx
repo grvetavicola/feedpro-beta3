@@ -56,11 +56,11 @@ export const Header: React.FC<HeaderProps> = ({
                 
                 {/* Logo B (Derecha - Gallina Azul) - Solución línea blanca */}
                 <div 
-                    className="absolute right-0 top-0 h-full w-[45%] z-0 mt-[1px]" /* Added micro-adjustment to kill any upper white bleeds */
+                    className="absolute right-0 -bottom-2 -top-2 h-[120%] w-[45%] z-0" /* El -bottom/top y 120% fuerza a que se muerda cualquier línea blanca */
                     style={{
                         backgroundImage: 'url("/banner B.jpg")',
-                        backgroundSize: 'cover', /* Garantiza que tape todo hacia el límite inferior, borrando la línea blanca */
-                        backgroundPosition: 'left center',
+                        backgroundSize: '100% 100%', /* Estirado forzado para anular márgenes blancos */
+                        backgroundPosition: 'center',
                         backgroundRepeat: 'no-repeat',
                         WebkitMaskImage: 'linear-gradient(to left, black 85%, transparent 100%)',
                         maskImage: 'linear-gradient(to left, black 85%, transparent 100%)'
