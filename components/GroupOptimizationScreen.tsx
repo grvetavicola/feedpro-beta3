@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Product, Ingredient, Nutrient } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
-import { DatabaseIcon, CalculatorIcon, SparklesIcon, XCircleIcon } from './icons';
+import { DatabaseIcon, CalculatorIcon, SparklesIcon, XCircleIcon, CubeIcon, RefreshIcon } from './icons';
 import { solveGroupFormulation } from '../services/solver';
 import { GroupResultsScreen } from './GroupResultsScreen';
 
