@@ -65,6 +65,7 @@ export default function App() {
   const [showDirtyModal, setShowDirtyModal] = useState(false);
   const [pendingClientId, setPendingClientId] = useState<string | null>(null);
   const [isLoadingFactory, setIsLoadingFactory] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Initialize Data
   useEffect(() => {
@@ -244,12 +245,22 @@ export default function App() {
         }}
         onManageProfile={() => setShowProfileModal(true)}
         client={clients.find(c => c.id === selectedClientId)}
+        onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
       />
 
-      <div className="flex flex-1 overflow-hidden">
-        <ProductsSidebar 
-          clients={clients}
-          products={products}
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Mobile Backdrop */}
+        {isMobileMenuOpen && (
+            <div 
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden" 
+                onClick={() => setIsMobileMenuOpen(false)}
+            />
+        )}
+        
+        <div className={`fixed md:relative inset-y-0 left-0 z-50 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 md:flex flex-col h-full`}>
+            <ProductsSidebar 
+              clients={clients}
+              products={products}
           selectedClientId={selectedClientId}
           activeView={view}
           onSelectClient={handleSwitchClientRequest}
@@ -259,10 +270,14 @@ export default function App() {
           }}
           onSelectProduct={(p) => {
               setView('OPTIMIZATION');
+              setIsMobileMenuOpen(false);
           }}
           selectedDietIds={selectedDietIds}
           onToggleDietSelection={handleToggleDietSelection}
-          onNavigate={setView}
+          onNavigate={(n) => {
+              setView(n);
+              setIsMobileMenuOpen(false);
+          }}
           onDeleteProduct={(id) => {
               setProducts(prev => prev.filter(p => p.id !== id));
               setSelectedDietIds(prev => prev.filter(dietId => dietId !== id));
@@ -279,12 +294,17 @@ export default function App() {
               setView('PRODUCTS');
           }}
           onLogout={() => {
-              // Trigger save if needed or just clear user. The user is saved locally when changed, so setting state and localStorage will be sufficient here.
-              setUser(null);
+              setUser(undefined);
+              localStorage.removeItem(STORAGE_KEY);
+              setView('LOGIN');
+              setIsMobileMenuOpen(false);
           }}
         />
+        </div>
         
-        <main className="flex-1 relative flex flex-col bg-[radial-gradient(circle_at_50%_0%,rgba(6,182,212,0.05),transparent_50%)] overflow-hidden p-6">
+        {/* Main Content Area */}
+        <div className="flex-[4] lg:flex-[5] flex border-l border-gray-800 relative z-0 flex-col w-full h-full min-w-0">
+        <main className="flex-1 relative flex flex-col bg-[radial-gradient(circle_at_50%_0%,rgba(6,182,212,0.05),transparent_50%)] overflow-hidden p-6 w-full">
             <div className="flex-1 relative overflow-hidden flex flex-col">
                 {/* View Content */}
                 <div className="flex-1 overflow-y-auto w-full">
@@ -350,6 +370,7 @@ export default function App() {
                 )}
             </div>
         </main>
+        </div>
       </div>
 
       {/* --- GESTIÓN DE PERFILES MODAL --- */}

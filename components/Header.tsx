@@ -19,6 +19,7 @@ interface HeaderProps {
     onCloseTask: (id: string) => void;
     onManageProfile?: () => void;
     client?: Client;
+    onToggleMenu?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -30,7 +31,8 @@ export const Header: React.FC<HeaderProps> = ({
     onSelectTask,
     onCloseTask,
     onManageProfile,
-    client
+    client,
+    onToggleMenu
 }) => {
     const { t } = useTranslations();
 
@@ -78,9 +80,18 @@ export const Header: React.FC<HeaderProps> = ({
                 />
             </div>
             
-            <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth flex-1 relative z-10 w-full">
+            <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth flex-1 relative z-10 w-full pl-2">
+                {onToggleMenu && (
+                    <button 
+                        onClick={onToggleMenu}
+                        className="md:hidden p-1.5 rounded-lg bg-white/70 border border-gray-300 text-gray-800 hover:text-cyan-600 hover:bg-white transition-all shadow-sm z-20 flex-shrink-0 mr-1 backdrop-blur-sm"
+                        aria-label="Abrir Menú"
+                    >
+                        <MenuIcon className="w-5 h-5" />
+                    </button>
+                )}
                 {/* Active Tasks Section */}
-                <div className="flex items-center gap-2 pl-4">
+                <div className="flex items-center gap-2">
                     {activeTasks.map(task => {
                         const isActive = activeTaskId === task.id;
                         return (
