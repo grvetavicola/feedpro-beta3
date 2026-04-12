@@ -389,7 +389,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                        {ingredients.map(ing => {
                                            const p = products.find(prod => prod.id === viewingDetailId);
-                                           const isIncluded = p?.ingredientRestrictions?.some(r => r.ingredientId === ing.id) ?? true;
+                                           const isIncluded = p?.ingredientConstraints?.some(r => r.ingredientId === ing.id) ?? true;
                                            return (
                                                <div key={ing.id} className={`p-3 rounded-xl border transition-all flex items-center justify-between ${isIncluded ? 'bg-indigo-500/5 border-indigo-500/30' : 'bg-gray-900/40 border-gray-800 opacity-60'}`}>
                                                    <div className="flex items-center gap-3">
@@ -402,14 +402,22 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                                    <button 
                                                        onClick={() => {
                                                             if (p && onUpdateProduct) {
-                                                                const currentRestrictions = p.ingredientRestrictions || ingredients.map(i => ({ ingredientId: i.id, min: 0, max: 100 }));
-                                                                let newRestrictions;
+                                                                const currentConstraints = p.ingredientConstraints || [];
+                                                                let newConstraints;
                                                                 if (isIncluded) {
-                                                                    newRestrictions = currentRestrictions.filter(r => r.ingredientId !== ing.id);
+                                                                    // We exclude it by adding a 0-0 constraint or removing it if the default is exclusion?
+                                                                    // Actually, based on logic: if isIncluded is true, it means it's NOT constrained or has a standard range.
+                                                                    // Let's stick to the simplest: exclusion = remove from list if list is "allowed", 
+                                                                    // but Product interface seems to use ingredientConstraints for limits.
+                                                                    // If it exists in ingredientConstraints, we manage its min/max.
+                                                                    // For "Exclude", we set min: 0, max: 0.
+                                                                    newConstraints = currentConstraints.filter(r => r.ingredientId !== ing.id);
+                                                                    newConstraints.push({ ingredientId: ing.id, min: 0, max: 0 });
                                                                 } else {
-                                                                    newRestrictions = [...currentRestrictions, { ingredientId: ing.id, min: 0, max: 100 }];
+                                                                    // Include again: remove the 0-0 constraint
+                                                                    newConstraints = currentConstraints.filter(r => r.ingredientId !== ing.id);
                                                                 }
-                                                                onUpdateProduct({ ...p, ingredientRestrictions: newRestrictions });
+                                                                onUpdateProduct({ ...p, ingredientConstraints: newConstraints });
                                                             }
                                                        }}
                                                        className={`px-3 py-1 rounded text-[10px] font-black uppercase transition-all ${isIncluded ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-500'}`}
