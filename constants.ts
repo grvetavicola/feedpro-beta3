@@ -53,13 +53,13 @@ export const DEFAULT_RELATIONS: Omit<Relationship, 'id' | 'min' | 'max'>[] = [
 ];
 
 export const INITIAL_INGREDIENTS: Ingredient[] = [
-  { id: 'i1', code: 101010, name: 'Maíz', category: 'MACRO', price: 250, stock: 50000, nutrients: { 'n5': 3350, 'n15': 8.5, 'n36': 0.02, 'n37': 0.08 } },
-  { id: 'i2', code: 201010, name: 'Harina Soya 46%', category: 'MACRO', price: 500, stock: 30000, nutrients: { 'n5': 2250, 'n15': 46, 'n36': 0.25, 'n37': 0.20 } },
-  { id: 'i3', code: 541010, name: 'Carbonato de Calcio', category: 'MICRO', price: 50, stock: 10000, nutrients: { 'n36': 38 } },
-  { id: 'i4', code: 541050, name: 'Fosfato Bicálcico', category: 'MICRO', price: 800, stock: 5000, nutrients: { 'n36': 21, 'n37': 18.5 } },
-  { id: 'i5', code: 301810, name: 'Aceite de Soya', category: 'MACRO', price: 1200, stock: 2000, nutrients: { 'n5': 8800 } },
-  { id: 'i6', code: 105010, name: 'Cebada', category: 'MACRO', price: 220, stock: 15000, nutrients: { 'n5': 2950, 'n15': 10.5 } },
-  { id: 'i7', code: 101020, name: 'Afrecho de Trigo', category: 'MACRO', price: 180, stock: 10000, nutrients: { 'n5': 1800, 'n15': 15.5 } },
+  { id: 'i1', code: 101010, name: 'Maíz', category: 'MACRO', price: 250, stock: 100000, nutrients: { 'n5': 3350, 'n15': 8.5, 'n36': 0.02, 'n37': 0.08 } },
+  { id: 'i2', code: 201010, name: 'Harina Soya 46%', category: 'MACRO', price: 500, stock: 100000, nutrients: { 'n5': 2250, 'n15': 46, 'n36': 0.25, 'n37': 0.20 } },
+  { id: 'i3', code: 541010, name: 'Carbonato de Calcio', category: 'MICRO', price: 50, stock: 100000, nutrients: { 'n36': 38 } },
+  { id: 'i4', code: 541050, name: 'Fosfato Bicálcico', category: 'MICRO', price: 800, stock: 100000, nutrients: { 'n36': 21, 'n37': 18.5 } },
+  { id: 'i5', code: 301810, name: 'Aceite de Soya', category: 'MACRO', price: 1200, stock: 100000, nutrients: { 'n5': 8800 } },
+  { id: 'i6', code: 105010, name: 'Cebada', category: 'MACRO', price: 220, stock: 100000, nutrients: { 'n5': 2950, 'n15': 10.5 } },
+  { id: 'i7', code: 101020, name: 'Afrecho de Trigo', category: 'MACRO', price: 180, stock: 100000, nutrients: { 'n5': 1800, 'n15': 15.5 } },
 ];
 
 const BASE_CONSTRAINTS = [
