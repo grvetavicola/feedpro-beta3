@@ -66,6 +66,7 @@ export default function App() {
   const [pendingClientId, setPendingClientId] = useState<string | null>(null);
   const [isLoadingFactory, setIsLoadingFactory] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isOptimizationFullscreen, setIsOptimizationFullscreen] = useState(false);
 
   // Initialize Data
   useEffect(() => {
@@ -260,7 +261,7 @@ export default function App() {
             />
         )}
         
-        <div className={`fixed md:relative inset-y-0 left-0 z-50 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 md:flex flex-col h-full`}>
+        <div className={`fixed md:relative inset-y-0 left-0 z-50 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 md:flex flex-col h-full ${isOptimizationFullscreen ? 'hidden' : ''}`}>
             <ProductsSidebar 
               clients={clients}
               products={products}
@@ -330,7 +331,7 @@ export default function App() {
                                 case 'INGREDIENTS': return <IngredientsScreen ingredients={ingredients} setIngredients={setIngredients} nutrients={nutrients} setNutrients={setNutrients} setIsDirty={setIsDirty} />;
                                 case 'NUTRIENTS': return <NutrientsScreen nutrients={nutrients} setNutrients={setNutrients} />;
                                 case 'PRODUCTS': return <ProductsScreen products={products} setProducts={setProducts} ingredients={effectiveIngredients} nutrients={nutrients} onOpenInNewWindow={(data, name) => handleOpenTask('OPTIMIZATION', name, data)} onNavigate={setView} setIsDirty={setIsDirty} />;
-                                case 'OPTIMIZATION': return <GroupOptimizationScreen products={products} ingredients={effectiveIngredients} nutrients={nutrients} isDynamicMatrix={isDynamicMatrix} selectedDietIds={selectedDietIds} onOpenInNewWindow={(data, name) => handleOpenTask('GROUP_OPTIMIZATION', name, data)} onUpdateProduct={(updatedProduct) => setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p))} setIsDirty={setIsDirty} savedFormulas={savedFormulas} setSavedFormulas={setSavedFormulas} onRemoveDietFromSelection={(id) => setSelectedDietIds(prev => prev.filter(d => d !== id))} />;
+                                case 'OPTIMIZATION': return <GroupOptimizationScreen products={products} ingredients={effectiveIngredients} nutrients={nutrients} isDynamicMatrix={isDynamicMatrix} selectedDietIds={selectedDietIds} onOpenInNewWindow={(data, name) => handleOpenTask('GROUP_OPTIMIZATION', name, data)} onUpdateProduct={(updatedProduct) => setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p))} setIsDirty={setIsDirty} savedFormulas={savedFormulas} setSavedFormulas={setSavedFormulas} onRemoveDietFromSelection={(id) => setSelectedDietIds(prev => prev.filter(d => d !== id))} onEnterFullscreen={() => setIsOptimizationFullscreen(true)} onLeaveFullscreen={() => setIsOptimizationFullscreen(false)} />;
                                 case 'GROUP_OPTIMIZATION': return <GroupOptimizationScreen products={products} ingredients={effectiveIngredients} nutrients={nutrients} isDynamicMatrix={isDynamicMatrix} selectedDietIds={selectedDietIds} onOpenInNewWindow={(data, name) => handleOpenTask('GROUP_OPTIMIZATION', name, data)} onUpdateProduct={(updatedProduct) => setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p))} setIsDirty={setIsDirty} savedFormulas={savedFormulas} setSavedFormulas={setSavedFormulas} onRemoveDietFromSelection={(id) => setSelectedDietIds(prev => prev.filter(d => d !== id))} />;
                                 case 'SIMULATION': return <SimulationScreen ingredients={effectiveIngredients} setIngredients={setIngredients} nutrients={nutrients} />;
                                 case 'CLIENTS': 
