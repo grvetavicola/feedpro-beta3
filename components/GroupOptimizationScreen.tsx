@@ -71,6 +71,10 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
         Array.from(new Set(products.filter(p => selectedDietIds.includes(p.id)).flatMap(p => p.constraints.map(c => c.nutrientId)))),
         [products, selectedDietIds]);
 
+    // ── Track which IDs were injected via bulk (for highlight in results) ─────────
+    const [injectedIngIds, setInjectedIngIds] = useState<Set<string>>(new Set());
+    const [injectedNutIds, setInjectedNutIds] = useState<Set<string>>(new Set());
+
     // ── Local diet selection (embedded tree) ─────────────────────────────────────
     const [localSelectedIds, setLocalSelectedIds] = useState<string[]>(selectedDietIds);
     useEffect(() => { setLocalSelectedIds(selectedDietIds); }, [selectedDietIds]);
@@ -134,6 +138,13 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
             }
             onUpdateProduct(newP);
         });
+        // Track injected IDs and auto-collapse
+        if (injectorMode === 'ing') setInjectedIngIds(prev => new Set([...prev, id]));
+        else setInjectedNutIds(prev => new Set([...prev, id]));
+        setInjectorSearch('');
+        setInjectorMin('');
+        setInjectorMax('');
+        setIsPanelExpanded(false); // AUTO-COLAPSO
     };
 
     const handleRemoveChip = (id: string, type: 'ing' | 'nut') => {
@@ -142,6 +153,9 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
             if (type === 'ing') onUpdateProduct({ ...p, ingredientConstraints: p.ingredientConstraints.filter(c => c.ingredientId !== id) });
             else onUpdateProduct({ ...p, constraints: p.constraints.filter(c => c.nutrientId !== id) });
         });
+        // Remove from injected tracking
+        if (type === 'ing') setInjectedIngIds(prev => { const s = new Set(prev); s.delete(id); return s; });
+        else setInjectedNutIds(prev => { const s = new Set(prev); s.delete(id); return s; });
     };
 
     // ── Optimization ─────────────────────────────────────────────────────────────
@@ -195,6 +209,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                 onCloseDrawer={() => { setIsFullScreenResults(false); setResultsData(null); }}
                 savedFormulas={savedFormulas}
                 setSavedFormulas={setSavedFormulas}
+                injectedIngIds={injectedIngIds}
+                injectedNutIds={injectedNutIds}
             />
         );
     }
@@ -205,7 +221,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
             {/* ═══════════════════════════════════════════════════════════════════
                 BLOQUE SUPERIOR COLAPSABLE — máx 30vh
             ══════════════════════════════════════════════════════════════════════ */}
-            <div className="shrink-0 border border-gray-700 rounded-xl bg-gray-900/80 overflow-hidden shadow-2xl mb-2" style={{maxHeight: '30vh'}}>
+            <div className="shrink-0 border border-gray-700 rounded-xl bg-gray-900/80 overflow-hidden shadow-2xl mb-2">
 
                 {/* ─── Barra de resumen (siempre visible) ─── */}
                 <div className="flex items-center gap-4 px-4 py-2.5 border-b border-gray-800/50">
@@ -215,17 +231,27 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                     <Toggle label="Dinámica" value={matrixMode === 'dynamic'} onChange={() => setMatrixMode(matrixMode === 'dynamic' ? 'general' : 'dynamic')} />
                     <div className="w-px h-4 bg-gray-800"/>
 
-                    {/* Resumen compacto cuando está colapsado */}
-                    {!isPanelExpanded && (
-                        <div className="flex items-center gap-3 flex-1 text-[10px] text-gray-500 font-black uppercase">
-                            <span className="text-white">{localSelectedIds.length} dietas</span>
-                            <span>·</span>
-                            <span className="text-indigo-400">{activeIngredientIds.length} insumos</span>
-                            <span>·</span>
-                            <span className="text-cyan-400">{activeNutrientIds.length} nutrientes</span>
-                            <span>·</span>
-                            <span className="text-emerald-400 font-mono">{totalBatch.toLocaleString()} kg</span>
+                    {/* Chips inline cuando colapsado */}
+                    {!isPanelExpanded && (activeIngredientIds.length > 0 || activeNutrientIds.length > 0) && (
+                        <div className="flex items-center gap-1.5 flex-1 overflow-x-auto custom-scrollbar py-0.5">
+                            {activeIngredientIds.map(id => {
+                                const ing = ingredients.find(i => i.id === id);
+                                return ing ? (
+                                    <Chip key={id} label={ing.name} color="indigo" onRemove={() => handleRemoveChip(id, 'ing')}
+                                        sublabel={injectedIngIds.has(id) ? ' ★' : ''} />
+                                ) : null;
+                            })}
+                            {activeNutrientIds.map(id => {
+                                const nut = nutrients.find(n => n.id === id);
+                                return nut ? (
+                                    <Chip key={id} label={nut.name} color="cyan" onRemove={() => handleRemoveChip(id, 'nut')}
+                                        sublabel={injectedNutIds.has(id) ? ' ★' : ''} />
+                                ) : null;
+                            })}
                         </div>
+                    )}
+                    {!isPanelExpanded && activeIngredientIds.length === 0 && activeNutrientIds.length === 0 && (
+                        <span className="text-[10px] text-gray-700 flex-1 font-bold uppercase tracking-widest">{localSelectedIds.length} dietas · Sin inyecciones</span>
                     )}
 
                     <div className="flex-1"/>
