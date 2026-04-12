@@ -170,7 +170,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     const activeRelationNames = Array.from(new Set(selectedProducts.flatMap(p => p.relationships.map(r => r.name))));
 
     return (
-        <div className="fixed inset-0 bg-black z-50 flex flex-col p-4 space-y-4 overflow-hidden animate-fade-in">
+        <div className="flex flex-col h-full space-y-4 overflow-hidden animate-fade-in">
             {/* INJECTED PANTALLA COMPLETA: REGRESAR BOTON */}
             {isFullScreenResults && resultsData ? (
                 <GroupResultsScreen 
