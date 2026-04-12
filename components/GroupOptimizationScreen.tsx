@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Product, Ingredient, Nutrient } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
-import { DatabaseIcon, CalculatorIcon, SparklesIcon, XCircleIcon, CubeIcon, RefreshIcon, BeakerIcon, ShoppingCartIcon, RatiosIcon, SettingsIcon, CheckIcon, TrashIcon } from './icons';
+import { DatabaseIcon, CalculatorIcon, SparklesIcon, XCircleIcon, CubeIcon, RefreshIcon, BeakerIcon, ShoppingCartIcon, RatiosIcon, SettingsIcon, CheckIcon, TrashIcon, ArrowLeftIcon } from './icons';
 import { solveGroupFormulation } from '../services/solver';
 import { GroupResultsScreen } from './GroupResultsScreen';
 
@@ -35,7 +35,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     const { t } = useTranslations();
     const [isOptimizing, setIsOptimizing] = useState(false);
     
-    // Global Parameters - STOCK DISABLED BY DEFAULT PER USER REQUEST
+    // Global Parameters
     const [useStock, setUseStock] = useState(false);
     const [matrixMode, setMatrixMode] = useState<'general' | 'dynamic'>(isDynamicMatrix ? 'dynamic' : 'general');
     const [globalRelation, setGlobalRelation] = useState<string>('none');
@@ -43,8 +43,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     // Local State
     const [batchSizes, setBatchSizes] = useState<Record<string, number>>({});
     
-    // Drawer State
-    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    // Fullscreen Navigation State
+    const [isFullScreenResults, setIsFullScreenResults] = useState(false);
     const [resultsData, setResultsData] = useState<{ result: any, assignments: any } | null>(null);
     const [showBulkPanel, setShowBulkPanel] = useState(false);
     
@@ -83,13 +83,10 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
 
     const selectedProducts = products.filter(p => selectedDietIds.includes(p.id));
 
-    // Initialize batch sizes for newly selected products
     useEffect(() => {
         setBatchSizes(prev => {
             const next = { ...prev };
-            selectedProducts.forEach(p => {
-                if (!next[p.id]) next[p.id] = 1000;
-            });
+            selectedProducts.forEach(p => { if (!next[p.id]) next[p.id] = 1000; });
             return next;
         });
     }, [selectedDietIds]);
@@ -97,91 +94,73 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     const handleRunOptimization = () => {
         if (selectedProducts.length === 0) return;
         setIsOptimizing(true);
-        
         const assignments = selectedProducts.map(p => ({
             id: `as-${Date.now()}-${p.id}`,
             productId: p.id,
             product: p,
             batchSize: batchSizes[p.id] || 1000
         }));
-
         setTimeout(() => {
             const result = solveGroupFormulation(assignments, ingredients, nutrients, matrixMode === 'dynamic', useStock);
             setIsOptimizing(false);
             if (result.feasible || !result.feasible) {
                 setResultsData({ result, assignments });
-                setIsDrawerOpen(true);
+                setIsFullScreenResults(true);
                 setIsDirty?.(true); 
             }
         }, 800);
     };
 
-    const handleAttemptCloseDrawer = () => {
-        if (confirm("¿Estás seguro de cerrar el panel? Los resultados no guardados se perderán.")) {
-            setIsDrawerOpen(false);
-            setResultsData(null);
-            setIsDirty?.(false);
-        }
-    };
+    const handleBulkApplyUnified = () => {
+        if (!onUpdateProduct) return;
+        if (selectedIngredientIds.length === 0 && selectedNutrientIds.length === 0) return;
 
-    const handleBulkApplyNutrients = () => {
-        if (!onUpdateProduct || selectedNutrientIds.length === 0) return;
         selectedProducts.forEach(p => {
-            const newP = { ...p, constraints: [...p.constraints] };
-            selectedNutrientIds.forEach(nutId => {
-                const idx = newP.constraints.findIndex(c => c.nutrientId === nutId);
-                const min = bulkNutMin === '' ? 0 : parseFloat(bulkNutMin);
-                const max = bulkNutMax === '' ? 999 : parseFloat(bulkNutMax);
-                if (idx >= 0) {
-                    newP.constraints[idx] = { ...newP.constraints[idx], min, max };
-                } else {
-                    newP.constraints.push({ nutrientId: nutId, min, max });
-                }
-            });
+            let newP = { ...p };
+            
+            // Apply Ingredients
+            if (selectedIngredientIds.length > 0) {
+                newP.ingredientConstraints = [...newP.ingredientConstraints];
+                selectedIngredientIds.forEach(ingId => {
+                    const idx = newP.ingredientConstraints.findIndex(c => c.ingredientId === ingId);
+                    const min = bulkIngMin === '' ? 0 : parseFloat(bulkIngMin);
+                    const max = bulkIngMax === '' ? 100 : parseFloat(bulkIngMax);
+                    if (idx >= 0) newP.ingredientConstraints[idx] = { ...newP.ingredientConstraints[idx], min, max };
+                    else newP.ingredientConstraints.push({ ingredientId: ingId, min, max });
+                });
+            }
+
+            // Apply Nutrients
+            if (selectedNutrientIds.length > 0) {
+                newP.constraints = [...newP.constraints];
+                selectedNutrientIds.forEach(nutId => {
+                    const idx = newP.constraints.findIndex(c => c.nutrientId === nutId);
+                    const min = bulkNutMin === '' ? 0 : parseFloat(bulkNutMin);
+                    const max = bulkNutMax === '' ? 999 : parseFloat(bulkNutMax);
+                    if (idx >= 0) newP.constraints[idx] = { ...newP.constraints[idx], min, max };
+                    else newP.constraints.push({ nutrientId: nutId, min, max });
+                });
+            }
+
             onUpdateProduct(newP);
         });
-        setSelectedNutrientIds([]);
-        setBulkNutMin('');
-        setBulkNutMax('');
-        setShowBulkPanel(false);
-    };
 
-    const handleBulkApplyIngredients = () => {
-        if (!onUpdateProduct || selectedIngredientIds.length === 0) return;
-        selectedProducts.forEach(p => {
-            const newP = { ...p, ingredientConstraints: [...p.ingredientConstraints] };
-            selectedIngredientIds.forEach(ingId => {
-                const idx = newP.ingredientConstraints.findIndex(c => c.ingredientId === ingId);
-                const min = bulkIngMin === '' ? 0 : parseFloat(bulkIngMin);
-                const max = bulkIngMax === '' ? 100 : parseFloat(bulkIngMax);
-                if (idx >= 0) {
-                    newP.ingredientConstraints[idx] = { ...newP.ingredientConstraints[idx], min, max };
-                } else {
-                    newP.ingredientConstraints.push({ ingredientId: ingId, min, max });
-                }
-            });
-            onUpdateProduct(newP);
-        });
+        // Cleanup and close
         setSelectedIngredientIds([]);
-        setBulkIngMin('');
-        setBulkIngMax('');
+        setSelectedNutrientIds([]);
+        setBulkIngMin(''); setBulkIngMax('');
+        setBulkNutMin(''); setBulkNutMax('');
         setShowBulkPanel(false);
     };
 
     const handleRemoveIngredientGlobally = (ingId: string) => {
         if (!onUpdateProduct) return;
-        selectedProducts.forEach(p => {
-            const newC = p.ingredientConstraints.filter(c => c.ingredientId !== ingId);
-            onUpdateProduct({ ...p, ingredientConstraints: newC });
-        });
+        selectedProducts.forEach(p => onUpdateProduct({ ...p, ingredientConstraints: p.ingredientConstraints.filter(c => c.ingredientId !== ingId) }));
     };
 
     const handleRemoveNutrientGlobally = (nutId: string) => {
         if (!onUpdateProduct) return;
-        selectedProducts.forEach(p => {
-            const newC = p.constraints.filter(c => c.nutrientId !== nutId);
-            onUpdateProduct({ ...p, constraints: newC });
-        });
+        selectedProducts.forEach(p => onUpdateProduct({ ...p, constraints: p.constraints.filter(c => c.nutrientId !== nutId) }));
     };
 
     const activeNutrientIds = Array.from(new Set(selectedProducts.flatMap(p => p.constraints.map(c => c.nutrientId))));
@@ -189,380 +168,234 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     const activeRelationNames = Array.from(new Set(selectedProducts.flatMap(p => p.relationships.map(r => r.name))));
 
     return (
-        <div className="p-3 space-y-4 flex flex-col h-full relative">
-            {/* Toolbar Parámetros Globales */}
-            <div className="bg-gray-900 border border-gray-700/80 rounded-xl p-3 shadow-lg shadow-gray-950/50 flex flex-wrap items-center justify-between gap-4 shrink-0">
-                <div className="flex items-center gap-3">
-                    <div className="bg-cyan-500/10 p-2 rounded-lg border border-cyan-500/20">
-                        <CalculatorIcon className="w-5 h-5 text-cyan-400" />
-                    </div>
-                    <div>
-                        <h2 className="text-[14px] font-black text-white uppercase tracking-wider leading-none">Centro de Optimización</h2>
-                        <p className="text-cyan-500/70 font-bold text-[9px] uppercase tracking-widest mt-1 leading-none">Cálculo de Formulación Táctica</p>
-                    </div>
-                </div>
-                
-                <div className="flex items-center gap-4 bg-gray-950/50 p-1.5 rounded-lg border border-gray-800">
-                    <div className={`px-3 py-1.5 rounded flex items-center gap-2 transition-all ${useStock ? 'bg-emerald-500/10 border-emerald-500/30 border' : 'border border-transparent opacity-50'}`}>
-                        <span className="text-[9px] font-black text-gray-300 uppercase leading-none">Restringir Stock</span>
-                        <button onClick={() => { setUseStock(!useStock); setIsDirty?.(true); }} className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors ${useStock ? 'bg-emerald-500' : 'bg-gray-600'}`}>
-                            <span className={`inline-block h-2.5 w-2.5 transform rounded-full bg-white transition-transform ${useStock ? 'translate-x-4' : 'translate-x-1'}`} />
-                        </button>
-                    </div>
-                    <div className="w-px h-6 bg-gray-700"></div>
-                    <div className={`px-3 py-1.5 rounded flex items-center gap-2 transition-all ${matrixMode === 'dynamic' ? 'bg-indigo-500/10 border-indigo-500/30 border' : 'border border-transparent'}`}>
-                        <span className="text-[9px] font-black text-gray-300 uppercase leading-none">Matriz Dinámica</span>
-                        <button onClick={() => { setMatrixMode(matrixMode === 'dynamic' ? 'general' : 'dynamic'); setIsDirty?.(true); }} className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors ${matrixMode === 'dynamic' ? 'bg-indigo-500' : 'bg-gray-600'}`}>
-                            <span className={`inline-block h-2.5 w-2.5 transform rounded-full bg-white transition-transform ${matrixMode === 'dynamic' ? 'translate-x-4' : 'translate-x-1'}`} />
-                        </button>
-                    </div>
-                    <div className="w-px h-6 bg-gray-700"></div>
-                    <div className="px-2">
-                        <select value={globalRelation} onChange={(e) => setGlobalRelation(e.target.value)} className="bg-gray-900 border border-gray-700 text-yellow-500 font-bold text-[10px] uppercase rounded px-2 py-1 outline-none focus:border-yellow-500">
-                            <option value="none">Sin relaciones activas</option>
-                            <option value="ca_p">Mínimo Global Ca:P</option>
-                            <option value="na_cl">Mínimo Global Na:Cl</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            {/* Bulk Control Panel */}
-            <div className={`overflow-hidden transition-all duration-300 ${showBulkPanel ? 'max-h-[800px] mb-6' : 'max-h-0'}`}>
-                <div className="bg-indigo-950/20 border border-indigo-500/30 rounded-2xl p-6 shadow-2xl backdrop-blur-sm space-y-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-indigo-500/20 rounded-lg"><SparklesIcon className="w-5 h-5 text-indigo-400" /></div>
-                            <div>
-                                <h3 className="text-[14px] font-black text-white uppercase tracking-widest leading-none">Inyectar Parámetros al Lote</h3>
-                                <p className="text-[9px] text-gray-500 uppercase font-bold mt-1 tracking-tighter">Selecciona múltiples ítems para agregar a todas las dietas</p>
+        <div className="fixed inset-0 bg-black z-50 flex flex-col p-4 space-y-4 overflow-hidden animate-fade-in">
+            {/* INJECTED PANTALLA COMPLETA: REGRESAR BOTON */}
+            {isFullScreenResults && resultsData ? (
+                <GroupResultsScreen 
+                    results={resultsData.result} 
+                    assignments={resultsData.assignments} 
+                    products={products} 
+                    ingredients={ingredients} 
+                    nutrients={nutrients} 
+                    isDynamicMatrix={matrixMode === 'dynamic'} 
+                    onUpdateProduct={onUpdateProduct || (() => {})} 
+                    onCloseDrawer={() => { setIsFullScreenResults(false); setResultsData(null); }} 
+                    savedFormulas={savedFormulas} 
+                    setSavedFormulas={setSavedFormulas} 
+                />
+            ) : (
+                <>
+                    {/* Header Operativo FullScreen */}
+                    <div className="bg-gray-900 border border-gray-700/80 rounded-2xl p-4 shadow-2xl flex items-center justify-between gap-4 shrink-0">
+                        <div className="flex items-center gap-6">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-cyan-500/10 p-2.5 rounded-xl border border-cyan-500/20"><CalculatorIcon className="w-6 h-6 text-cyan-400" /></div>
+                                <div>
+                                    <h2 className="text-[16px] font-black text-white uppercase tracking-[0.2em] leading-none">Matrix Command Center</h2>
+                                    <p className="text-cyan-500/70 font-bold text-[10px] uppercase tracking-[0.3em] mt-2">Formulación de Alto Rendimiento</p>
+                                </div>
                             </div>
-                        </div>
-                        <button onClick={() => setShowBulkPanel(false)} className="text-gray-500 hover:text-white transition-colors"><XCircleIcon className="w-6 h-6"/></button>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {/* Ingredients Multi Select */}
-                        <div className="bg-gray-900/40 border border-gray-800 rounded-xl p-4">
-                            <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-3">Límites de Inclusión (Insumos)</h4>
-                            <div className="h-40 overflow-y-auto mb-4 bg-gray-950 rounded border border-gray-800 p-2 grid grid-cols-2 gap-2 custom-scrollbar">
-                                {ingredients.map(i => (
-                                    <button 
-                                        key={i.id}
-                                        onClick={() => setSelectedIngredientIds(prev => prev.includes(i.id) ? prev.filter(id => id !== i.id) : [...prev, i.id])}
-                                        className={`flex items-center justify-between px-2 py-1.5 rounded text-[10px] font-bold uppercase transition-all ${selectedIngredientIds.includes(i.id) ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-900 text-gray-500 hover:bg-gray-800'}`}
-                                    >
-                                        <span className="truncate pr-2">{i.name}</span>
-                                        {selectedIngredientIds.includes(i.id) && <CheckIcon className="w-3 h-3" />}
+                            <div className="h-10 w-px bg-gray-800"></div>
+                            <div className="flex items-center gap-4 bg-gray-950/50 p-1.5 rounded-xl border border-gray-800">
+                                <div className={`px-4 py-2 rounded-lg flex items-center gap-3 transition-all ${useStock ? 'bg-emerald-500/10 border-emerald-500/30' : 'opacity-40'}`}>
+                                    <span className="text-[10px] font-black text-gray-200 uppercase">Stock</span>
+                                    <button onClick={() => setUseStock(!useStock)} className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors ${useStock ? 'bg-emerald-500' : 'bg-gray-600'}`}>
+                                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${useStock ? 'translate-x-5' : 'translate-x-1'}`} />
                                     </button>
-                                ))}
-                            </div>
-                            <div className="flex gap-3 items-end">
-                                <div className="flex-1 space-y-1">
-                                    <label className="text-[8px] font-black text-gray-500 uppercase">Min %</label>
-                                    <input type="number" value={bulkIngMin} onChange={e => setBulkIngMin(e.target.value)} placeholder="0" className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg p-2 text-[11px] font-mono outline-none" />
                                 </div>
-                                <div className="flex-1 space-y-1">
-                                    <label className="text-[8px] font-black text-gray-500 uppercase">Max %</label>
-                                    <input type="number" value={bulkIngMax} onChange={e => setBulkIngMax(e.target.value)} placeholder="100" className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg p-2 text-[11px] font-mono outline-none" />
-                                </div>
-                                <button onClick={handleBulkApplyIngredients} className="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-4 py-2 rounded-lg text-[10px] uppercase transition-all shadow-lg shadow-indigo-900/20">Inyectar Insumos</button>
-                            </div>
-                        </div>
-
-                        {/* Nutrients Multi Select */}
-                        <div className="bg-gray-900/40 border border-gray-800 rounded-xl p-4">
-                            <h4 className="text-[10px] font-black text-cyan-500 uppercase tracking-widest mb-3">Requerimientos Nutricionales</h4>
-                            <div className="h-40 overflow-y-auto mb-4 bg-gray-950 rounded border border-gray-800 p-2 grid grid-cols-2 gap-2 custom-scrollbar">
-                                {nutrients.map(n => (
-                                    <button 
-                                        key={n.id}
-                                        onClick={() => setSelectedNutrientIds(prev => prev.includes(n.id) ? prev.filter(id => id !== n.id) : [...prev, n.id])}
-                                        className={`flex items-center justify-between px-2 py-1.5 rounded text-[10px] font-bold uppercase transition-all ${selectedNutrientIds.includes(n.id) ? 'bg-cyan-600 text-white shadow-lg' : 'bg-gray-900 text-gray-500 hover:bg-gray-800'}`}
-                                    >
-                                        <span className="truncate pr-2">{n.name}</span>
-                                        {selectedNutrientIds.includes(n.id) && <CheckIcon className="w-3 h-3" />}
+                                <div className={`px-4 py-2 rounded-lg flex items-center gap-3 transition-all ${matrixMode === 'dynamic' ? 'bg-indigo-500/10 border-indigo-500/30' : ''}`}>
+                                    <span className="text-[10px] font-black text-gray-200 uppercase">Dinámica</span>
+                                    <button onClick={() => setMatrixMode(matrixMode === 'dynamic' ? 'general' : 'dynamic')} className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors ${matrixMode === 'dynamic' ? 'bg-indigo-500' : 'bg-gray-600'}`}>
+                                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${matrixMode === 'dynamic' ? 'translate-x-5' : 'translate-x-1'}`} />
                                     </button>
-                                ))}
+                                </div>
                             </div>
-                            <div className="flex gap-3 items-end">
-                                <div className="flex-1 space-y-1">
-                                    <label className="text-[8px] font-black text-gray-500 uppercase">Mín Global</label>
-                                    <input type="number" value={bulkNutMin} onChange={e => setBulkNutMin(e.target.value)} placeholder="0.0" className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg p-2 text-[11px] font-mono outline-none" />
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <button onClick={() => setShowBulkPanel(!showBulkPanel)} className="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-6 py-3 rounded-xl uppercase tracking-widest text-[11px] shadow-xl flex items-center gap-2 transition-all">
+                                <SparklesIcon className="w-5 h-5"/> Inyectar Global
+                            </button>
+                            <button onClick={() => window.location.reload()} className="p-3 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded-xl border border-gray-700 transition-all">
+                                <ArrowLeftIcon className="w-5 h-5"/>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Unified Bulk Panel */}
+                    <div className={`overflow-hidden transition-all duration-300 ${showBulkPanel ? 'max-h-[800px] mb-4' : 'max-h-0'}`}>
+                        <div className="bg-indigo-950/20 border border-indigo-500/30 rounded-3xl p-6 shadow-3xl backdrop-blur-md space-y-6">
+                            <div className="flex items-center justify-between border-b border-indigo-500/20 pb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2.5 bg-indigo-500/20 rounded-xl"><SparklesIcon className="w-6 h-6 text-indigo-400" /></div>
+                                    <div>
+                                        <h3 className="text-[18px] font-black text-white uppercase tracking-widest">Inyección Unificada de Parámetros</h3>
+                                        <p className="text-[10px] text-gray-500 uppercase font-black mt-1">Configura insumos y nutrición global para un solo clic</p>
+                                    </div>
                                 </div>
-                                <div className="flex-1 space-y-1">
-                                    <label className="text-[8px] font-black text-gray-500 uppercase">Máx Global</label>
-                                    <input type="number" value={bulkNutMax} onChange={e => setBulkNutMax(e.target.value)} placeholder="99.9" className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg p-2 text-[11px] font-mono outline-none" />
+                                <button onClick={() => setShowBulkPanel(false)} className="text-gray-500 hover:text-white transition-colors bg-gray-900 p-2 rounded-full"><XCircleIcon className="w-6 h-6"/></button>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                <div className="bg-gray-950/50 rounded-2xl p-4 border border-gray-800">
+                                    <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4 flex items-center gap-2"><CubeIcon className="w-4 h-4"/> Límites de Insumos</h4>
+                                    <div className="h-44 overflow-y-auto mb-4 bg-black/40 rounded-xl border border-gray-800 p-3 grid grid-cols-3 gap-2 custom-scrollbar">
+                                        {ingredients.map(i => (
+                                            <button key={i.id} onClick={() => setSelectedIngredientIds(prev => prev.includes(i.id) ? prev.filter(id => id !== i.id) : [...prev, i.id])}
+                                                className={`flex items-center justify-between px-3 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${selectedIngredientIds.includes(i.id) ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-900/50 text-gray-500 hover:bg-gray-800'}`}>
+                                                <span className="truncate pr-1">{i.name}</span>
+                                                {selectedIngredientIds.includes(i.id) && <CheckIcon className="w-3.5 h-3.5" />}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <input type="number" value={bulkIngMin} onChange={e => setBulkIngMin(e.target.value)} placeholder="Mín %" className="flex-1 bg-gray-950 border border-gray-800 text-white rounded-xl p-3 text-[12px] font-mono outline-none" />
+                                        <input type="number" value={bulkIngMax} onChange={e => setBulkIngMax(e.target.value)} placeholder="Máx %" className="flex-1 bg-gray-950 border border-gray-800 text-white rounded-xl p-3 text-[12px] font-mono outline-none" />
+                                    </div>
                                 </div>
-                                <button onClick={handleBulkApplyNutrients} className="bg-cyan-600 hover:bg-cyan-500 text-white font-black px-4 py-2 rounded-lg text-[10px] uppercase transition-all shadow-lg shadow-cyan-900/20">Inyectar Nutrientes</button>
+
+                                <div className="bg-gray-950/50 rounded-2xl p-4 border border-gray-800">
+                                    <h4 className="text-[10px] font-black text-cyan-500 uppercase tracking-widest mb-4 flex items-center gap-2"><BeakerIcon className="w-4 h-4"/> Requerimientos Nutricionales</h4>
+                                    <div className="h-44 overflow-y-auto mb-4 bg-black/40 rounded-xl border border-gray-800 p-3 grid grid-cols-3 gap-2 custom-scrollbar">
+                                        {nutrients.map(n => (
+                                            <button key={n.id} onClick={() => setSelectedNutrientIds(prev => prev.includes(n.id) ? prev.filter(id => id !== n.id) : [...prev, n.id])}
+                                                className={`flex items-center justify-between px-3 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${selectedNutrientIds.includes(n.id) ? 'bg-cyan-600 text-white shadow-lg' : 'bg-gray-900/50 text-gray-500 hover:bg-gray-800'}`}>
+                                                <span className="truncate pr-1">{n.name}</span>
+                                                {selectedNutrientIds.includes(n.id) && <CheckIcon className="w-3.5 h-3.5" />}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <input type="number" value={bulkNutMin} onChange={e => setBulkNutMin(e.target.value)} placeholder="Mín Global" className="flex-1 bg-gray-950 border border-gray-800 text-white rounded-xl p-3 text-[12px] font-mono outline-none" />
+                                        <input type="number" value={bulkNutMax} onChange={e => setBulkNutMax(e.target.value)} placeholder="Máx Global" className="flex-1 bg-gray-950 border border-gray-800 text-white rounded-xl p-3 text-[12px] font-mono outline-none" />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="flex justify-center pt-4 border-t border-indigo-500/20">
+                                <button onClick={handleBulkApplyUnified} className="bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-black px-16 py-4 rounded-2xl uppercase tracking-widest text-[12px] shadow-3xl transition-all transform hover:scale-[1.02] flex items-center gap-3">
+                                    <CheckIcon className="w-6 h-6"/> INYECTAR SELECCIÓN UNIFICADA AL LOTE
+                                </button>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            {/* VERTICAL MATRIX */}
-            <div className="flex-1 bg-gray-900/50 rounded-2xl border border-gray-800 shadow-2xl flex flex-col overflow-hidden">
-                <div className="p-4 bg-gray-900 border-b border-gray-800 flex justify-between items-center shrink-0">
-                    <div className="flex items-center gap-4">
-                        <h3 className="text-[12px] font-black text-white uppercase tracking-[0.2em]">Consola de Nutrición Vertical</h3>
-                        <div className="h-4 w-px bg-gray-700"></div>
-                        <button onClick={() => setShowBulkPanel(!showBulkPanel)} className="flex items-center gap-2 text-[10px] font-black text-indigo-400 hover:text-indigo-300 uppercase transition-colors">
-                            <SparklesIcon className="w-3.5 h-3.5" /> Inyectar Global
-                        </button>
-                    </div>
-                </div>
-
-                <div className="flex-1 overflow-auto custom-scrollbar">
-                    {selectedProducts.length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center text-center p-8 opacity-40">
-                            <DatabaseIcon className="w-12 h-12 mb-4 text-gray-600" />
-                            <p className="text-gray-400 font-black uppercase tracking-widest text-[14px]">Sin Selección Activa</p>
-                        </div>
-                    ) : (
-                        <table className="w-full text-left border-collapse table-fixed">
-                            <thead className="sticky top-0 z-30 bg-gray-950">
-                                <tr>
-                                    <th className="p-3 w-[250px] bg-gray-900 border-r border-gray-800 relative">
-                                        <div className="text-[9px] font-black text-gray-600 uppercase tracking-widest text-center">Insumos y Nutrición</div>
-                                    </th>
-                                    {selectedProducts.map(p => {
-                                        const styles = getColorClasses(getCategoryColor(p.category || ''));
-                                        return (
-                                            <th key={p.id} className={`p-3 w-[160px] border-l border-gray-800/50 text-center ${styles.bg} group/header relative`}>
-                                                <button 
-                                                    onClick={() => onRemoveDietFromSelection?.(p.id)}
-                                                    className="absolute -top-1 -right-1 opacity-0 group-hover/header:opacity-100 bg-red-500 text-white rounded-full p-1 shadow-lg transition-all hover:scale-110 z-40"
-                                                    title="Quitar Dieta de la Matriz"
-                                                >
-                                                    <XCircleIcon className="w-3 h-3" />
-                                                </button>
-                                                <div className="flex flex-col items-center gap-1">
-                                                    <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase text-white shadow ${styles.badge}`}>{p.category || 'Sin Cat'}</span>
-                                                    <span className="text-[10px] font-black text-white uppercase truncate max-w-full">{p.name}</span>
-                                                    <div className="mt-1 w-full max-w-[120px]">
-                                                        <div className="flex bg-black/40 border border-white/10 rounded overflow-hidden">
-                                                            <div className="bg-gray-800 px-1 py-1 flex items-center justify-center border-r border-white/5"><SettingsIcon className="w-2.5 h-2.5 text-gray-400" /></div>
-                                                            <input type="number" value={batchSizes[p.id] || 1000} onChange={e => setBatchSizes({...batchSizes, [p.id]: Number(e.target.value)})} className="w-full bg-transparent p-1 text-[10px] text-center text-white font-mono outline-none focus:bg-indigo-500/10" />
-                                                        </div>
-                                                    </div>
-                                                </div>
+                    {/* FullScreen Matrix Grid Area */}
+                    <div className="flex-1 bg-gray-900/60 rounded-3xl border border-gray-800 shadow-3xl flex flex-col overflow-hidden">
+                        <div className="flex-1 overflow-auto custom-scrollbar">
+                            {selectedProducts.length === 0 ? (
+                                <div className="h-full flex flex-col items-center justify-center text-center p-20 opacity-30">
+                                    <DatabaseIcon className="w-24 h-24 mb-6 text-gray-700" />
+                                    <p className="text-gray-500 font-black uppercase tracking-[0.5em] text-[20px]">Matrix Empty - Select Diets</p>
+                                </div>
+                            ) : (
+                                <table className="w-full text-left border-collapse table-fixed">
+                                    <thead className="sticky top-0 z-40 bg-gray-950">
+                                        <tr>
+                                            <th className="p-4 w-[280px] bg-gray-900 border-r border-gray-800 relative shadow-2xl">
+                                                <div className="text-[12px] font-black text-gray-500 uppercase tracking-[0.3em] text-center">Protocolo de Nutrición</div>
                                             </th>
-                                        );
-                                    })}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {/* SECTION: INGREDIENTS */}
-                                <tr className="bg-gray-900 shadow-inner">
-                                    <td colSpan={selectedProducts.length + 1} className="px-4 py-1.5 border-y border-gray-800 bg-indigo-500/10">
-                                        <div className="flex items-center gap-2">
-                                            <CubeIcon className="w-3.5 h-3.5 text-indigo-400" />
-                                            <span className="text-[9px] font-black text-indigo-400 uppercase tracking-[0.3em]">Inclusión de Insumos (%)</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {activeIngredientIds.map(ingId => {
-                                    const ing = ingredients.find(i => i.id === ingId);
-                                    return (
-                                        <tr key={ingId} className="border-b border-gray-800/20 hover:bg-gray-800/20 transition-colors group">
-                                            <td className="p-2 pl-6 text-[10px] font-bold text-gray-400 group-hover:text-white uppercase bg-gray-950/20 border-r border-gray-800 relative">
-                                                <div className="flex items-center gap-2 truncate justify-between">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-600"></div>
-                                                        {ing?.name}
-                                                    </div>
-                                                    <button onClick={() => handleRemoveIngredientGlobally(ingId)} className="opacity-0 group-hover:opacity-100 text-red-400/50 hover:text-red-400 px-2 transition-all">
-                                                        <TrashIcon className="w-3 h-3" />
-                                                    </button>
-                                                </div>
-                                            </td>
                                             {selectedProducts.map(p => {
-                                                const con = p.ingredientConstraints.find(c => c.ingredientId === ingId);
+                                                const styles = getColorClasses(getCategoryColor(p.category || ''));
                                                 return (
-                                                    <td key={p.id} className="p-1 px-2 border-l border-gray-800/10">
-                                                        <div className="flex items-center gap-1 bg-gray-900/50 rounded border border-transparent hover:border-indigo-500/30 overflow-hidden">
-                                                            <input type="number" step="0.1" value={con?.min ?? ''} placeholder="0" onChange={e => {
-                                                                if (!onUpdateProduct) return;
-                                                                const val = parseFloat(e.target.value);
-                                                                const newC = [...p.ingredientConstraints];
-                                                                const idx = newC.findIndex(c => c.ingredientId === ingId);
-                                                                if (idx >= 0) newC[idx].min = isNaN(val) ? 0 : val;
-                                                                else newC.push({ ingredientId: ingId, min: isNaN(val) ? 0 : val, max: 100 });
-                                                                onUpdateProduct({ ...p, ingredientConstraints: newC });
-                                                            }} className="w-1/2 bg-transparent text-[10px] text-gray-500 rounded-none p-1 text-center font-mono outline-none border-r border-gray-800/50" />
-                                                            <input type="number" step="0.1" value={con && con.max < 100 ? con.max : ''} placeholder="100" onChange={e => {
-                                                                if (!onUpdateProduct) return;
-                                                                const val = parseFloat(e.target.value);
-                                                                const newC = [...p.ingredientConstraints];
-                                                                const idx = newC.findIndex(c => c.ingredientId === ingId);
-                                                                if (idx >= 0) newC[idx].max = isNaN(val) ? 100 : val;
-                                                                else newC.push({ ingredientId: ingId, min: 0, max: isNaN(val) ? 100 : val });
-                                                                onUpdateProduct({ ...p, ingredientConstraints: newC });
-                                                            }} className="w-1/2 bg-transparent text-[10px] text-indigo-400 font-bold rounded-none p-1 text-center font-mono outline-none" />
+                                                    <th key={p.id} className={`p-4 w-[200px] border-l border-gray-800/40 text-center ${styles.bg} group/item relative`}>
+                                                        <button onClick={() => onRemoveDietFromSelection?.(p.id)} className="absolute -top-1 -right-1 opacity-100 bg-red-600 text-white rounded-full p-2 shadow-2xl transition-all hover:scale-110 z-50"><XCircleIcon className="w-4 h-4" /></button>
+                                                        <div className="flex flex-col items-center gap-2">
+                                                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase text-white shadow-xl ${styles.badge}`}>{p.category}</span>
+                                                            <span className="text-[12px] font-black text-white uppercase truncate w-full">{p.name}</span>
+                                                            <div className="mt-2 w-full max-w-[140px] flex bg-black/60 border border-white/10 rounded-xl overflow-hidden shadow-inner">
+                                                                <div className="bg-gray-800 px-2 py-2 flex items-center justify-center border-r border-white/5"><SettingsIcon className="w-4 h-4 text-gray-400" /></div>
+                                                                <input type="number" value={batchSizes[p.id] || 1000} onChange={e => setBatchSizes({...batchSizes, [p.id]: Number(e.target.value)})} className="w-full bg-transparent p-2 text-[12px] text-center text-white font-mono outline-none" />
+                                                            </div>
                                                         </div>
-                                                    </td>
+                                                    </th>
                                                 );
                                             })}
                                         </tr>
-                                    );
-                                })}
-
-                                {/* SECTION: NUTRIENTS */}
-                                <tr className="bg-gray-900 shadow-inner">
-                                    <td colSpan={selectedProducts.length + 1} className="px-4 py-1.5 border-y border-gray-800 bg-cyan-500/10">
-                                        <div className="flex items-center gap-2">
-                                            <BeakerIcon className="w-3.5 h-3.5 text-cyan-500" />
-                                            <span className="text-[9px] font-black text-cyan-500 uppercase tracking-[0.3em]">Requerimientos Nutricionales</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {activeNutrientIds.map(nutId => {
-                                    const nut = nutrients.find(n => n.id === nutId);
-                                    return (
-                                        <tr key={nutId} className="border-b border-gray-800/20 hover:bg-gray-800/20 transition-colors group">
-                                            <td className="p-2 pl-6 text-[10px] font-bold text-gray-400 group-hover:text-white uppercase bg-gray-950/20 border-r border-gray-800 relative">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-2">
-                                                        <span>{nut?.name}</span>
-                                                        <span className="text-[7px] text-gray-600 font-mono">{nut?.unit}</span>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-800/30">
+                                        <tr className="bg-indigo-500/5"><td colSpan={selectedProducts.length + 1} className="px-6 py-3 border-y border-gray-800"><div className="flex items-center gap-3"><CubeIcon className="w-4 h-4 text-indigo-400" /><span className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.4em]">Inclusión de Insumos (%)</span></div></td></tr>
+                                        {activeIngredientIds.map(ingId => (
+                                            <tr key={ingId} className="hover:bg-gray-800/40 transition-colors group">
+                                                <td className="p-3 pl-8 text-[11px] font-black text-gray-500 group-hover:text-white uppercase border-r border-gray-800 bg-gray-950/20 relative">
+                                                    <div className="flex items-center justify-between">
+                                                        <span>{ingredients.find(i => i.id === ingId)?.name}</span>
+                                                        <button onClick={() => handleRemoveIngredientGlobally(ingId)} className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-400 px-2 transition-all"><TrashIcon className="w-4 h-4" /></button>
                                                     </div>
-                                                    <button onClick={() => handleRemoveNutrientGlobally(nutId)} className="opacity-0 group-hover:opacity-100 text-red-400/50 hover:text-red-400 px-2 transition-all">
-                                                        <TrashIcon className="w-3 h-3" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                            {selectedProducts.map(p => {
-                                                const con = p.constraints.find(c => c.nutrientId === nutId);
-                                                return (
-                                                    <td key={p.id} className="p-1 px-2 border-l border-gray-800/10">
-                                                        <div className="flex items-center gap-1 bg-gray-900/50 rounded border border-transparent hover:border-cyan-500/30 overflow-hidden">
-                                                            <input type="number" step="0.01" value={con?.min ?? ''} placeholder="min" onChange={e => {
-                                                                if (!onUpdateProduct) return;
-                                                                const val = parseFloat(e.target.value);
-                                                                const newC = [...p.constraints];
-                                                                const idx = newC.findIndex(c => c.nutrientId === nutId);
-                                                                if (idx >= 0) newC[idx].min = isNaN(val) ? 0 : val;
-                                                                else newC.push({ nutrientId: nutId, min: isNaN(val) ? 0 : val, max: 999 });
-                                                                onUpdateProduct({ ...p, constraints: newC });
-                                                            }} className="w-1/2 bg-transparent text-[10px] text-gray-500 rounded-none p-1 text-center font-mono outline-none border-r border-gray-800/50" />
-                                                            <input type="number" step="0.01" value={con && con.max < 999 ? con.max : ''} placeholder="max" onChange={e => {
-                                                                if (!onUpdateProduct) return;
-                                                                const val = parseFloat(e.target.value);
-                                                                const newC = [...p.constraints];
-                                                                const idx = newC.findIndex(c => c.nutrientId === nutId);
-                                                                if (idx >= 0) newC[idx].max = isNaN(val) ? 999 : val;
-                                                                else newC.push({ nutrientId: nutId, min: 0, max: isNaN(val) ? 999 : val });
-                                                                onUpdateProduct({ ...p, constraints: newC });
-                                                            }} className="w-1/2 bg-transparent text-[10px] text-white font-black rounded-none p-1 text-center font-mono outline-none" />
-                                                        </div>
-                                                    </td>
-                                                );
-                                            })}
-                                        </tr>
-                                    );
-                                })}
-
-                                {/* SECTION: RATIOS */}
-                                {activeRelationNames.length > 0 && (
-                                    <>
-                                        <tr className="bg-gray-900 shadow-inner">
-                                            <td colSpan={selectedProducts.length + 1} className="px-4 py-1.5 border-y border-gray-800 bg-yellow-500/10">
-                                                <div className="flex items-center gap-2">
-                                                    <RatiosIcon className="w-3.5 h-3.5 text-yellow-500" />
-                                                    <span className="text-[9px] font-black text-yellow-500 uppercase tracking-[0.3em]">Relaciones y Balances</span>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        {activeRelationNames.map(relName => (
-                                            <tr key={relName} className="border-b border-gray-800/20 hover:bg-gray-800/20 transition-colors group">
-                                                <td className="p-2 pl-6 text-[10px] font-bold text-yellow-500/80 group-hover:text-yellow-500 uppercase bg-gray-950/20 border-r border-gray-800">{relName}</td>
+                                                </td>
                                                 {selectedProducts.map(p => {
-                                                    const rel = p.relationships.find(r => r.name === relName);
+                                                    const con = p.ingredientConstraints.find(c => c.ingredientId === ingId);
                                                     return (
-                                                        <td key={p.id} className="p-1 px-2 border-l border-gray-800/10">
-                                                            <div className="flex items-center gap-1 bg-yellow-950/10 rounded border border-transparent hover:border-yellow-500/30 overflow-hidden">
-                                                                <input type="number" step="0.01" value={rel?.min ?? ''} placeholder="min" onChange={e => {
-                                                                    if (!onUpdateProduct) return;
-                                                                    const val = parseFloat(e.target.value);
-                                                                    const newR = [...p.relationships];
-                                                                    const idx = newR.findIndex(r => r.name === relName);
-                                                                    if (idx >= 0) { newR[idx].min = isNaN(val) ? 0 : val; onUpdateProduct({ ...p, relationships: newR }); }
-                                                                }} className="w-1/2 bg-transparent text-[10px] text-yellow-600 rounded-none p-1 text-center font-mono outline-none border-r border-yellow-800/20" />
-                                                                <input type="number" step="0.01" value={rel && rel.max < 999 ? rel.max : ''} placeholder="max" onChange={e => {
-                                                                    if (!onUpdateProduct) return;
-                                                                    const val = parseFloat(e.target.value);
-                                                                    const newR = [...p.relationships];
-                                                                    const idx = newR.findIndex(r => r.name === relName);
-                                                                    if (idx >= 0) { newR[idx].max = isNaN(val) ? 999 : val; onUpdateProduct({ ...p, relationships: newR }); }
-                                                                }} className="w-1/2 bg-transparent text-[10px] text-white font-black rounded-none p-1 text-center font-mono outline-none" />
+                                                        <td key={p.id} className="p-2 border-l border-gray-800/10">
+                                                            <div className="flex items-center bg-gray-950 border border-gray-800 rounded-xl overflow-hidden hover:border-indigo-500/40 transition-all shadow-inner">
+                                                                <input type="number" step="0.1" value={con?.min ?? ''} placeholder="0" onChange={e => handleConstraintChange(p.id, ingId, 'min', parseFloat(e.target.value), 'ing')} className="w-1/2 bg-transparent text-[11px] text-gray-600 p-2 text-center font-mono outline-none border-r border-gray-800" />
+                                                                <input type="number" step="0.1" value={con && con.max < 100 ? con.max : ''} placeholder="100" onChange={e => handleConstraintChange(p.id, ingId, 'max', parseFloat(e.target.value), 'ing')} className="w-1/2 bg-transparent text-[11px] text-indigo-400 font-black p-2 text-center font-mono outline-none" />
                                                             </div>
                                                         </td>
                                                     );
                                                 })}
                                             </tr>
                                         ))}
-                                    </>
-                                )}
-
-                                {/* SECTION: OPERATIONAL SUMMARY */}
-                                <tr className="sticky bottom-0 z-30 bg-amber-500 shadow-[0_-10px_20px_rgba(0,0,0,0.5)]">
-                                    <td className="p-2 px-4 bg-amber-600 border-r border-amber-400">
-                                        <div className="text-[9px] font-black text-white uppercase tracking-widest flex items-center gap-2">
-                                            <SettingsIcon className="w-3.5 h-3.5" /> Resumen Operativo (kg)
-                                        </div>
-                                    </td>
-                                    {selectedProducts.map(p => (
-                                        <td key={p.id} className="p-2 border-l border-amber-400 text-center font-black text-white bg-amber-500">
-                                            <span className="text-[12px] font-mono tracking-tighter">{(batchSizes[p.id] || 1000).toLocaleString()}</span>
-                                        </td>
-                                    ))}
-                                </tr>
-                            </tbody>
-                        </table>
-                    )}
-                </div>
-
-                {/* Footer Optimizer Always Visible */}
-                <div className="p-3 bg-gray-900 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4 shrink-0">
-                    <div className="flex gap-4">
-                        <div className="flex flex-col">
-                            <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Masa de Lote Global</span>
-                            <span className="text-[16px] font-black font-mono text-cyan-400 leading-none">{Object.values(batchSizes).reduce((a, b) => a + b, 0).toLocaleString()} <span className="text-[9px] text-gray-500">kg</span></span>
+                                        <tr className="bg-cyan-500/5"><td colSpan={selectedProducts.length + 1} className="px-6 py-3 border-y border-gray-800"><div className="flex items-center gap-3"><BeakerIcon className="w-4 h-4 text-cyan-400" /><span className="text-[10px] font-black text-cyan-300 uppercase tracking-[0.4em]">Propiedades Nutricionales</span></div></td></tr>
+                                        {activeNutrientIds.map(nutId => (
+                                            <tr key={nutId} className="hover:bg-gray-800/40 transition-colors group">
+                                                <td className="p-3 pl-8 text-[11px] font-black text-gray-500 group-hover:text-white uppercase border-r border-gray-800 bg-gray-950/20 relative">
+                                                    <div className="flex items-center justify-between">
+                                                        <span>{nutrients.find(n => n.id === nutId)?.name}</span>
+                                                        <button onClick={() => handleRemoveNutrientGlobally(nutId)} className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-400 px-2 transition-all"><TrashIcon className="w-4 h-4" /></button>
+                                                    </div>
+                                                </td>
+                                                {selectedProducts.map(p => {
+                                                    const con = p.constraints.find(c => c.nutrientId === nutId);
+                                                    return (
+                                                        <td key={p.id} className="p-2 border-l border-gray-800/10">
+                                                            <div className="flex items-center bg-gray-950 border border-gray-800 rounded-xl overflow-hidden hover:border-cyan-500/40 transition-all shadow-inner">
+                                                                <input type="number" step="0.01" value={con?.min ?? ''} placeholder="min" onChange={e => handleConstraintChange(p.id, nutId, 'min', parseFloat(e.target.value), 'nut')} className="w-1/2 bg-transparent text-[11px] text-gray-600 p-2 text-center font-mono outline-none border-r border-gray-800" />
+                                                                <input type="number" step="0.01" value={con && con.max < 999 ? con.max : ''} placeholder="max" onChange={e => handleConstraintChange(p.id, nutId, 'max', parseFloat(e.target.value), 'nut')} className="w-1/2 bg-transparent text-[11px] text-white font-black p-2 text-center font-mono outline-none" />
+                                                            </div>
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
                         </div>
-                    </div>
-                    <button 
-                        onClick={handleRunOptimization}
-                        disabled={isOptimizing}
-                        className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-12 py-2.5 rounded-xl shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-all transform hover:scale-[1.02] flex items-center gap-3 text-[13px] uppercase tracking-[0.2em]"
-                    >
-                        {isOptimizing ? <RefreshIcon className="w-4 h-4 animate-spin" /> : <CalculatorIcon className="w-5 h-5"/>}
-                        OPTIMIZAR GRUPO
-                    </button>
-                    <div className="w-[120px] hidden md:block"></div>
-                </div>
-            </div>
 
-            {/* Results Drawer */}
-            {isDrawerOpen && resultsData && (
-                <>
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90]" onClick={handleAttemptCloseDrawer} />
-                    <div className="fixed inset-y-0 right-0 w-[85vw] bg-gray-950 border-l border-gray-800 z-[100] shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col transform">
-                        <div className="p-4 bg-gray-900 border-b border-gray-800 flex justify-between items-center shrink-0">
-                            <div className="flex items-center gap-3">
-                                <SparklesIcon className="w-5 h-5 text-emerald-400" />
-                                <h2 className="text-[16px] font-black text-white uppercase tracking-wide">Resultados del Lote Consolidado</h2>
+                        {/* Footer Operativo */}
+                        <div className="p-6 bg-gray-950 border-t border-gray-800 flex justify-between items-center shrink-0 shadow-[0_-20px_50px_rgba(0,0,0,0.8)]">
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest leading-none">Masa de Lote Consolidada</span>
+                                <span className="text-[28px] font-black font-mono text-cyan-400 mt-2 leading-none">{Object.values(batchSizes).reduce((a, b) => a + b, 0).toLocaleString()} <span className="text-sm text-gray-700">KG</span></span>
                             </div>
-                            <button onClick={handleAttemptCloseDrawer} className="text-gray-500 hover:text-white bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-bold text-[11px] uppercase">
-                                Salir <XCircleIcon className="w-4 h-4" />
+                            <button onClick={handleRunOptimization} disabled={isOptimizing} className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-black px-24 py-5 rounded-3xl shadow-3xl transform transition-all hover:scale-[1.03] active:scale-95 flex items-center gap-4 text-[16px] uppercase tracking-[0.3em]">
+                                {isOptimizing ? <RefreshIcon className="w-6 h-6 animate-spin" /> : <CalculatorIcon className="w-8 h-8"/>}
+                                OPTIMIZAR LOTE COMPLETO
                             </button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto bg-gray-900/30">
-                            <GroupResultsScreen results={resultsData.result} assignments={resultsData.assignments} products={products} ingredients={ingredients} nutrients={nutrients} isDynamicMatrix={matrixMode === 'dynamic'} onUpdateProduct={onUpdateProduct || (() => {})} onCloseDrawer={() => { setIsDrawerOpen(false); setResultsData(null); setIsDirty?.(false); }} savedFormulas={savedFormulas} setSavedFormulas={setSavedFormulas} />
+                            <div className="w-[100px]"></div>
                         </div>
                     </div>
                 </>
             )}
         </div>
     );
+
+    // Helper to generic constraint change
+    function handleConstraintChange(productId: string, id: string, field: 'min' | 'max', val: number, type: 'ing' | 'nut') {
+        const prod = products.find(p => p.id === productId);
+        if(!prod || !onUpdateProduct) return;
+        const value = isNaN(val) ? (field === 'max' ? (type === 'ing' ? 100 : 999) : 0) : val;
+        let newP = { ...prod };
+        if(type === 'ing') {
+            const idx = newP.ingredientConstraints.findIndex(c => c.ingredientId === id);
+            if(idx >= 0) newP.ingredientConstraints[idx] = { ...newP.ingredientConstraints[idx], [field]: value };
+            else newP.ingredientConstraints.push({ ingredientId: id, min: field === 'min' ? value : 0, max: field === 'max' ? value : 100 });
+        } else {
+            const idx = newP.constraints.findIndex(c => c.nutrientId === id);
+            if(idx >= 0) newP.constraints[idx] = { ...newP.constraints[idx], [field]: value };
+            else newP.constraints.push({ nutrientId: id, min: field === 'min' ? value : 0, max: field === 'max' ? value : 999 });
+        }
+        onUpdateProduct(newP);
+    }
 };
