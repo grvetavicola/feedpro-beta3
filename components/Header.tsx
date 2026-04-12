@@ -40,56 +40,17 @@ export const Header: React.FC<HeaderProps> = ({
         <header className="shrink-0 h-14 border-b border-black/10 z-50 flex items-center px-4 gap-4 relative overflow-hidden bg-white">
             {/* Banner Unificado: Calce exacto sin perder resolución */}
             {/* Banner Unificado: Calce exacto sin perder resolución */}
+            {/* --- BANNER TEMPORAL LIMPIO --- */}
             <div className="absolute inset-0 pointer-events-none select-none bg-[#09152b]">
-                {/* Logo A (Izquierda) */}
-                <div 
-                    className="absolute left-0 top-0 h-full w-[45%] z-0"
-                    style={{
-                        backgroundImage: 'url("/banner A.jpg")',
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'left center',
-                        backgroundRepeat: 'no-repeat',
-                        WebkitMaskImage: 'linear-gradient(to right, black 85%, transparent 100%)',
-                        maskImage: 'linear-gradient(to right, black 85%, transparent 100%)'
-                    }}
-                />
+                {/* Recuadro limpio del mismo fondo como marcador de posición */}
+                <div className="absolute inset-0 bg-[#09152b]"></div>
                 
-                {/* Logo B (Derecha - Solución Distorsión y Línea Blanca) */}
-                <div 
-                    className="absolute right-0 top-0 h-[110%] w-[45%] z-0" 
-                    style={{
-                        backgroundImage: 'url("/banner B.jpg")',
-                        backgroundSize: 'cover', /* Cover evita el aplastamiento horizontal y el estiramiento raro */
-                        backgroundPosition: 'right 15%', /* Alineado para que muestre AVICULTURA 360 impecable */
-                        backgroundRepeat: 'no-repeat',
-                        WebkitMaskImage: 'linear-gradient(to left, black 75%, transparent 100%)',
-                        maskImage: 'linear-gradient(to left, black 75%, transparent 100%)'
-                    }}
-                />
-
-                {/* Capa Base C (Centro expandido) */}
-                <div 
-                    className="absolute inset-0 z-10"
-                    style={{
-                        backgroundImage: 'url("/banner C.jpg")',
-                        backgroundSize: '100% 110%',
-                        backgroundPosition: 'center',
-                        backgroundRepeat: 'no-repeat',
-                        WebkitMaskImage: 'linear-gradient(to right, transparent 20%, black 40%, black 60%, transparent 80%)',
-                        maskImage: 'linear-gradient(to right, transparent 20%, black 40%, black 60%, transparent 80%)'
-                    }}
-                />
-                
-                {/* Parche difuminador para Ocultar el Logo blanco "FEEDPRO 360" grabado/quemado adentro de banner C.jpg */}
-                <div className="absolute left-1/2 -translate-x-1/2 top-0 h-full w-[250px] z-[15] backdrop-blur-[6px] backdrop-brightness-50 bg-[#09152b]/40 rounded-[100%] scale-y-150 opacity-90 blur-xl"></div>
-
-                {/* Logo FeedPro (A la Izquierda, Sin blend-screen para que no desaparezca, Celeste puro brillante) */}
-                <div className="absolute left-[20%] lg:left-[18%] xl:left-[15%] top-1/2 -translate-y-1/2 z-20 overflow-visible">
+                {/* Logo FeedPro (Mantener visibilidad mínima para navegación) */}
+                <div className="absolute left-6 top-1/2 -translate-y-1/2 z-20">
                     <img 
                         src="/FeedPro-sinfondo.PNG" 
                         alt="FeedPro 360" 
-                        className="w-[160px] max-w-[25vw] object-contain drop-shadow-[0_0_8px_rgba(34,211,238,0.8)] opacity-100" 
-                        style={{ filter: "brightness(0) saturate(100%) invert(75%) sepia(50%) saturate(6000%) hue-rotate(150deg) brightness(120%)" }}
+                        className="w-[120px] object-contain opacity-50 grayscale brightness-200"
                     />
                 </div>
             </div>

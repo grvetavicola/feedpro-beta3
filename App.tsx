@@ -234,7 +234,10 @@ export default function App() {
     >
       <Header 
         activeView={view} 
-        onViewChange={setView} 
+        onViewChange={(newView) => {
+            setView(newView);
+            setActiveTaskId(null); // LIMPIEZA: Si navego por el panel lateral, cierro cualquier optimización/tarea abierta
+        }} 
         user={user} 
         activeTasks={activeTasks}
         activeTaskId={activeTaskId}
