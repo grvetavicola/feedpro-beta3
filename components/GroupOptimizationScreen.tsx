@@ -48,10 +48,10 @@ interface GroupOptimizationScreenProps {
 
 // ─── Small components ─────────────────────────────────────────────────────────
 const StatusDot = ({ ok }: { ok: boolean }) => (
-  <span className={`inline-block w-1.5 h-1.5 rounded-full shrink-0 ${ok ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'}`} />
+  <span className={`inline-block w-3 h-3 rounded-full shrink-0 ${ok ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'}`} />
 );
 
-// ─── Cell Input (transparent, Excel-style) ──────────────────────────────────
+// ─── Cell Input (GIGANTE, Excel-style) ──────────────────────────────────
 const CellInput = ({
   value, onChange, placeholder, isResult = false, dirty = false, injected = false, nutResult = false, nutOk = true
 }: {
@@ -60,12 +60,12 @@ const CellInput = ({
   nutResult?: boolean; nutOk?: boolean;
 }) => {
   const [local, setLocal] = useState(value === 0 || value === '' ? '' : String(value));
-  useEffect(() => { setLocal(value === 0 || value === '' ? '' : String(value)); }, [value]);
+  useEffect(() => { setLocal(value === 0 || value === '' ? '—' : String(value)); }, [value]);
 
   if (isResult) {
     const num = typeof value === 'number' ? value : parseFloat(String(value));
     return (
-      <div className={`w-full text-center text-[11px] font-black font-mono py-1 px-1 select-none ${
+      <div className={`w-full text-center text-xl font-black font-mono py-2 px-1 select-none ${
         num > 0.001 ? 'text-emerald-400' : 'text-gray-700'
       }`}>
         {num > 0.001 ? num.toFixed(2) + '%' : '—'}
@@ -76,8 +76,8 @@ const CellInput = ({
   if (nutResult) {
     const num = typeof value === 'number' ? value : parseFloat(String(value));
     return (
-      <div className={`w-full text-center text-[11px] font-black font-mono py-1 px-1 select-none ${
-        !nutOk ? 'text-red-400' : num > 0 ? 'text-cyan-300' : 'text-gray-700'
+      <div className={`w-full text-center text-xl font-black font-mono py-2 px-1 select-none ${
+        !nutOk ? 'text-red-400 bg-red-900/20' : num > 0 ? 'text-cyan-300' : 'text-gray-700'
       }`}>
         {num > 0 ? num.toFixed(2) : '—'}
       </div>
@@ -88,22 +88,22 @@ const CellInput = ({
     <input
       type="text"
       inputMode="decimal"
-      value={local}
+      value={local === '—' ? '' : local}
       onFocus={e => e.target.select()}
       onChange={e => setLocal(e.target.value)}
       onBlur={() => {
         const parsed = parseFloat(local.replace(',', '.'));
         if (!isNaN(parsed) && onChange) onChange(parsed);
-        else if (local === '' && onChange) onChange(0);
+        else if ((local === '' || local === '—') && onChange) onChange(0);
       }}
       onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()}
       placeholder={placeholder ?? '—'}
       style={{ background: 'transparent', border: 'none', outline: 'none', width: '100%' }}
-      className={`text-center text-[11px] font-mono py-1 px-0.5 transition-colors ${
-        dirty ? 'text-yellow-300 placeholder-yellow-900 bg-yellow-500/10' :
-        injected ? 'text-blue-300' :
-        'text-gray-300 placeholder-gray-700'
-      } focus:text-white focus:bg-blue-500/10`}
+      className={`text-center text-xl font-black font-mono py-2 px-1 transition-colors ${
+        dirty ? 'text-yellow-400 bg-yellow-500/10' :
+        injected ? 'text-blue-400' :
+        'text-white placeholder-gray-800'
+      } focus:text-white focus:bg-blue-600/30`}
     />
   );
 };
@@ -128,10 +128,9 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   const activeDiets = useMemo(() => products.filter(p => activeDietIds.includes(p.id)), [products, activeDietIds]);
 
   // ── Matrix state: constraints per row per diet ─────────────────────────────
-  // Structure: constraints[rowId][dietId] = CellConstraint
   const [constraints, setConstraints] = useState<Record<string, Record<string, CellConstraint>>>({});
 
-  // Seed constraints from product data when diet selection changes
+  // Seed constraints
   useEffect(() => {
     setConstraints(prev => {
       const next = { ...prev };
@@ -153,9 +152,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     });
   }, [activeDietIds]);
 
-  // ── Active rows (ingredients + nutrients with any constraint across diets) ──
   const [activeRows, setActiveRows] = useState<MatrixRow[]>([]);
-
   useEffect(() => {
     const ingIds = new Set<string>();
     const nutIds = new Set<string>();
@@ -165,29 +162,26 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     });
     const rows: MatrixRow[] = [
       ...ingredients.filter(i => ingIds.has(i.id)).map(i => ({
-        id: i.id, type: 'ing' as RowType, name: i.name,
+        id: i.id, type: 'ing' as RowType, name: i.name.toUpperCase(),
         price: (i.price / (1 - (i.shrinkage || 0) / 100)) + (i.processingCost || 0)
       })),
       ...nutrients.filter(n => nutIds.has(n.id)).map(n => ({
-        id: n.id, type: 'nut' as RowType, name: n.name, unit: n.unit
+        id: n.id, type: 'nut' as RowType, name: n.name.toUpperCase(), unit: n.unit
       }))
     ];
     setActiveRows(rows);
   }, [activeDietIds, products]);
 
-  // ── Solver results ─────────────────────────────────────────────────────────
   const [results, setResults] = useState<Record<string, DietResult | null>>({});
   const [isRunning, setIsRunning] = useState(false);
   const [hasRun, setHasRun] = useState(false);
 
-  // ── Injector state ─────────────────────────────────────────────────────────
   const [injMode, setInjMode] = useState<'ing' | 'nut'>('ing');
   const [injSearch, setInjSearch] = useState('');
   const [injMin, setInjMin] = useState('');
   const [injMax, setInjMax] = useState('');
   const [matrixMode, setMatrixMode] = useState<'general' | 'dynamic'>(isDynamicMatrix ? 'dynamic' : 'general');
 
-  // ── Batch sizes ────────────────────────────────────────────────────────────
   const [batchSizes, setBatchSizes] = useState<Record<string, number>>({});
   useEffect(() => {
     setBatchSizes(prev => {
@@ -197,19 +191,17 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     });
   }, [activeDietIds]);
 
-  // ── Diet selection panel ───────────────────────────────────────────────────
   const [showDietPanel, setShowDietPanel] = useState(activeDietIds.length === 0);
   const dietsByCategory = useMemo(() => {
     const map: Record<string, Product[]> = {};
     products.forEach(p => {
-      const cat = p.category || 'General';
+      const cat = p.category || 'GENERAL';
       if (!map[cat]) map[cat] = [];
       map[cat].push(p);
     });
     return map;
   }, [products]);
 
-  // ── Constraint update helper ───────────────────────────────────────────────
   const updateConstraint = useCallback((rowId: string, dietId: string, field: 'min' | 'max', val: number) => {
     setConstraints(prev => ({
       ...prev,
@@ -228,25 +220,19 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     setHasRun(false);
   }, [activeRows]);
 
-  // ── Add row via injector ───────────────────────────────────────────────────
   const handleAddRow = (id: string) => {
     const min = injMin === '' ? 0 : parseFloat(injMin);
     const max = injMax === '' ? (injMode === 'ing' ? 100 : 999) : parseFloat(injMax);
-
-    // Add row if it doesn't exist
-    const row = injMode === 'ing'
-      ? ingredients.find(i => i.id === id)
-      : nutrients.find(n => n.id === id);
+    const row = injMode === 'ing' ? ingredients.find(i => i.id === id) : nutrients.find(n => n.id === id);
     if (!row) return;
 
     if (!activeRows.find(r => r.id === id)) {
       const newRow: MatrixRow = injMode === 'ing'
-        ? { id, type: 'ing', name: row.name, price: ((row as Ingredient).price / (1 - ((row as Ingredient).shrinkage || 0) / 100)) + ((row as Ingredient).processingCost || 0) }
-        : { id, type: 'nut', name: row.name, unit: (row as Nutrient).unit };
+        ? { id, type: 'ing', name: row.name.toUpperCase(), price: ((row as Ingredient).price / (1 - ((row as Ingredient).shrinkage || 0) / 100)) + ((row as Ingredient).processingCost || 0) }
+        : { id, type: 'nut', name: row.name.toUpperCase(), unit: (row as Nutrient).unit };
       setActiveRows(prev => [...prev, newRow]);
     }
 
-    // Set constraint for all active diets
     setConstraints(prev => {
       const next = { ...prev };
       activeDiets.forEach(diet => {
@@ -256,7 +242,6 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
       return next;
     });
 
-    // Also persist to product (optional but keeps data in sync)
     if (onUpdateProduct) {
       activeDiets.forEach(diet => {
         const newP = { ...diet };
@@ -272,12 +257,10 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
         onUpdateProduct(newP);
       });
     }
-
     setInjSearch('');
     setHasRun(false);
   };
 
-  // ── Remove row ─────────────────────────────────────────────────────────────
   const handleRemoveRow = (rowId: string, type: RowType) => {
     setActiveRows(prev => prev.filter(r => r.id !== rowId));
     setConstraints(prev => {
@@ -295,15 +278,12 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     }
   };
 
-  // ── F4 Optimization ────────────────────────────────────────────────────────
   const handleRunAll = () => {
     if (activeDiets.length === 0) return;
     setIsRunning(true);
-
     const newResults: Record<string, DietResult> = {};
 
     activeDiets.forEach(diet => {
-      // Build a product with current matrix constraints
       const matrixProduct: Product = {
         ...diet,
         ingredientConstraints: activeRows
@@ -340,11 +320,10 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
       };
     });
 
-     setResults(newResults);
+    setResults(newResults);
     setIsRunning(false);
     setHasRun(true);
     setIsDirty?.(true);
-    // Clear dirty flags
     setConstraints(prev => {
       const next = { ...prev };
       Object.keys(next).forEach(rowId => {
@@ -356,7 +335,6 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     });
   };
 
-  // ── Global Keyboard Shortcuts ──
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'F4') {
@@ -368,7 +346,6 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleRunAll]);
 
-  // ── Save Bulk Execution ──
   const handleSaveBulk = () => {
     const successfulDiets = activeDiets.filter(diet => results[diet.id]?.feasible);
     if (successfulDiets.length === 0) {
@@ -377,7 +354,6 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     }
 
     const newFormulas: SavedFormula[] = successfulDiets.map(diet => {
-      // Build matrix product for a final solver run (to capture full result without touching F4)
       const matrixProduct: Product = {
         ...diet,
         ingredientConstraints: activeRows
@@ -395,14 +371,12 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
             max: constraints[r.id][diet.id].max
           }))
       };
-      
       const batch = batchSizes[diet.id] || 1000;
       const result = solveFeedFormulation(matrixProduct, ingredients, nutrients, batch, matrixMode === 'dynamic');
-      
       return {
         id: Math.random().toString(36).substr(2, 9),
         clientId: diet.clientId,
-        name: diet.name,
+        name: diet.name.toUpperCase(),
         date: new Date().toISOString(),
         result
       };
@@ -410,185 +384,128 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
 
     if (setSavedFormulas) {
       setSavedFormulas((prev: any) => [...(Array.isArray(prev) ? prev : []), ...newFormulas]);
-      alert(`✅ ${newFormulas.length} Dieta(s) guardadas correctamente en el panel principal.`);
+      alert(`✅ ${newFormulas.length} Dietas guardadas correctamente.`);
       onLeaveFullscreen?.();
     }
   };
 
-  // ── Injector options ───────────────────────────────────────────────────────
   const injOptions = useMemo(() => {
     const term = injSearch.toLowerCase();
     if (!term) return [];
-    if (injMode === 'ing') return ingredients.filter(i => i.name.toLowerCase().includes(term)).slice(0, 8);
-    return nutrients.filter(n => n.name.toLowerCase().includes(term)).slice(0, 8);
+    if (injMode === 'ing') return ingredients.filter(i => i.name.toLowerCase().includes(term)).slice(0, 10);
+    return nutrients.filter(n => n.name.toLowerCase().includes(term)).slice(0, 10);
   }, [injMode, injSearch, ingredients, nutrients]);
 
   const ingRows = activeRows.filter(r => r.type === 'ing');
   const nutRows = activeRows.filter(r => r.type === 'nut');
   const totalBatch = activeDiets.reduce((a, d) => a + (batchSizes[d.id] || 1000), 0);
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // RENDER
-  // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div
-      className="flex flex-col bg-gray-950 text-white overflow-hidden"
-      style={{ position: 'fixed', inset: 0, zIndex: 9999 }}
-    >
-      {/* ═══ TOPBAR ══════════════════════════════════════════════════════════ */}
-      <div className="flex items-center gap-2 px-3 py-2 bg-gray-900 border-b border-gray-800 shrink-0">
-
-        {/* Brand & Exit */}
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={() => onLeaveFullscreen?.()}
-            className="flex items-center gap-1.5 px-2 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-lg transition-all text-[10px] font-black uppercase tracking-widest border border-gray-700"
-          >
-            <RefreshIcon className="w-3 h-3 rotate-180" />
-            Volver
+    <div className="flex flex-col bg-black text-white h-screen overflow-hidden fixed inset-0 z-[9999]">
+      {/* ═══ TOPBAR (BIG ACTIONS) ══════════════════════════════════════════════ */}
+      <div className="flex items-center justify-between px-6 py-4 bg-gray-900 border-b border-gray-800 shrink-0">
+        <div className="flex items-center gap-6">
+          <button onClick={() => onLeaveFullscreen?.()}
+            className="flex items-center gap-3 px-6 py-4 bg-red-600 hover:bg-red-500 text-white rounded-xl transition-all shadow-xl shadow-red-900/40">
+            <RefreshIcon className="w-6 h-6 rotate-180" />
+            <span className="text-xl font-black uppercase tracking-tighter">Volver</span>
           </button>
-          <button
-            onClick={handleSaveBulk}
+          <button onClick={handleSaveBulk}
             disabled={isRunning || !hasRun || !Object.values(results).some(r => r?.feasible)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-lg transition-all text-[10px] font-black uppercase tracking-widest border border-indigo-500 shadow-lg shadow-indigo-500/20"
-          >
-            <CheckIcon className="w-3 h-3" />
-            Guardar Dietas
+            className="flex items-center gap-3 px-8 py-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-30 text-white rounded-xl transition-all shadow-xl shadow-emerald-900/40">
+            <CheckIcon className="w-7 h-7" />
+            <span className="text-xl font-black uppercase tracking-tighter">Guardar Dietas</span>
           </button>
-          <div className="w-px h-4 bg-gray-800 mx-1" />
-          <span className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em]">
-            Optimización Grupal
-          </span>
         </div>
 
-        <div className="w-px h-4 bg-gray-800 shrink-0" />
-
-        {/* Diet selector toggle */}
-        <button
-          onClick={() => setShowDietPanel(!showDietPanel)}
-          className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors text-gray-300"
-        >
-          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" /></svg>
-          Dietas ({activeDietIds.length})
-        </button>
-
-        <div className="w-px h-4 bg-gray-800 shrink-0" />
-
-        {/* Toggles */}
-        <label className="flex items-center gap-1.5 cursor-pointer select-none shrink-0">
-          <span className={`text-[9px] font-black uppercase ${matrixMode === 'dynamic' ? 'text-indigo-400' : 'text-gray-600'}`}>Din.</span>
-          <button onClick={() => setMatrixMode(m => m === 'dynamic' ? 'general' : 'dynamic')}
-            className={`relative inline-flex h-3.5 w-7 items-center rounded-full transition-colors ${matrixMode === 'dynamic' ? 'bg-indigo-500' : 'bg-gray-700'}`}>
-            <span className={`inline-block h-2.5 w-2.5 rounded-full bg-white transition-transform ${matrixMode === 'dynamic' ? 'translate-x-3.5' : 'translate-x-0.5'}`} />
-          </button>
-        </label>
-
-        <div className="w-px h-4 bg-gray-800 shrink-0" />
-
-        {/* ── INJECTOR ── */}
-        <div className="flex items-center gap-1.5 flex-1 min-w-0">
-          <div className="flex rounded-lg overflow-hidden border border-gray-700 shrink-0">
-            <button onClick={() => setInjMode('ing')}
-              className={`px-2 py-1 text-[9px] font-black uppercase transition-all ${injMode === 'ing' ? 'bg-indigo-600 text-white' : 'bg-gray-900 text-gray-500 hover:text-gray-300'}`}>
-              <CubeIcon className="w-3 h-3 inline" />
-            </button>
-            <button onClick={() => setInjMode('nut')}
-              className={`px-2 py-1 text-[9px] font-black uppercase transition-all ${injMode === 'nut' ? 'bg-cyan-600 text-white' : 'bg-gray-900 text-gray-500 hover:text-gray-300'}`}>
-              <BeakerIcon className="w-3 h-3 inline" />
-            </button>
-          </div>
-          <div className="relative flex-1 min-w-0">
-            <input
-              type="text"
-              value={injSearch}
-              onChange={e => setInjSearch(e.target.value)}
-              placeholder={injMode === 'ing' ? '+ Añadir insumo a la matriz...' : '+ Añadir nutriente a la matriz...'}
-              className="w-full bg-gray-800 border border-gray-700 text-white text-[11px] rounded-lg px-3 py-1.5 outline-none placeholder-gray-600 focus:border-indigo-500 transition-colors"
-            />
-            {injOptions.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-gray-900 border border-gray-600 rounded-xl shadow-2xl z-50 overflow-hidden">
-                {injOptions.map(opt => (
-                  <button key={opt.id} onClick={() => handleAddRow(opt.id)}
-                    className="w-full text-left px-3 py-2 text-[11px] text-gray-200 hover:bg-indigo-700 transition-colors flex items-center justify-between group">
-                    <span className="font-bold truncate">{opt.name}</span>
-                    {'price' in opt && <span className="text-[9px] text-gray-500 font-mono shrink-0 ml-2">${((opt as Ingredient).price || 0).toFixed(2)}/kg</span>}
-                    <span className="text-[9px] bg-emerald-600 text-white font-black px-1.5 py-0.5 rounded-full ml-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">+ Add</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <input type="number" value={injMin} onChange={e => setInjMin(e.target.value)} placeholder="Mín"
-            className="w-14 bg-gray-800 border border-gray-700 text-white text-[10px] text-center rounded-lg px-1 py-1.5 outline-none font-mono focus:border-indigo-500 transition-colors shrink-0" />
-          <span className="text-gray-700 text-[10px] shrink-0">—</span>
-          <input type="number" value={injMax} onChange={e => setInjMax(e.target.value)} placeholder="Máx"
-            className="w-14 bg-gray-800 border border-gray-700 text-white text-[10px] text-center rounded-lg px-1 py-1.5 outline-none font-mono focus:border-indigo-500 transition-colors shrink-0" />
+        <div className="text-center flex flex-col items-center">
+            <span className="text-2xl font-black text-cyan-400 uppercase tracking-widest leading-none">Matriz FeedPro 360</span>
+            <span className="text-[10px] text-gray-500 font-bold tracking-[0.5em] mt-1 ml-1">GRUPO DE OPTIMIZACIÓN — GIGANTE</span>
         </div>
 
-        <div className="w-px h-4 bg-gray-800 shrink-0" />
-
-        {/* Mass / status */}
-        <span className="text-[10px] font-mono text-emerald-500 font-black shrink-0">{totalBatch.toLocaleString()} kg</span>
-
-        {/* F4 Button */}
-        <button
-          onClick={handleRunAll}
-          disabled={isRunning || activeDiets.length === 0}
-          className="flex items-center gap-2 bg-gradient-to-r from-emerald-700 to-cyan-700 hover:from-emerald-600 hover:to-cyan-600 disabled:opacity-40 text-white font-black px-4 py-2 rounded-lg text-[11px] uppercase tracking-wider shadow-xl transition-all hover:scale-[1.02] active:scale-95 shrink-0"
-        >
-          {isRunning
-            ? <RefreshIcon className="w-4 h-4 animate-spin" />
-            : <CalculatorIcon className="w-4 h-4" />}
-          F4 Optimizar
+        <button onClick={handleRunAll} disabled={isRunning || activeDiets.length === 0}
+          className="flex items-center gap-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white font-black px-10 py-5 rounded-2xl text-2xl uppercase tracking-tighter shadow-2xl shadow-indigo-900/40 transition-all active:scale-95">
+          {isRunning ? <RefreshIcon className="w-8 h-8 animate-spin" /> : <CalculatorIcon className="w-8 h-8" />}
+          Optimizar (F4)
         </button>
       </div>
 
-      {/* ═══ BODY ════════════════════════════════════════════════════════════ */}
-      <div className="flex flex-1 overflow-hidden">
+      {/* ── INJECTOR BAR (dedicated line) ── */}
+      <div className="flex items-center gap-4 px-6 py-4 bg-gray-950 border-b border-gray-800 shrink-0">
+        <div className="flex rounded-xl overflow-hidden border-2 border-gray-800 shadow-inner">
+          <button onClick={() => setInjMode('ing')} className={`px-4 py-2 flex items-center gap-2 ${injMode === 'ing' ? 'bg-indigo-600 text-white' : 'bg-gray-900 text-gray-400'}`}>
+            <CubeIcon className="w-5 h-5" />
+            <span className="text-xs font-black uppercase">Insumos</span>
+          </button>
+          <button onClick={() => setInjMode('nut')} className={`px-4 py-2 flex items-center gap-2 ${injMode === 'nut' ? 'bg-cyan-600 text-white' : 'bg-gray-900 text-gray-400'}`}>
+            <BeakerIcon className="w-5 h-5" />
+            <span className="text-xs font-black uppercase">Nutrientes</span>
+          </button>
+        </div>
 
-        {/* ── Diet Selection Drawer ── */}
+        <div className="relative flex-1 group">
+          <input type="text" value={injSearch} onChange={e => setInjSearch(e.target.value)}
+            placeholder={injMode === 'ing' ? "BUSCAR INSUMO PARA AÑADIR..." : "BUSCAR NUTRIENTE..."}
+            className="w-full bg-gray-900 border-2 border-gray-800 text-white text-lg rounded-xl px-5 py-3 outline-none focus:border-indigo-500 placeholder-gray-700 font-bold uppercase" />
+          {injOptions.length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-gray-900 border-2 border-gray-700 rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.8)] z-[100] overflow-hidden">
+              {injOptions.map(opt => (
+                <button key={opt.id} onClick={() => handleAddRow(opt.id)}
+                  className="w-full text-left px-5 py-4 text-sm text-gray-100 hover:bg-indigo-600 border-b border-gray-800 transition-all flex items-center justify-between font-black uppercase">
+                  <span>{opt.name}</span>
+                  <span className="text-xs text-emerald-500">+ Añadir a Matriz</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="flex gap-2 shrink-0">
+          <input type="number" value={injMin} onChange={e => setInjMin(e.target.value)} placeholder="MÍN"
+            className="w-24 bg-gray-900 border-2 border-gray-800 text-white text-center rounded-xl py-3 font-mono font-black text-xl placeholder-gray-800" />
+          <input type="number" value={injMax} onChange={e => setInjMax(e.target.value)} placeholder="MÁX"
+             className="w-24 bg-gray-900 border-2 border-gray-800 text-white text-center rounded-xl py-3 font-mono font-black text-xl placeholder-gray-800" />
+        </div>
+
+        <button onClick={() => setShowDietPanel(!showDietPanel)}
+          className="px-6 py-3 rounded-xl bg-gray-800 border border-gray-700 text-sm font-black uppercase tracking-widest text-white hover:bg-gray-700 flex items-center gap-3 transition-all shrink-0">
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" /></svg>
+          Dietas ({activeDietIds.length})
+        </button>
+
+        <div className="bg-emerald-950/40 border border-emerald-900/50 px-4 py-2 rounded-xl shrink-0 text-center">
+            <div className="text-[9px] text-emerald-600 font-black uppercase leading-none mb-1">Total Tanda</div>
+            <div className="text-lg font-black font-mono text-emerald-400 leading-none">{totalBatch.toLocaleString()} KG</div>
+        </div>
+      </div>
+
+      <div className="flex flex-1 overflow-hidden relative">
         {showDietPanel && (
-          <div className="w-52 shrink-0 border-r border-gray-800 bg-gray-900/80 overflow-y-auto custom-scrollbar flex flex-col">
-            <div className="px-3 py-2 border-b border-gray-800 flex items-center justify-between bg-gray-900/50">
-              <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Seleccionar Dietas</span>
-              <button 
-                onClick={() => setShowDietPanel(false)} 
-                className="p-1 hover:bg-gray-800 rounded-lg text-gray-600 hover:text-red-400 transition-all"
-                title="Cerrar panel"
-              >
-                <XCircleIcon className="w-4 h-4" />
+          <div className="w-80 shrink-0 border-r border-gray-800 bg-gray-900/95 overflow-y-auto custom-scrollbar flex flex-col z-50">
+            <div className="px-5 py-4 border-b border-gray-800 flex items-center justify-between bg-black">
+              <span className="text-sm font-black text-gray-400 uppercase tracking-widest italic">Selección Dietaria</span>
+              <button onClick={() => setShowDietPanel(false)} className="p-2 hover:bg-red-600/20 text-gray-600 hover:text-red-500 rounded-lg transition-all">
+                <XCircleIcon className="w-6 h-6" />
               </button>
             </div>
-            <div className="p-2 flex-1">
+            <div className="p-4 space-y-6">
               {Object.entries(dietsByCategory).map(([cat, prods]) => {
                 const allSel = prods.every(p => activeDietIds.includes(p.id));
                 const someSel = prods.some(p => activeDietIds.includes(p.id));
                 return (
-                  <div key={cat} className="mb-1.5">
-                    <button
-                      onClick={() => {
+                  <div key={cat} className="space-y-2">
+                    <button onClick={() => {
                         const ids = prods.map(p => p.id);
-                        setActiveDietIds(prev =>
-                          allSel ? prev.filter(id => !ids.includes(id)) : Array.from(new Set([...prev, ...ids]))
-                        );
-                      }}
-                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-800 transition-colors group"
-                    >
-                      <div className={`w-3 h-3 rounded border flex items-center justify-center shrink-0 ${allSel ? 'bg-emerald-500 border-emerald-500' : someSel ? 'bg-emerald-900 border-emerald-500' : 'border-gray-700'}`}>
-                        {(allSel || someSel) && <CheckIcon className="w-2 h-2 text-white" />}
-                      </div>
-                      <span className="text-[10px] font-black text-gray-300 uppercase truncate">{cat}</span>
-                      <span className="ml-auto text-[9px] text-gray-600">{prods.filter(p => activeDietIds.includes(p.id)).length}/{prods.length}</span>
+                        setActiveDietIds(prev => allSel ? prev.filter(id => !ids.includes(id)) : Array.from(new Set([...prev, ...ids])));
+                      }} className="w-full flex items-center justify-between px-3 py-2 bg-gray-800/40 rounded-xl hover:bg-gray-800 transition-all border border-gray-700">
+                      <span className="text-xs font-black uppercase tracking-widest">{cat}</span>
+                      <div className={`w-4 h-4 rounded border ${allSel ? 'bg-emerald-500' : someSel ? 'bg-emerald-900' : 'border-gray-600'}`} />
                     </button>
-                    <div className="ml-3 space-y-0.5">
+                    <div className="grid grid-cols-1 gap-1">
                       {prods.map(p => (
-                        <button
-                          key={p.id}
-                          onClick={() => setActiveDietIds(prev => prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id])}
-                          className={`w-full flex items-center gap-2 px-2 py-1 rounded-lg transition-colors text-left ${activeDietIds.includes(p.id) ? 'text-emerald-300 bg-emerald-500/10' : 'text-gray-500 hover:text-gray-200 hover:bg-gray-800/40'}`}
-                        >
-                          <div className={`w-2 h-2 rounded-full shrink-0 ${activeDietIds.includes(p.id) ? 'bg-emerald-500' : 'bg-gray-700'}`} />
-                          <span className="text-[10px] font-bold truncate">{p.name}</span>
+                        <button key={p.id} onClick={() => setActiveDietIds(prev => prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id])}
+                          className={`w-full text-left px-4 py-3 rounded-lg text-sm font-bold transition-all border ${activeDietIds.includes(p.id) ? 'bg-emerald-600/20 border-emerald-500 text-emerald-300' : 'bg-gray-950 border-transparent text-gray-500 hover:text-white hover:bg-gray-800'}`}>
+                          {p.name.toUpperCase()}
                         </button>
                       ))}
                     </div>
@@ -599,45 +516,42 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
           </div>
         )}
 
-        {/* ── THE MATRIX ── */}
-        <div className="flex-1 overflow-auto custom-scrollbar">
+        <div className="flex-1 overflow-auto custom-scrollbar bg-[#020202]">
           {activeDiets.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center opacity-30">
-              <CalculatorIcon className="w-16 h-16 mb-4 text-gray-700" />
-              <p className="text-gray-500 font-black uppercase tracking-widest text-sm">Abre el panel de dietas y selecciona las dietas a optimizar</p>
+            <div className="h-full flex flex-col items-center justify-center text-center">
+              <CalculatorIcon className="w-24 h-24 mb-6 text-gray-800 animate-pulse" />
+              <p className="text-gray-700 font-black uppercase tracking-widest text-xl">Selecciona dietas para comenzar la simulación</p>
             </div>
           ) : (
-            <table className="table-fixed border-collapse text-xs w-full">
-              {/* ── HEADER ── */}
+            <table className="border-collapse table-auto w-full">
               <thead>
-                <tr style={{ position: 'sticky', top: 0, zIndex: 30 }}>
-                  {/* Sticky label col header */}
-                  <th style={{ position: 'sticky', left: 0, zIndex: 40, background: '#111827', minWidth: 180, maxWidth: 180 }}
-                    className="border border-gray-700 px-2 py-2 text-left">
-                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Parámetro / Costo</span>
+                <tr className="sticky top-0 z-[40]" style={{ background: '#000' }}>
+                  <th className="sticky left-0 z-[50] bg-black border-2 border-gray-800 px-6 py-6 text-left min-w-[280px] w-[280px]">
+                    <span className="text-xs font-black text-gray-500 uppercase tracking-widest italic leading-none">Insumo / Referencia</span>
                   </th>
                   {activeDiets.map(diet => {
                     const res = results[diet.id];
                     return (
-                      <th key={diet.id} className="border border-gray-700 px-1 text-center bg-gray-900" style={{ minWidth: 168 }}>
-                        <div className="flex flex-col items-center gap-1 py-1.5">
-                          <div className="flex items-center gap-1.5 w-full justify-center">
+                      <th key={diet.id} className="border-2 border-gray-800 px-2 py-4 bg-gray-900 min-w-[200px] w-[200px]">
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="flex items-center gap-3 w-full justify-center">
                             {res && <StatusDot ok={res.feasible} />}
-                            <span className="text-[9px] font-black text-gray-300 uppercase truncate max-w-[110px]">{diet.name}</span>
+                            <span className="text-sm font-black text-white uppercase italic truncate max-w-[140px] tracking-tight">{diet.name}</span>
                             <button onClick={() => { setActiveDietIds(prev => prev.filter(id => id !== diet.id)); onRemoveDietFromSelection?.(diet.id); }}
-                              className="text-gray-600 hover:text-red-400 transition-colors shrink-0">
-                              <XCircleIcon className="w-3 h-3" />
+                              className="text-gray-600 hover:text-red-500 transition-colors shrink-0">
+                              <XCircleIcon className="w-5 h-5" />
                             </button>
                           </div>
-                          {/* Batch size */}
-                          <input type="number" value={batchSizes[diet.id] || 1000}
-                            onChange={e => setBatchSizes(prev => ({ ...prev, [diet.id]: Number(e.target.value) }))}
-                            className="w-20 bg-gray-800 border border-gray-700 rounded px-1 py-0.5 text-[9px] text-center font-mono text-cyan-400 outline-none hover:border-cyan-500/40 focus:border-cyan-500 transition-colors" />
-                          {/* Sub-column headers */}
-                          <div className="grid grid-cols-3 w-full border-t border-gray-700 mt-1 pt-1">
-                            <span className="text-center text-[8px] text-gray-600 font-black uppercase">Mín</span>
-                            <span className="text-center text-[8px] text-gray-600 font-black uppercase border-x border-gray-700">Máx</span>
-                            <span className={`text-center text-[8px] font-black uppercase ${res?.feasible ? 'text-emerald-600' : 'text-gray-700'}`}>Fórmula</span>
+                          <div className="relative w-full px-2">
+                             <div className="absolute left-2 top-1.5 text-[7px] font-black text-gray-500 uppercase">Tanda KG</div>
+                             <input type="number" value={batchSizes[diet.id] || 1000}
+                               onChange={e => setBatchSizes(prev => ({ ...prev, [diet.id]: Number(e.target.value) }))}
+                               className="w-full bg-black border border-gray-700 rounded-lg px-2 pt-3 pb-1 text-base font-black text-center font-mono text-cyan-400 outline-none focus:border-cyan-500" />
+                          </div>
+                          <div className="grid grid-cols-3 w-full border-t border-gray-800 mt-2 bg-black/40">
+                            <span className="text-center text-[9px] font-black text-gray-600 uppercase py-2">Mín</span>
+                            <span className="text-center text-[9px] font-black text-gray-600 uppercase py-2 border-x border-gray-800">Máx</span>
+                            <span className={`text-center text-[9px] font-black uppercase py-2 ${res?.feasible ? 'text-emerald-500' : 'text-gray-600'}`}>Form</span>
                           </div>
                         </div>
                       </th>
@@ -645,33 +559,30 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                   })}
                 </tr>
               </thead>
-
-              <tbody>
-                {/* ── INSUMOS SECTION ── */}
+              <tbody className="divide-y-4 divide-black">
                 {ingRows.length > 0 && (
                   <>
-                    <tr className="bg-indigo-950/30">
-                      <td colSpan={activeDiets.length + 1} className="sticky left-0 px-3 py-1 border-y border-gray-800">
-                        <div className="flex items-center gap-2">
-                          <CubeIcon className="w-3 h-3 text-indigo-400 shrink-0" />
-                          <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Insumos — Inclusión %</span>
+                    <tr className="bg-indigo-950/20">
+                      <td colSpan={activeDiets.length + 1} className="sticky left-0 z-30 px-6 py-3 border-y border-gray-800 backdrop-blur-sm">
+                        <div className="flex items-center gap-3">
+                          <CubeIcon className="w-5 h-5 text-indigo-400" />
+                          <span className="text-sm font-black text-indigo-400 uppercase tracking-[0.2em] italic">Insumos — Porcentajes de Inclusión</span>
                         </div>
                       </td>
                     </tr>
                     {ingRows.map(row => (
-                      <tr key={row.id} className="hover:bg-gray-900/60 transition-colors group border-b border-gray-800/30">
-                        <td style={{ position: 'sticky', left: 0, zIndex: 20, background: '#0a0f1a', minWidth: 180, maxWidth: 180 }}
-                          className="border border-gray-700 px-2 py-1">
-                          <div className="flex items-center justify-between gap-1">
+                      <tr key={row.id} className="hover:bg-gray-900 border-b border-gray-900 group">
+                        <td className="sticky left-0 z-20 bg-[#080808] border-2 border-gray-800 px-6 py-4">
+                          <div className="flex items-center justify-between gap-4">
                             <div className="min-w-0">
-                              <div className="text-[10px] font-bold text-gray-200 truncate leading-tight">{row.name}</div>
+                              <div className="text-base font-black text-white leading-tight uppercase tracking-tighter truncate">{row.name}</div>
                               {row.price !== undefined && (
-                                <div className="text-[9px] text-gray-500 font-mono leading-none mt-0.5">${row.price.toFixed(2)}/kg</div>
+                                <div className="text-xs text-gray-500 font-mono font-black mt-1">$ {row.price.toFixed(2)}/kg</div>
                               )}
                             </div>
                             <button onClick={() => handleRemoveRow(row.id, 'ing')}
-                              className="opacity-0 group-hover:opacity-100 text-red-600 hover:text-red-400 transition-all shrink-0">
-                              <TrashIcon className="w-3 h-3" />
+                              className="text-red-700 hover:text-red-500 transition-all shrink-0 p-2 bg-red-950/10 rounded-lg">
+                              <TrashIcon className="w-6 h-6" />
                             </button>
                           </div>
                         </td>
@@ -680,22 +591,10 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                           const formulaVal = results[diet.id]?.formula[row.id] ?? 0;
                           const isFeasible = results[diet.id]?.feasible !== false;
                           return (
-                            <td key={diet.id} className={`border border-gray-700 p-0 transition-colors ${!isFeasible ? 'bg-red-500/5' : ''}`} style={{ minWidth: 168 }}>
-                              <div className="grid grid-cols-3 divide-x divide-gray-700 h-full">
-                                <CellInput
-                                  value={con?.min ?? ''}
-                                  onChange={v => updateConstraint(row.id, diet.id, 'min', v)}
-                                  placeholder="0"
-                                  dirty={con?.dirty}
-                                  injected={con?.injected}
-                                />
-                                <CellInput
-                                  value={con && con.max < 100 ? con.max : ''}
-                                  onChange={v => updateConstraint(row.id, diet.id, 'max', v)}
-                                  placeholder="100"
-                                  dirty={con?.dirty}
-                                  injected={con?.injected}
-                                />
+                            <td key={diet.id} className={`border-2 border-gray-900 p-0 transition-all ${!isFeasible ? 'bg-red-950/10' : ''}`}>
+                              <div className="grid grid-cols-3 divide-x-2 divide-gray-900 h-full">
+                                <CellInput value={con?.min ?? ''} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} dirty={con?.dirty} injected={con?.injected} />
+                                <CellInput value={con && con.max < 100 ? con.max : ''} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} dirty={con?.dirty} injected={con?.injected} />
                                 <CellInput value={formulaVal} isResult />
                               </div>
                             </td>
@@ -706,59 +605,40 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                   </>
                 )}
 
-                {/* ── NUTRIENTES SECTION ── */}
                 {nutRows.length > 0 && (
                   <>
-                    <tr className="bg-cyan-950/30">
-                      <td colSpan={activeDiets.length + 1} className="sticky left-0 px-3 py-1 border-y border-gray-800">
-                        <div className="flex items-center gap-2">
-                          <BeakerIcon className="w-3 h-3 text-cyan-400 shrink-0" />
-                          <span className="text-[9px] font-black text-cyan-400 uppercase tracking-widest">Nutrientes — Requerimientos</span>
+                    <tr className="bg-cyan-950/20">
+                      <td colSpan={activeDiets.length + 1} className="sticky left-0 z-30 px-6 py-3 border-y border-gray-800 backdrop-blur-sm">
+                        <div className="flex items-center gap-3">
+                          <BeakerIcon className="w-5 h-5 text-cyan-400" />
+                          <span className="text-sm font-black text-cyan-400 uppercase tracking-[0.2em] italic">Nutrientes — Valores Garantizados</span>
                         </div>
                       </td>
                     </tr>
                     {nutRows.map(row => (
-                      <tr key={row.id} className="hover:bg-gray-900/60 transition-colors group border-b border-gray-800/30">
-                        <td style={{ position: 'sticky', left: 0, zIndex: 20, background: '#0a0f1a', minWidth: 180, maxWidth: 180 }}
-                          className="border border-gray-700 px-2 py-1">
-                          <div className="flex items-center justify-between gap-1">
+                      <tr key={row.id} className="hover:bg-gray-900 border-b border-gray-900 group">
+                        <td className="sticky left-0 z-20 bg-[#080808] border-2 border-gray-800 px-6 py-4">
+                          <div className="flex items-center justify-between gap-4">
                             <div className="min-w-0">
-                              <div className="text-[10px] font-bold text-gray-200 truncate leading-tight">{row.name}</div>
-                              {row.unit && <div className="text-[9px] text-gray-500 font-mono leading-none mt-0.5">{row.unit}</div>}
+                              <div className="text-base font-black text-white leading-tight uppercase tracking-tighter truncate">{row.name}</div>
+                              {row.unit && <div className="text-xs text-blue-500 font-mono font-black mt-1 italic">{row.unit}</div>}
                             </div>
                             <button onClick={() => handleRemoveRow(row.id, 'nut')}
-                              className="opacity-0 group-hover:opacity-100 text-red-600 hover:text-red-400 transition-all shrink-0">
-                              <TrashIcon className="w-3 h-3" />
+                              className="text-red-700 hover:text-red-500 transition-all shrink-0 p-2 bg-red-950/10 rounded-lg">
+                              <TrashIcon className="w-6 h-6" />
                             </button>
                           </div>
                         </td>
                         {activeDiets.map(diet => {
                           const con = constraints[row.id]?.[diet.id];
                           const nutVal = results[diet.id]?.nutrients[row.id] ?? 0;
-                          const isWithin = con
-                            ? nutVal >= con.min - 0.001 && (nutVal <= con.max + 0.001 || con.max >= 999)
-                            : true;
+                          const isWithin = con ? nutVal >= con.min - 0.001 && (nutVal <= con.max + 0.001 || con.max >= 999) : true;
                           const isFeasible = results[diet.id]?.feasible !== false;
                           return (
-                            <td key={diet.id} className={`border p-0 transition-colors ${
-                              !isWithin && hasRun ? 'border-red-600 bg-red-950/20' : 
-                              !isFeasible ? 'bg-red-500/5 border-gray-700' : 'border-gray-700'
-                            }`} style={{ minWidth: 168 }}>
-                              <div className="grid grid-cols-3 divide-x divide-gray-700 h-full">
-                                <CellInput
-                                  value={con?.min ?? ''}
-                                  onChange={v => updateConstraint(row.id, diet.id, 'min', v)}
-                                  placeholder="0"
-                                  dirty={con?.dirty}
-                                  injected={con?.injected}
-                                />
-                                <CellInput
-                                  value={con && con.max < 999 ? con.max : ''}
-                                  onChange={v => updateConstraint(row.id, diet.id, 'max', v)}
-                                  placeholder="MAX"
-                                  dirty={con?.dirty}
-                                  injected={con?.injected}
-                                />
+                            <td key={diet.id} className={`border-2 border-gray-900 p-0 transition-all ${!isFeasible ? 'bg-red-950/10' : ''}`}>
+                              <div className="grid grid-cols-3 divide-x-2 divide-gray-900 h-full">
+                                <CellInput value={con?.min ?? ''} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} dirty={con?.dirty} injected={con?.injected} />
+                                <CellInput value={con && con.max < 999 ? con.max : ''} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} dirty={con?.dirty} injected={con?.injected} />
                                 <CellInput value={nutVal} nutResult nutOk={isWithin || !hasRun} />
                               </div>
                             </td>
@@ -770,37 +650,29 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                 )}
 
                 {hasRun && (
-                  <tr style={{ background: '#052e16' }}>
-                    <td style={{ position: 'sticky', left: 0, zIndex: 20, background: '#052e16', minWidth: 180 }}
-                      className="border border-emerald-900 px-2 py-2">
-                      <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">$/kg · Total</span>
+                  <tr className="bg-emerald-950">
+                    <td className="sticky left-0 z-20 bg-emerald-950 border-2 border-emerald-900 px-6 py-6">
+                      <span className="text-lg font-black text-emerald-300 uppercase italic tracking-tighter leading-none">Costo Final Dieta</span>
                     </td>
                     {activeDiets.map(diet => {
                       const res = results[diet.id];
                       return (
-                        <td key={diet.id} className="border border-emerald-900/50 px-1 py-2 text-center" style={{ minWidth: 168 }}>
+                        <td key={diet.id} className="border-2 border-emerald-900 px-2 py-6 text-center">
                           {res?.feasible ? (
                             <div className="flex flex-col items-center">
-                              <span className="text-[14px] font-black font-mono text-emerald-400">${res.costPerKg.toFixed(4)}</span>
-                              <span className="text-[9px] text-gray-600 font-mono">${res.totalCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                               <div className="text-[10px] text-emerald-600 font-bold mb-1">$/KG</div>
+                               <span className="text-2xl font-black font-mono text-white tracking-tighter">${res.costPerKg.toFixed(4)}</span>
+                               <span className="text-[10px] text-emerald-500 font-black mt-2">TOTAL: ${res.totalCost.toLocaleString()}</span>
                             </div>
                           ) : (
-                            <span className="text-[10px] font-black text-red-500 uppercase">INFACTIBLE</span>
+                            <div className="flex flex-col items-center">
+                                <XCircleIcon className="w-8 h-8 text-red-500 mb-2" />
+                                <span className="text-sm font-black text-red-500 uppercase">Infactible</span>
+                            </div>
                           )}
                         </td>
                       );
                     })}
-                  </tr>
-                )}
-
-                {/* Empty state */}
-                {ingRows.length === 0 && nutRows.length === 0 && (
-                  <tr>
-                    <td colSpan={activeDiets.length + 1} className="py-16 text-center">
-                      <p className="text-[11px] text-gray-700 font-bold uppercase tracking-widest">
-                        Usa el inyector superior para añadir insumos o nutrientes a la matriz
-                      </p>
-                    </td>
                   </tr>
                 )}
               </tbody>
