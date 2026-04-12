@@ -45,6 +45,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [resultsData, setResultsData] = useState<{ result: any, assignments: any } | null>(null);
     const [viewingDetailId, setViewingDetailId] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState<'nutrients' | 'ingredients'>('nutrients');
 
     const selectedProducts = products.filter(p => selectedDietIds.includes(p.id));
 
@@ -271,72 +272,156 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                 <XCircleIcon className="w-6 h-6" />
                             </button>
                         </div>
+                        <div className="flex bg-gray-950 border-b border-gray-800 px-6 shrink-0">
+                            <button 
+                                onClick={() => setActiveTab('nutrients')}
+                                className={`px-4 py-3 text-[11px] font-black uppercase tracking-widest border-b-2 transition-all ${activeTab === 'nutrients' ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
+                            >
+                                Requerimientos
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('ingredients')}
+                                className={`px-4 py-3 text-[11px] font-black uppercase tracking-widest border-b-2 transition-all ${activeTab === 'ingredients' ? 'border-indigo-500 text-indigo-400' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
+                            >
+                                Control Insumos
+                            </button>
+                        </div>
+
                         <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-                           <div className="grid grid-cols-2 gap-4">
-                               {nutrients.filter(n => {
-                                   const currentP = products.find(prod => prod.id === viewingDetailId);
-                                   return currentP?.constraints.some(c => c.nutrientId === n.id);
-                               }).map(nut => {
-                                   const p = products.find(prod => prod.id === viewingDetailId);
-                                   const con = p?.constraints.find(c => c.nutrientId === nut.id) || { min: 0, max: 999 };
-                                   return (
-                                       <div key={nut.id} className="bg-gray-800/50 p-3 rounded-2xl border border-gray-700 flex flex-col gap-2">
-                                           <div className="flex justify-between items-center border-b border-gray-700/50 pb-2">
-                                               <span className="text-xs font-black text-gray-200 uppercase truncate">{nut.name}</span>
-                                               <div className="flex items-center gap-2">
-                                                   <span className="text-[10px] text-cyan-500 font-bold uppercase tracking-tighter bg-cyan-500/10 px-1 rounded">Activo</span>
-                                                   <span className="text-[10px] text-gray-500 font-bold">{nut.unit}</span>
+                           {activeTab === 'nutrients' && (
+                               <div className="space-y-6">
+                                   <div className="grid grid-cols-2 gap-4">
+                                       {nutrients.filter(n => {
+                                           const currentP = products.find(prod => prod.id === viewingDetailId);
+                                           return currentP?.constraints.some(c => c.nutrientId === n.id);
+                                       }).map(nut => {
+                                           const p = products.find(prod => prod.id === viewingDetailId);
+                                           const con = p?.constraints.find(c => c.nutrientId === nut.id) || { min: 0, max: 999 };
+                                           return (
+                                               <div key={nut.id} className="bg-gray-800/50 p-3 rounded-2xl border border-gray-700 flex flex-col gap-2 group/nut">
+                                                   <div className="flex justify-between items-center border-b border-gray-700/50 pb-2">
+                                                       <span className="text-xs font-black text-gray-200 uppercase truncate">{nut.name}</span>
+                                                       <button 
+                                                        onClick={() => {
+                                                            if (p && onUpdateProduct) {
+                                                                const newConstraints = p.constraints.filter(c => c.nutrientId !== nut.id);
+                                                                onUpdateProduct({ ...p, constraints: newConstraints });
+                                                            }
+                                                        }}
+                                                        className="opacity-0 group-hover/nut:opacity-100 text-red-500 hover:text-red-400 transition-opacity"
+                                                       >
+                                                           <XCircleIcon className="w-3.5 h-3.5" />
+                                                       </button>
+                                                   </div>
+                                                   <div className="flex gap-2">
+                                                       <div className="flex-1">
+                                                           <label className="text-[9px] text-gray-500 font-bold uppercase block mb-1">Mínimo</label>
+                                                           <input 
+                                                             type="number"
+                                                             value={con.min}
+                                                             onChange={(e) => {
+                                                                const val = parseFloat(e.target.value) || 0;
+                                                                if (p && onUpdateProduct) {
+                                                                    const newConstraints = [...p.constraints];
+                                                                    const idx = newConstraints.findIndex(c => c.nutrientId === nut.id);
+                                                                    if (idx >= 0) newConstraints[idx] = { ...newConstraints[idx], min: val };
+                                                                    else newConstraints.push({ nutrientId: nut.id, min: val, max: 999 });
+                                                                    onUpdateProduct({ ...p, constraints: newConstraints });
+                                                                }
+                                                             }}
+                                                             className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white focus:border-cyan-500 outline-none font-mono"
+                                                           />
+                                                       </div>
+                                                       <div className="flex-1">
+                                                           <label className="text-[9px] text-gray-500 font-bold uppercase block mb-1">Máximo</label>
+                                                           <input 
+                                                             type="number"
+                                                             value={con.max}
+                                                             onChange={(e) => {
+                                                                const val = parseFloat(e.target.value) || 999;
+                                                                if (p && onUpdateProduct) {
+                                                                    const newConstraints = [...p.constraints];
+                                                                    const idx = newConstraints.findIndex(c => c.nutrientId === nut.id);
+                                                                    if (idx >= 0) newConstraints[idx] = { ...newConstraints[idx], max: val };
+                                                                    else newConstraints.push({ nutrientId: nut.id, min: 0, max: val });
+                                                                    onUpdateProduct({ ...p, constraints: newConstraints });
+                                                                }
+                                                             }}
+                                                             className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white focus:border-cyan-500 outline-none font-mono"
+                                                           />
+                                                       </div>
+                                                   </div>
                                                </div>
-                                           </div>
-                                           <div className="flex gap-2">
-                                               <div className="flex-1">
-                                                   <label className="text-[9px] text-gray-500 font-bold uppercase block mb-1">Mínimo</label>
-                                                   <input 
-                                                     type="number"
-                                                     value={con.min}
-                                                     onChange={(e) => {
-                                                        const val = parseFloat(e.target.value) || 0;
-                                                        if (p && onUpdateProduct) {
-                                                            const newConstraints = [...p.constraints];
-                                                            const idx = newConstraints.findIndex(c => c.nutrientId === nut.id);
-                                                            if (idx >= 0) newConstraints[idx] = { ...newConstraints[idx], min: val };
-                                                            else newConstraints.push({ nutrientId: nut.id, min: val, max: 999 });
-                                                            onUpdateProduct({ ...p, constraints: newConstraints });
-                                                        }
-                                                     }}
-                                                     className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white focus:border-cyan-500 outline-none font-mono"
-                                                   />
-                                               </div>
-                                               <div className="flex-1">
-                                                   <label className="text-[9px] text-gray-500 font-bold uppercase block mb-1">Máximo</label>
-                                                   <input 
-                                                     type="number"
-                                                     value={con.max}
-                                                     onChange={(e) => {
-                                                        const val = parseFloat(e.target.value) || 999;
-                                                        if (p && onUpdateProduct) {
-                                                            const newConstraints = [...p.constraints];
-                                                            const idx = newConstraints.findIndex(c => c.nutrientId === nut.id);
-                                                            if (idx >= 0) newConstraints[idx] = { ...newConstraints[idx], max: val };
-                                                            else newConstraints.push({ nutrientId: nut.id, min: 0, max: val });
-                                                            onUpdateProduct({ ...p, constraints: newConstraints });
-                                                        }
-                                                     }}
-                                                     className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white focus:border-cyan-500 outline-none font-mono"
-                                                   />
-                                               </div>
-                                           </div>
-                                       </div>
-                                   )
-                               })}
-                               {/* Hint for adding more nutrients */}
-                               {products.find(p => p.id === viewingDetailId)?.constraints.length === 0 && (
-                                   <div className="col-span-2 py-10 text-center">
-                                       <p className="text-gray-500 text-sm italic font-bold">No hay nutrientes definidos para esta dieta.</p>
-                                       <p className="text-[10px] text-gray-600 uppercase mt-2">Los nutrientes mostrados aquí se sincronizan con la "Definición de Dietas".</p>
+                                           );
+                                       })}
                                    </div>
-                               )}
-                           </div>
+
+                                   {/* Nutrientes Disponibles para Agregar */}
+                                   <div className="bg-gray-950/50 p-4 rounded-2xl border border-gray-800">
+                                       <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4">Agregar Nutriente a Dieta</h4>
+                                       <div className="flex flex-wrap gap-2">
+                                           {nutrients
+                                               .filter(n => !products.find(p => p.id === viewingDetailId)?.constraints.some(c => c.nutrientId === n.id))
+                                               .map(nut => {
+                                                   const p = products.find(prod => prod.id === viewingDetailId);
+                                                   return (
+                                                       <button 
+                                                           key={nut.id} 
+                                                           onClick={() => {
+                                                               if (p && onUpdateProduct) {
+                                                                   const newConstraints = [...p.constraints, { nutrientId: nut.id, min: 0, max: 999 }];
+                                                                   onUpdateProduct({ ...p, constraints: newConstraints });
+                                                               }
+                                                           }}
+                                                           className="bg-gray-800 hover:bg-cyan-900/30 text-[10px] font-bold text-gray-400 hover:text-cyan-400 px-3 py-1.5 rounded-full border border-gray-700 hover:border-cyan-500/50 transition-all uppercase"
+                                                       >
+                                                           + {nut.name}
+                                                       </button>
+                                                   );
+                                           })}
+                                       </div>
+                                   </div>
+                               </div>
+                           )}
+
+                           {activeTab === 'ingredients' && (
+                               <div className="space-y-4">
+                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                       {ingredients.map(ing => {
+                                           const p = products.find(prod => prod.id === viewingDetailId);
+                                           const isIncluded = p?.ingredientRestrictions?.some(r => r.ingredientId === ing.id) ?? true;
+                                           return (
+                                               <div key={ing.id} className={`p-3 rounded-xl border transition-all flex items-center justify-between ${isIncluded ? 'bg-indigo-500/5 border-indigo-500/30' : 'bg-gray-900/40 border-gray-800 opacity-60'}`}>
+                                                   <div className="flex items-center gap-3">
+                                                       <div className={`w-2 h-2 rounded-full ${isIncluded ? 'bg-indigo-500' : 'bg-gray-700'}`}></div>
+                                                       <div>
+                                                           <p className="text-[11px] font-black text-white uppercase">{ing.name}</p>
+                                                           <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">${ing.price} / kg</p>
+                                                       </div>
+                                                   </div>
+                                                   <button 
+                                                       onClick={() => {
+                                                            if (p && onUpdateProduct) {
+                                                                const currentRestrictions = p.ingredientRestrictions || ingredients.map(i => ({ ingredientId: i.id, min: 0, max: 100 }));
+                                                                let newRestrictions;
+                                                                if (isIncluded) {
+                                                                    newRestrictions = currentRestrictions.filter(r => r.ingredientId !== ing.id);
+                                                                } else {
+                                                                    newRestrictions = [...currentRestrictions, { ingredientId: ing.id, min: 0, max: 100 }];
+                                                                }
+                                                                onUpdateProduct({ ...p, ingredientRestrictions: newRestrictions });
+                                                            }
+                                                       }}
+                                                       className={`px-3 py-1 rounded text-[10px] font-black uppercase transition-all ${isIncluded ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-500'}`}
+                                                   >
+                                                       {isIncluded ? 'Admitido' : 'Excluido'}
+                                                   </button>
+                                               </div>
+                                           );
+                                       })}
+                                   </div>
+                               </div>
+                           )}
                         </div>
                     </div>
                 </div>
