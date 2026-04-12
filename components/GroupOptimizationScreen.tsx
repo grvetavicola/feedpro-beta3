@@ -273,7 +273,10 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                         </div>
                         <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
                            <div className="grid grid-cols-2 gap-4">
-                               {nutrients.filter(n => p?.constraints.some(c => c.nutrientId === n.id)).map(nut => {
+                               {nutrients.filter(n => {
+                                   const currentP = products.find(prod => prod.id === viewingDetailId);
+                                   return currentP?.constraints.some(c => c.nutrientId === n.id);
+                               }).map(nut => {
                                    const p = products.find(prod => prod.id === viewingDetailId);
                                    const con = p?.constraints.find(c => c.nutrientId === nut.id) || { min: 0, max: 999 };
                                    return (
