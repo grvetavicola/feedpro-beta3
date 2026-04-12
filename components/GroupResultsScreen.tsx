@@ -16,6 +16,8 @@ interface GroupResultsScreenProps {
     savedFormulas?: any[];
     setSavedFormulas?: (val: any) => void;
     onOpenDetail?: (id: string) => void;
+    injectedIngIds?: Set<string>;
+    injectedNutIds?: Set<string>;
 }
 
 const SmartInput = ({ value, onChange, placeholder, className, isMax = false }: { value: number, onChange: (v: number) => void, placeholder?: string, className?: string, isMax?: boolean }) => {
@@ -35,7 +37,7 @@ const SmartInput = ({ value, onChange, placeholder, className, isMax = false }: 
     );
 };
 
-export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results, assignments, products, ingredients, nutrients, isDynamicMatrix = false, onUpdateProduct, onCloseDrawer, savedFormulas, setSavedFormulas, onOpenDetail }) => {
+export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results, assignments, products, ingredients, nutrients, isDynamicMatrix = false, onUpdateProduct, onCloseDrawer, savedFormulas, setSavedFormulas, onOpenDetail, injectedIngIds, injectedNutIds }) => {
     const { t } = useTranslations();
     type LocalResult = {
         id: string; productId: string; isSuccessful: boolean; currentCost: number; prevCost: number | null; totalBatch: number;
@@ -214,19 +216,29 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
                                             </tr>
                                         </thead>
                                         <tbody className="text-[13px]">
-                                            {sol.items.map((item, idx) => (
-                                                <tr key={idx} className="border-b border-gray-800/30 hover:bg-white/[0.02] transition-colors group">
-                                                    <td className="py-3 font-bold text-gray-400 group-hover:text-white">{item.name}</td>
-                                                    <td className="py-3 text-center">
-                                                        <div className="flex items-center justify-center gap-2">
-                                                            {item.prevPercentage !== undefined && <span className="text-[10px] text-gray-600 italic">({item.prevPercentage.toFixed(1)})</span>}
-                                                            <span className="font-black font-mono text-indigo-300 text-[14px]">{item.percentage.toFixed(3)}%</span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="py-3 text-right font-mono text-cyan-500/80">{item.weight.toFixed(1)}</td>
-                                                    <td className={`py-3 text-right font-mono font-bold ${item.shadowPrice > 0 ? 'text-amber-500' : 'text-gray-800'}`}>{item.shadowPrice > 0 ? `+${item.shadowPrice.toFixed(2)}` : '0.00'}</td>
-                                                </tr>
-                                            ))}
+                                            {sol.items.map((item, idx) => {
+                                                // Find ingredient ID by name to check if injected
+                                                const ingId = ingredients.find(i => i.name === item.name)?.id;
+                                                const isInjected = ingId ? injectedIngIds?.has(ingId) : false;
+                                                return (
+                                                    <tr key={idx} className={`border-b border-gray-800/30 transition-colors group ${isInjected ? 'bg-blue-900/20 hover:bg-blue-900/30' : 'hover:bg-white/[0.02]'}`}>
+                                                        <td className="py-3 font-bold text-gray-400 group-hover:text-white">
+                                                            <div className="flex items-center gap-2">
+                                                                {item.name}
+                                                                {isInjected && <span className="text-[8px] font-black bg-blue-600/70 text-blue-200 px-1.5 py-0.5 rounded-full uppercase tracking-wider shrink-0">Inyectado</span>}
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-3 text-center">
+                                                            <div className="flex items-center justify-center gap-2">
+                                                                {item.prevPercentage !== undefined && <span className="text-[10px] text-gray-600 italic">({item.prevPercentage.toFixed(1)})</span>}
+                                                                <span className="font-black font-mono text-indigo-300 text-[14px]">{item.percentage.toFixed(3)}%</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-3 text-right font-mono text-cyan-500/80">{item.weight.toFixed(1)}</td>
+                                                        <td className={`py-3 text-right font-mono font-bold ${item.shadowPrice > 0 ? 'text-amber-500' : 'text-gray-800'}`}>{item.shadowPrice > 0 ? `+${item.shadowPrice.toFixed(2)}` : '0.00'}</td>
+                                                    </tr>
+                                                );
+                                            })}
                                         </tbody>
                                     </table>
                                 </div>
@@ -251,9 +263,16 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
                                         <tbody className="text-[13px]">
                                             {sol.nutrients.map((nut, idx) => {
                                                 const isWithin = nut.actual >= nut.requiredMin - 0.001 && (nut.actual <= nut.requiredMax + 0.001 || nut.requiredMax === 999);
+                                                const nutId = nutrients.find(n => n.name === nut.name)?.id;
+                                                const isInjected = nutId ? injectedNutIds?.has(nutId) : false;
                                                 return (
-                                                    <tr key={idx} className="border-b border-gray-800/30 hover:bg-white/[0.02] transition-colors">
-                                                        <td className="py-3 text-gray-400 font-bold">{nut.name} <span className="text-[10px] text-gray-700 font-normal uppercase">{nut.unit}</span></td>
+                                                    <tr key={idx} className={`border-b border-gray-800/30 transition-colors ${isInjected ? 'bg-amber-900/15 hover:bg-amber-900/25' : 'hover:bg-white/[0.02]'}`}>
+                                                        <td className="py-3 text-gray-400 font-bold">
+                                                            <div className="flex items-center gap-2">
+                                                                {nut.name} <span className="text-[10px] text-gray-700 font-normal uppercase">{nut.unit}</span>
+                                                                {isInjected && <span className="text-[8px] font-black bg-amber-600/60 text-amber-200 px-1.5 py-0.5 rounded-full uppercase tracking-wider shrink-0">Inyectado</span>}
+                                                            </div>
+                                                        </td>
                                                         <td className="py-3 text-center text-gray-600 font-mono text-[11px]">{nut.requiredMin}-{nut.requiredMax >= 999 ? 'MAX' : nut.requiredMax}</td>
                                                         <td className="py-3 text-right">
                                                             <div className="flex items-center justify-end gap-3">
