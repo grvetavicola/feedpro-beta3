@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { User, Ingredient, Nutrient, Product, ChatMessage } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
 import { chatWithAssistant } from '../services/geminiService';
-import { AIIcon, LockClosedIcon, UserIcon, PaperclipIcon, XCircleIcon, MicrophoneIcon } from './icons';
+import { AIIcon, LockClosedIcon, UserIcon, PaperclipIcon, XCircleIcon, MicrophoneIcon, DuplicateIcon, DownloadIcon } from './icons';
 
 interface AIAssistantProps {
   ingredients: Ingredient[];
@@ -76,6 +78,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ user = { name: 'Admin'
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const [isListening, setIsListening] = useState(false);
 
@@ -116,6 +119,34 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ user = { name: 'Admin'
     } else {
         recognitionRef.current.start();
     }
+  };
+
+  const copyToClipboard = (text: string) => {
+      navigator.clipboard.writeText(text);
+  };
+
+  const handleDownloadPDF = async () => {
+        if (!chatContainerRef.current) return;
+        setIsLoading(true);
+        try {
+            const canvas = await html2canvas(chatContainerRef.current, {
+                scale: 1.5,
+                backgroundColor: '#1f2937', 
+                windowWidth: chatContainerRef.current.scrollWidth,
+                windowHeight: chatContainerRef.current.scrollHeight
+            });
+            const imgData = canvas.toDataURL('image/jpeg', 0.8);
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            
+            pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save('Conversacion_VetIA.pdf');
+        } catch (error) {
+            console.error("PDF generation failed", error);
+            alert("Hubo un error al generar el PDF de la conversación.");
+        }
+        setIsLoading(false);
   };
   
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -218,14 +249,33 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ user = { name: 'Admin'
 
   return (
     <div className="p-4 md:p-6 h-full flex flex-col">
-        <h2 className="text-2xl font-bold text-cyan-400 mb-4">{t('assistant.title')}</h2>
-        <div className="flex-1 overflow-y-auto bg-gray-800/50 p-4 rounded-lg border border-gray-700 space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+            <h2 className="text-2xl font-bold text-cyan-400">{t('assistant.title')}</h2>
+            <button 
+                onClick={handleDownloadPDF} 
+                disabled={isLoading}
+                className="flex items-center gap-2 text-[11px] text-cyan-400 hover:text-cyan-300 bg-cyan-900/30 px-3 py-1.5 rounded-lg border border-cyan-700/50 transition-colors shadow focus:outline-none"
+            >
+                <DownloadIcon className="w-4 h-4" /> Exportar PDF
+            </button>
+        </div>
+        <div className="flex-1 overflow-hidden relative border border-gray-700 bg-gray-800/50 rounded-lg">
+            <div ref={chatContainerRef} className="absolute inset-0 overflow-y-auto p-4 space-y-4 custom-scrollbar">
             {messages.map((msg, index) => (
                 <div key={index} className={`flex items-end gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     {msg.role === 'assistant' && <div className="w-8 h-8 rounded-full bg-cyan-500/50 flex items-center justify-center flex-shrink-0"><AIIcon className="w-5 h-5 text-cyan-200" /></div>}
-                    <div className={`max-w-xl p-3 rounded-2xl ${msg.role === 'user' ? 'bg-cyan-600 text-white rounded-br-none' : 'bg-gray-700 text-gray-300 rounded-bl-none'}`}>
+                    <div className={`max-w-xl p-3 rounded-2xl relative group ${msg.role === 'user' ? 'bg-cyan-600 text-white rounded-br-none' : 'bg-gray-700 text-gray-300 rounded-bl-none'}`}>
                         {msg.image && <img src={msg.image} alt="Attachment" className="max-w-xs max-h-48 rounded-lg mb-2" />}
                         {msg.content && <p className="text-sm" dangerouslySetInnerHTML={{ __html: msg.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br />') }} />}
+                        {msg.role === 'assistant' && (
+                            <button 
+                                onClick={() => copyToClipboard(msg.content)} 
+                                className="absolute -right-8 top-1 p-1 bg-gray-800 border border-gray-600 rounded-md text-gray-400 hover:text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                title="Copiar mensaje"
+                            >
+                                <DuplicateIcon className="w-4 h-4" />
+                            </button>
+                        )}
                     </div>
                      {msg.role === 'user' && <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0"><UserIcon className="w-5 h-5 text-gray-300" /></div>}
                 </div>
@@ -239,6 +289,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ user = { name: 'Admin'
                 </div>
             )}
             <div ref={chatEndRef} />
+            </div>
         </div>
         <div className="mt-4">
             {attachedFile && (
