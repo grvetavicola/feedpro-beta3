@@ -180,6 +180,16 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
 
   const totalLoadedKg = useMemo(() => activeDiets.reduce((acc, d) => acc + (batchSizes[d.id] || 1000), 0), [activeDiets, batchSizes]);
 
+  const dietsByCategory = useMemo(() => {
+    const map: Record<string, Product[]> = {};
+    products.forEach(p => {
+      const cat = p.category || 'GENERAL';
+      if (!map[cat]) map[cat] = [];
+      map[cat].push(p);
+    });
+    return map;
+  }, [products]);
+
   // 2. CALLBACKS
   const handleRunAll = useCallback(() => {
     if (activeDiets.length === 0) return;
