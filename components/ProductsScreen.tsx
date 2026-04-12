@@ -11,6 +11,7 @@ interface ProductsScreenProps {
   nutrients: Nutrient[];
   bases?: NutritionalBase[];
   onOpenInNewWindow?: (data: any, name: string) => void;
+  onNavigate: (view: any) => void;
   setIsDirty?: (dirty: boolean) => void;
 }
 
