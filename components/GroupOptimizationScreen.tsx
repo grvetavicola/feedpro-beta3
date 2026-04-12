@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Product, Ingredient, Nutrient } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
-import { DatabaseIcon, CalculatorIcon, SparklesIcon, XCircleIcon, CubeIcon, RefreshIcon } from './icons';
+import { DatabaseIcon, CalculatorIcon, SparklesIcon, XCircleIcon, CubeIcon, RefreshIcon, BeakerIcon, ShoppingCartIcon } from './icons';
 import { solveGroupFormulation } from '../services/solver';
 import { GroupResultsScreen } from './GroupResultsScreen';
 
@@ -150,68 +150,116 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                 </div>
             </div>
 
-            {/* Bulk Control Panel */}
-            <div className={`overflow-hidden transition-all duration-300 ${showBulkPanel ? 'max-h-[400px] mb-4' : 'max-h-0'}`}>
-                <div className="bg-indigo-950/30 border border-indigo-500/30 rounded-xl p-4 shadow-xl">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                            <SparklesIcon className="w-5 h-5 text-indigo-400" />
-                            <h3 className="text-xs font-black text-white uppercase tracking-widest">Acciones Globales de Lote</h3>
+            {/* Bulk Control Panel - Segmented */}
+            <div className={`overflow-hidden transition-all duration-300 ${showBulkPanel ? 'max-h-[600px] mb-6' : 'max-h-0'}`}>
+                <div className="bg-indigo-950/20 border border-indigo-500/30 rounded-2xl p-6 shadow-2xl backdrop-blur-sm">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-indigo-500/20 rounded-lg">
+                                <SparklesIcon className="w-5 h-5 text-indigo-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-[14px] font-black text-white uppercase tracking-widest leading-none">Acciones Globales de Lote</h3>
+                                <p className="text-[9px] text-gray-500 uppercase font-bold mt-1 tracking-tighter">Aplica ajustes estructurales a todas las dietas de la matriz</p>
+                            </div>
                         </div>
-                        <button onClick={() => setShowBulkPanel(false)} className="text-gray-500 hover:text-white"><XCircleIcon className="w-5 h-5"/></button>
+                        <button onClick={() => setShowBulkPanel(false)} className="text-gray-500 hover:text-white transition-colors"><XCircleIcon className="w-6 h-6"/></button>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                        <div className="space-y-1">
-                            <label className="text-[9px] font-black text-gray-400 uppercase">Seleccionar Parámetro</label>
-                            <select 
-                                onChange={(e) => {
-                                    const [type, id] = e.target.value.split(':');
-                                    setBulkFilter({ ...bulkFilter, nutrientId: type === 'nut' ? id : undefined, ingredientId: type === 'ing' ? id : undefined });
-                                }}
-                                className="w-full bg-gray-950 border border-gray-700 text-white rounded p-2 text-[11px] font-bold outline-none"
-                            >
-                                <option value="">-- Nutriente o Insumo --</option>
-                                <optgroup label="Nutrientes">
-                                    {nutrients.map(n => <option key={n.id} value={`nut:${n.id}`}>{n.name}</option>)}
-                                </optgroup>
-                                <optgroup label="Insumos">
-                                    {ingredients.map(i => <option key={i.id} value={`ing:${i.id}`}>{i.name}</option>)}
-                                </optgroup>
-                            </select>
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-[9px] font-black text-gray-400 uppercase">Mínimo (%)</label>
-                            <input type="number" step="0.01" onChange={(e) => setBulkFilter({...bulkFilter, min: parseFloat(e.target.value)})} className="w-full bg-gray-950 border border-gray-700 text-white rounded p-2 text-[11px] font-mono outline-none" />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-[9px] font-black text-gray-400 uppercase">Máximo (%)</label>
-                            <input type="number" step="0.01" onChange={(e) => setBulkFilter({...bulkFilter, max: parseFloat(e.target.value)})} className="w-full bg-gray-950 border border-gray-700 text-white rounded p-2 text-[11px] font-mono outline-none" />
-                        </div>
-                        <button 
-                            onClick={() => {
-                                if (!onUpdateProduct || (!bulkFilter.nutrientId && !bulkFilter.ingredientId)) return;
-                                selectedProducts.forEach(p => {
-                                    const newP = { ...p };
-                                    if (bulkFilter.nutrientId) {
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {/* Section 1: Nutrients (Destinos) */}
+                        <div className="bg-gray-900/40 border border-gray-800 rounded-xl p-4 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-8 bg-cyan-500/5 rounded-full -mr-4 -mt-4 blur-2xl"></div>
+                            <div className="flex items-center gap-2 mb-4">
+                                <BeakerIcon className="w-4 h-4 text-cyan-400" />
+                                <h4 className="text-[10px] font-black text-cyan-500 uppercase tracking-widest">Ajuste Nutricional (Objetivos)</h4>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[8px] font-black text-gray-500 uppercase px-1">Nutriente</label>
+                                    <select 
+                                        onChange={(e) => setBulkFilter({ ...bulkFilter, nutrientId: e.target.value, ingredientId: undefined })}
+                                        className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg p-2.5 text-[11px] font-bold outline-none focus:border-cyan-500 transition-colors"
+                                    >
+                                        <option value="">-- Seleccionar Nutriente --</option>
+                                        {nutrients.map(n => <option key={n.id} value={n.id}>{n.name} ({n.unit})</option>)}
+                                    </select>
+                                </div>
+                                <div className="flex gap-2 items-end">
+                                    <div className="flex-1 space-y-1">
+                                        <label className="text-[8px] font-black text-gray-500 uppercase px-1">Mín</label>
+                                        <input type="number" step="0.01" onChange={(e) => setBulkFilter({...bulkFilter, min: parseFloat(e.target.value)})} placeholder="0.0" className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg p-2.5 text-[11px] font-mono outline-none focus:border-cyan-500" />
+                                    </div>
+                                    <div className="flex-1 space-y-1">
+                                        <label className="text-[8px] font-black text-gray-500 uppercase px-1">Máx</label>
+                                        <input type="number" step="0.01" onChange={(e) => setBulkFilter({...bulkFilter, max: parseFloat(e.target.value)})} placeholder="99.9" className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg p-2.5 text-[11px] font-mono outline-none focus:border-cyan-500" />
+                                    </div>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => {
+                                    if (!onUpdateProduct || !bulkFilter.nutrientId) return;
+                                    selectedProducts.forEach(p => {
+                                        const newP = { ...p };
                                         const idx = newP.constraints.findIndex(c => c.nutrientId === bulkFilter.nutrientId);
-                                        const newVal = { nutrientId: bulkFilter.nutrientId, min: bulkFilter.min ?? 0, max: bulkFilter.max ?? 999 };
+                                        const newVal = { nutrientId: bulkFilter.nutrientId!, min: bulkFilter.min ?? 0, max: bulkFilter.max ?? 999 };
                                         if (idx >= 0) newP.constraints[idx] = newVal;
                                         else newP.constraints.push(newVal);
-                                    }
-                                    if (bulkFilter.ingredientId) {
+                                        onUpdateProduct(newP);
+                                    });
+                                }}
+                                className="w-full mt-4 bg-cyan-600/10 hover:bg-cyan-600 text-cyan-400 hover:text-white border border-cyan-500/20 font-black py-2.5 rounded-lg uppercase text-[9px] tracking-[0.2em] transition-all shadow-lg"
+                            >
+                                Aplicar Requerimiento a Lote
+                            </button>
+                        </div>
+
+                        {/* Section 2: Ingredients (Límites de Inclusión) */}
+                        <div className="bg-gray-900/40 border border-gray-800 rounded-xl p-4 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-8 bg-indigo-500/5 rounded-full -mr-4 -mt-4 blur-2xl"></div>
+                            <div className="flex items-center gap-2 mb-4">
+                                <ShoppingCartIcon className="w-4 h-4 text-indigo-400" />
+                                <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Límites de Inclusión (Insumos)</h4>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[8px] font-black text-gray-500 uppercase px-1">Insumo / Materia Prima</label>
+                                    <select 
+                                        onChange={(e) => setBulkFilter({ ...bulkFilter, ingredientId: e.target.value, nutrientId: undefined })}
+                                        className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg p-2.5 text-[11px] font-bold outline-none focus:border-indigo-500 transition-colors"
+                                    >
+                                        <option value="">-- Seleccionar Insumo --</option>
+                                        {ingredients.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
+                                    </select>
+                                </div>
+                                <div className="flex gap-2 items-end">
+                                    <div className="flex-1 space-y-1">
+                                        <label className="text-[8px] font-black text-gray-500 uppercase px-1">Mín %</label>
+                                        <input type="number" step="0.01" onChange={(e) => setBulkFilter({...bulkFilter, min: parseFloat(e.target.value)})} placeholder="0.0" className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg p-2.5 text-[11px] font-mono outline-none focus:border-indigo-500" />
+                                    </div>
+                                    <div className="flex-1 space-y-1">
+                                        <label className="text-[8px] font-black text-gray-500 uppercase px-1">Máx %</label>
+                                        <input type="number" step="0.01" onChange={(e) => setBulkFilter({...bulkFilter, max: parseFloat(e.target.value)})} placeholder="100" className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg p-2.5 text-[11px] font-mono outline-none focus:border-indigo-500" />
+                                    </div>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => {
+                                    if (!onUpdateProduct || !bulkFilter.ingredientId) return;
+                                    selectedProducts.forEach(p => {
+                                        const newP = { ...p };
                                         const idx = newP.ingredientConstraints.findIndex(c => c.ingredientId === bulkFilter.ingredientId);
-                                        const newVal = { ingredientId: bulkFilter.ingredientId, min: bulkFilter.min ?? 0, max: bulkFilter.max ?? 100 };
+                                        const newVal = { ingredientId: bulkFilter.ingredientId!, min: bulkFilter.min ?? 0, max: bulkFilter.max ?? 100 };
                                         if (idx >= 0) newP.ingredientConstraints[idx] = newVal;
                                         else newP.ingredientConstraints.push(newVal);
-                                    }
-                                    onUpdateProduct(newP);
-                                });
-                            }}
-                            className="bg-indigo-600 hover:bg-indigo-500 text-white font-black py-2 rounded uppercase text-[10px] tracking-widest shadow-lg shadow-indigo-950/50"
-                        >
-                            Aplicar a Todo el Lote
-                        </button>
+                                        onUpdateProduct(newP);
+                                    });
+                                }}
+                                className="w-full mt-4 bg-indigo-600/10 hover:bg-indigo-600 text-indigo-400 hover:text-white border border-indigo-500/20 font-black py-2.5 rounded-lg uppercase text-[9px] tracking-[0.2em] transition-all shadow-lg"
+                            >
+                                Aplicar Límite a Lote
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
