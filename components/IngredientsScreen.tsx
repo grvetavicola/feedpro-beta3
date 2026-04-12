@@ -79,9 +79,21 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredient
     const sortedNutrients = [...nutrients].sort((a,b) => (a.code || 0) - (b.code || 0));
   
     return (
-        <div className="p-3 space-y-3 flex flex-col h-full">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-2">
-                <h2 className="text-lg font-bold text-white">{t('ingredients.title')}</h2>
+        <div className="p-3 space-y-3 flex flex-col h-full animate-fade-in w-full">
+            <div className="relative bg-gradient-to-br from-cyan-900/40 to-indigo-900/40 rounded-xl p-4 border border-cyan-500/20 overflow-hidden shadow-md flex flex-col md:flex-row justify-between items-center gap-4 shrink-0">
+                <div className="absolute top-0 right-0 p-8 bg-white/5 rounded-full -mr-12 -mt-12 blur-3xl opacity-30"></div>
+                <div className="relative z-10 flex items-center gap-4 w-full md:w-auto">
+                     <div className="bg-cyan-950/50 p-2.5 rounded-xl border border-cyan-800/50 backdrop-blur-sm shadow-inner shrink-0 hidden sm:flex items-center justify-center">
+                         <img src="/icons/ingredient.png" className="w-8 h-8 object-contain saturate-200 hue-rotate-15 contrast-125 brightness-125 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" alt="Icon Ingredients" />
+                     </div>
+                     <div className="space-y-0.5 max-w-xl text-left w-full">
+                        <div className="flex items-center gap-2 text-cyan-400 font-bold text-[10px] uppercase tracking-wider mb-1">
+                          <SparklesIcon className="w-3 h-3"/> Módulo de Control de Matriz
+                        </div>
+                        <h1 className="text-xl md:text-2xl font-black text-white leading-tight uppercase tracking-tight">{t('ingredients.title')}</h1>
+                        <p className="text-gray-400 font-bold text-[11px] md:text-[12px] leading-snug uppercase tracking-widest">{t('nav.ingredients')}</p>
+                     </div>
+                </div>
                 <div className="flex gap-2 items-center flex-wrap justify-end">
                     
                     {/* View Toggle */}

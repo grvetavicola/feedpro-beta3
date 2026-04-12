@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Nutrient } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
-import { PlusIcon, TrashIcon } from './icons';
+import { PlusIcon, TrashIcon, SparklesIcon } from './icons';
 
 interface NutrientsScreenProps {
   nutrients: Nutrient[];
@@ -37,9 +37,22 @@ export const NutrientsScreen: React.FC<NutrientsScreenProps> = ({ nutrients, set
   const sortedNutrients = [...nutrients].sort((a, b) => (a.code || 0) - (b.code || 0));
 
   return (
-    <div className="p-3 space-y-3">
-      <h2 className="text-xl font-bold text-cyan-400 uppercase tracking-tight">{t('nutrients.title')}</h2>
-      
+    <div className="p-3 space-y-3 animate-fade-in w-full">
+         <div className="relative bg-gradient-to-br from-cyan-900/40 to-indigo-900/40 rounded-xl p-4 border border-cyan-500/20 overflow-hidden shadow-md flex flex-col md:flex-row justify-between items-center gap-4 shrink-0">
+             <div className="absolute top-0 right-0 p-8 bg-white/5 rounded-full -mr-12 -mt-12 blur-3xl opacity-30"></div>
+             <div className="relative z-10 flex items-center gap-4 w-full md:w-auto">
+                 <div className="bg-cyan-950/50 p-2.5 rounded-xl border border-cyan-800/50 backdrop-blur-sm shadow-inner shrink-0 hidden sm:flex items-center justify-center">
+                     <img src="/icons/nutrients.png" className="w-8 h-8 object-contain saturate-200 hue-rotate-15 contrast-125 brightness-125 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" alt="Icon Nutrients" />
+                 </div>
+                 <div className="space-y-0.5 max-w-xl text-left w-full">
+                    <div className="flex items-center gap-2 text-cyan-400 font-bold text-[10px] uppercase tracking-wider mb-1">
+                      <SparklesIcon className="w-3 h-3"/> Módulo de Control de Matriz
+                    </div>
+                    <h1 className="text-xl md:text-2xl font-black text-white leading-tight uppercase tracking-tight">{t('nutrients.title')}</h1>
+                    <p className="text-gray-400 font-bold text-[11px] md:text-[12px] leading-snug uppercase tracking-widest">{t('nav.nutrients')}</p>
+                 </div>
+             </div>
+         </div>
       <div className="bg-gray-800/50 p-3 rounded border border-gray-700/50">
         <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">{t('nutrients.addNew')}</h3>
         <form onSubmit={handleAddNutrient} className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
