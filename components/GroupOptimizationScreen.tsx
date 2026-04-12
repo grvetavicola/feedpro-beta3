@@ -44,7 +44,9 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     // Drawer State
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [resultsData, setResultsData] = useState<{ result: any, assignments: any } | null>(null);
-    const [viewingDetailId, setViewingDetailId] = useState<string | null>(null);
+    const [showBulkPanel, setShowBulkPanel] = useState(false);
+    const [bulkFilter, setBulkFilter] = useState<{ nutrientId?: string, ingredientId?: string, min?: number, max?: number }>({});
+    const [activeView, setActiveView] = useState<'matrix' | 'cards'>('matrix');
     const [activeTab, setActiveTab] = useState<'nutrients' | 'ingredients'>('nutrients');
 
     const selectedProducts = products.filter(p => selectedDietIds.includes(p.id));
@@ -148,94 +150,279 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                 </div>
             </div>
 
-            {/* Main Selection Canvas */}
-            <div className="flex-1 bg-gray-800/40 rounded-xl border border-gray-700/50 flex flex-col overflow-hidden">
-                <div className="flex justify-between items-center bg-gray-900/40 p-3 border-b border-gray-700/50 shrink-0">
-                    <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">Dietas Seleccionadas para Ejecución <span className="bg-gray-800 px-1.5 py-0.5 rounded text-cyan-400">{selectedProducts.length}</span></h3>
+            {/* Bulk Control Panel */}
+            <div className={`overflow-hidden transition-all duration-300 ${showBulkPanel ? 'max-h-[400px] mb-4' : 'max-h-0'}`}>
+                <div className="bg-indigo-950/30 border border-indigo-500/30 rounded-xl p-4 shadow-xl">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                            <SparklesIcon className="w-5 h-5 text-indigo-400" />
+                            <h3 className="text-xs font-black text-white uppercase tracking-widest">Acciones Globales de Lote</h3>
+                        </div>
+                        <button onClick={() => setShowBulkPanel(false)} className="text-gray-500 hover:text-white"><XCircleIcon className="w-5 h-5"/></button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                        <div className="space-y-1">
+                            <label className="text-[9px] font-black text-gray-400 uppercase">Seleccionar Parámetro</label>
+                            <select 
+                                onChange={(e) => {
+                                    const [type, id] = e.target.value.split(':');
+                                    setBulkFilter({ ...bulkFilter, nutrientId: type === 'nut' ? id : undefined, ingredientId: type === 'ing' ? id : undefined });
+                                }}
+                                className="w-full bg-gray-950 border border-gray-700 text-white rounded p-2 text-[11px] font-bold outline-none"
+                            >
+                                <option value="">-- Nutriente o Insumo --</option>
+                                <optgroup label="Nutrientes">
+                                    {nutrients.map(n => <option key={n.id} value={`nut:${n.id}`}>{n.name}</option>)}
+                                </optgroup>
+                                <optgroup label="Insumos">
+                                    {ingredients.map(i => <option key={i.id} value={`ing:${i.id}`}>{i.name}</option>)}
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[9px] font-black text-gray-400 uppercase">Mínimo (%)</label>
+                            <input type="number" step="0.01" onChange={(e) => setBulkFilter({...bulkFilter, min: parseFloat(e.target.value)})} className="w-full bg-gray-950 border border-gray-700 text-white rounded p-2 text-[11px] font-mono outline-none" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[9px] font-black text-gray-400 uppercase">Máximo (%)</label>
+                            <input type="number" step="0.01" onChange={(e) => setBulkFilter({...bulkFilter, max: parseFloat(e.target.value)})} className="w-full bg-gray-950 border border-gray-700 text-white rounded p-2 text-[11px] font-mono outline-none" />
+                        </div>
+                        <button 
+                            onClick={() => {
+                                if (!onUpdateProduct || (!bulkFilter.nutrientId && !bulkFilter.ingredientId)) return;
+                                selectedProducts.forEach(p => {
+                                    const newP = { ...p };
+                                    if (bulkFilter.nutrientId) {
+                                        const idx = newP.constraints.findIndex(c => c.nutrientId === bulkFilter.nutrientId);
+                                        const newVal = { nutrientId: bulkFilter.nutrientId, min: bulkFilter.min ?? 0, max: bulkFilter.max ?? 999 };
+                                        if (idx >= 0) newP.constraints[idx] = newVal;
+                                        else newP.constraints.push(newVal);
+                                    }
+                                    if (bulkFilter.ingredientId) {
+                                        const idx = newP.ingredientConstraints.findIndex(c => c.ingredientId === bulkFilter.ingredientId);
+                                        const newVal = { ingredientId: bulkFilter.ingredientId, min: bulkFilter.min ?? 0, max: bulkFilter.max ?? 100 };
+                                        if (idx >= 0) newP.ingredientConstraints[idx] = newVal;
+                                        else newP.ingredientConstraints.push(newVal);
+                                    }
+                                    onUpdateProduct(newP);
+                                });
+                            }}
+                            className="bg-indigo-600 hover:bg-indigo-500 text-white font-black py-2 rounded uppercase text-[10px] tracking-widest shadow-lg shadow-indigo-950/50"
+                        >
+                            Aplicar a Todo el Lote
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Main Command Center: Matrix View */}
+            <div className="flex-1 bg-gray-900/50 rounded-2xl border border-gray-800 shadow-2xl flex flex-col overflow-hidden">
+                <div className="p-4 bg-gray-900 border-b border-gray-800 flex justify-between items-center shrink-0">
+                    <div className="flex items-center gap-4">
+                        <h3 className="text-[12px] font-black text-white uppercase tracking-[0.2em] flex items-center gap-2">
+                           Consola de Comando Matricial 
+                           <span className="bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded-full text-[10px] border border-cyan-500/20">{selectedProducts.length} Dietas</span>
+                        </h3>
+                        <div className="h-4 w-px bg-gray-700"></div>
+                        <button onClick={() => setShowBulkPanel(!showBulkPanel)} className="flex items-center gap-2 text-[10px] font-black text-indigo-400 hover:text-indigo-300 uppercase transition-colors">
+                            <SparklesIcon className="w-3.5 h-3.5" /> Ajustes Globales
+                        </button>
+                    </div>
+                    <div className="flex bg-gray-950 p-1 rounded-lg border border-gray-800">
+                        <button onClick={() => setActiveView('matrix')} className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase transition-all ${activeView === 'matrix' ? 'bg-gray-800 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}>Matriz</button>
+                        <button onClick={() => setActiveView('cards')} className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase transition-all ${activeView === 'cards' ? 'bg-gray-800 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}>Tarjetas</button>
+                    </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                <div className="flex-1 overflow-auto custom-scrollbar">
                     {selectedProducts.length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center text-center p-8">
-                            <div className="w-16 h-16 bg-gray-900 rounded-full flex items-center justify-center mb-4 border border-gray-800 shadow-inner">
-                                <DatabaseIcon className="w-8 h-8 text-cyan-500/20" />
-                            </div>
-                            <p className="text-gray-400 font-bold text-[13px] uppercase tracking-wider">Lienzo Vacío</p>
-                            <p className="text-gray-600 text-[11px] mt-2 max-w-sm">Utilice el <strong>Árbol de Dietas</strong> en la barra lateral izquierda para seleccionar los perfiles nutricionales que desea formular.</p>
+                        <div className="h-full flex flex-col items-center justify-center text-center p-8 opacity-40">
+                            <DatabaseIcon className="w-12 h-12 mb-4 text-gray-600" />
+                            <p className="text-gray-400 font-black uppercase tracking-widest text-[14px]">Sin Selección Activa</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3">
-                            {selectedProducts.map((product) => (
-                                <div key={product.id} className="bg-gray-900 border border-cyan-500/30 p-3 rounded-xl shadow-lg shadow-cyan-950/20 flex flex-col gap-3 relative overflow-hidden group">
-                                    <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500"></div>
-                                    <div className="pl-2">
-                                        <button 
-                                            onClick={() => setViewingDetailId(product.id)}
-                                            className="text-[14px] font-black text-white hover:text-cyan-400 text-left transition-colors uppercase group-hover:underline decoration-cyan-500/50 underline-offset-4"
-                                        >
-                                            {product.name}
-                                        </button>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">REF-{product.code}</span>
-                                            {product.category && <span className="text-[9px] text-emerald-500/70 font-black uppercase tracking-tighter bg-emerald-500/10 px-1 rounded">CAT: {product.category}</span>}
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="bg-gray-950 p-2 rounded-lg border border-gray-800 flex items-center justify-between pl-3 mt-auto">
-                                        <div className="flex flex-col">
-                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Lote Objetivo:</span>
-                                            <span className="text-[8px] text-cyan-500 font-bold uppercase tracking-widest">A Optimizar (kg)</span>
-                                        </div>
-                                        <input 
-                                            type="number" 
-                                            value={batchSizes[product.id] || 1000}
-                                            onChange={(e) => setBatchSizes({...batchSizes, [product.id]: Number(e.target.value)})}
-                                            className="w-20 bg-gray-800 border border-gray-700 text-cyan-300 font-black rounded px-2 py-1 text-[13px] outline-none focus:border-cyan-500 text-right"
-                                        />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                        activeView === 'matrix' ? (
+                            <table className="w-full text-left border-collapse table-fixed">
+                                <thead className="sticky top-0 z-20 bg-gray-900 shadow-md">
+                                    <tr className="border-b border-gray-700">
+                                        <th className="p-3 w-[250px] text-[10px] font-black text-gray-500 uppercase tracking-widest bg-gray-900">Dieta / Categoría</th>
+                                        <th className="p-3 w-[120px] text-[10px] font-black text-cyan-500 uppercase tracking-widest bg-gray-900 border-l border-gray-800">Lote (kg)</th>
+                                        {Array.from(new Set(selectedProducts.flatMap(p => p.constraints.map(c => c.nutrientId)))).map(nutId => {
+                                            const nut = nutrients.find(n => n.id === nutId);
+                                            return (
+                                                <th key={nutId} className="p-3 w-[150px] text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-900 border-l border-gray-800 text-center">
+                                                    {nut?.name} <span className="text-[8px] opacity-50 block">{nut?.unit}</span>
+                                                </th>
+                                            );
+                                        })}
+                                        {Array.from(new Set(selectedProducts.flatMap(p => p.ingredientConstraints.filter(c => c.max < 100 || c.min > 0).map(c => c.ingredientId)))).map(ingId => {
+                                            const ing = ingredients.find(i => i.id === ingId);
+                                            return (
+                                                <th key={ingId} className="p-3 w-[150px] text-[10px] font-black text-indigo-400 uppercase tracking-widest bg-gray-900 border-l border-gray-800 text-center">
+                                                    {ing?.name} <span className="text-[8px] opacity-50 block">Inclusión %</span>
+                                                </th>
+                                            );
+                                        })}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {Object.entries(selectedProducts.reduce((acc, p) => {
+                                        const cat = p.category || 'Sin Categoría';
+                                        if (!acc[cat]) acc[cat] = [];
+                                        acc[cat].push(p);
+                                        return acc;
+                                    }, {} as Record<string, Product[]>)).map(([category, prods]) => (
+                                        <React.Fragment key={category}>
+                                            <tr className="bg-gray-950 border-b border-gray-800">
+                                                <td colSpan={100} className="p-2 text-[9px] font-black text-emerald-500 uppercase tracking-widest px-4">{category}</td>
+                                            </tr>
+                                            {prods.map(product => (
+                                                <tr key={product.id} className="border-b border-gray-800/80 hover:bg-cyan-500/5 transition-colors group">
+                                                    <td className="p-3 font-bold text-white text-[13px] uppercase truncate">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-1.5 h-6 bg-cyan-500/50 rounded-full group-hover:bg-cyan-500 transition-colors"></div>
+                                                            {product.name}
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-3 border-l border-gray-800/50">
+                                                        <input 
+                                                            type="number" 
+                                                            value={batchSizes[product.id] || 1000}
+                                                            onChange={(e) => setBatchSizes({...batchSizes, [product.id]: Number(e.target.value)})}
+                                                            className="w-full bg-gray-950/50 border border-gray-800 text-cyan-400 font-mono text-[11px] rounded px-2 py-1 outline-none text-right"
+                                                        />
+                                                    </td>
+                                                    {Array.from(new Set(selectedProducts.flatMap(p => p.constraints.map(c => c.nutrientId)))).map(nutId => {
+                                                        const con = product.constraints.find(c => c.nutrientId === nutId);
+                                                        return (
+                                                            <td key={nutId} className="p-3 border-l border-gray-800/50">
+                                                                <div className="flex items-center gap-1">
+                                                                    <input 
+                                                                        type="number" step="0.01" value={con?.min ?? ''} placeholder="Mín"
+                                                                        onChange={(e) => {
+                                                                            if (!onUpdateProduct) return;
+                                                                            const val = parseFloat(e.target.value);
+                                                                            const newC = [...product.constraints];
+                                                                            const idx = newC.findIndex(c => c.nutrientId === nutId);
+                                                                            if (idx >= 0) newC[idx].min = isNaN(val) ? 0 : val;
+                                                                            else newC.push({ nutrientId: nutId, min: isNaN(val) ? 0 : val, max: 999 });
+                                                                            onUpdateProduct({ ...product, constraints: newC });
+                                                                        }}
+                                                                        className="w-1/2 bg-gray-950/50 border border-gray-800 text-[10px] text-gray-400 rounded px-1 py-1 text-center font-mono"
+                                                                    />
+                                                                    <input 
+                                                                        type="number" step="0.01" value={con && con.max < 999 ? con.max : ''} placeholder="Máx"
+                                                                        onChange={(e) => {
+                                                                            if (!onUpdateProduct) return;
+                                                                            const val = parseFloat(e.target.value);
+                                                                            const newC = [...product.constraints];
+                                                                            const idx = newC.findIndex(c => c.nutrientId === nutId);
+                                                                            if (idx >= 0) newC[idx].max = isNaN(val) ? 999 : val;
+                                                                            else newC.push({ nutrientId: nutId, min: 0, max: isNaN(val) ? 999 : val });
+                                                                            onUpdateProduct({ ...product, constraints: newC });
+                                                                        }}
+                                                                        className="w-1/2 bg-gray-950/50 border border-gray-800 text-[10px] text-gray-200 font-bold rounded px-1 py-1 text-center font-mono"
+                                                                    />
+                                                                </div>
+                                                            </td>
+                                                        );
+                                                    })}
+                                                    {Array.from(new Set(selectedProducts.flatMap(p => p.ingredientConstraints.filter(c => c.max < 100 || c.min > 0).map(c => c.ingredientId)))).map(ingId => {
+                                                        const con = product.ingredientConstraints.find(c => c.ingredientId === ingId);
+                                                        return (
+                                                            <td key={ingId} className="p-3 border-l border-gray-800/50">
+                                                                <div className="flex items-center gap-1">
+                                                                    <input 
+                                                                        type="number" step="0.01" value={con?.min ?? ''} placeholder="Mín"
+                                                                        onChange={(e) => {
+                                                                            if (!onUpdateProduct) return;
+                                                                            const val = parseFloat(e.target.value);
+                                                                            const newC = [...product.ingredientConstraints];
+                                                                            const idx = newC.findIndex(c => c.ingredientId === ingId);
+                                                                            if (idx >= 0) newC[idx].min = isNaN(val) ? 0 : val;
+                                                                            else newC.push({ ingredientId: ingId, min: isNaN(val) ? 0 : val, max: 100 });
+                                                                            onUpdateProduct({ ...product, ingredientConstraints: newC });
+                                                                        }}
+                                                                        className="w-1/2 bg-indigo-950/20 border border-indigo-900/30 text-[10px] text-gray-400 rounded px-1 py-1 text-center font-mono"
+                                                                    />
+                                                                    <input 
+                                                                        type="number" step="0.01" value={con && con.max < 100 ? con.max : ''} placeholder="Máx"
+                                                                        onChange={(e) => {
+                                                                            if (!onUpdateProduct) return;
+                                                                            const val = parseFloat(e.target.value);
+                                                                            const newC = [...product.ingredientConstraints];
+                                                                            const idx = newC.findIndex(c => c.ingredientId === ingId);
+                                                                            if (idx >= 0) newC[idx].max = isNaN(val) ? 100 : val;
+                                                                            else newC.push({ ingredientId: ingId, min: 0, max: isNaN(val) ? 100 : val });
+                                                                            onUpdateProduct({ ...product, ingredientConstraints: newC });
+                                                                        }}
+                                                                        className="w-1/2 bg-indigo-950/20 border border-indigo-900/30 text-[10px] text-white font-bold rounded px-1 py-1 text-center font-mono"
+                                                                    />
+                                                                </div>
+                                                            </td>
+                                                        );
+                                                    })}
+                                                </tr>
+                                            ))}
+                                        </React.Fragment>
+                                    ))}
+                                </tbody>
+                            </table>
+                        ) : (
+                            /* Card View (Original) */
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 p-4">
+                                {selectedProducts.map((p) => (
+                                     <div key={p.id} className="bg-gray-950 border border-gray-800 p-4 rounded-xl shadow-lg relative overflow-hidden group">
+                                         <div className="absolute top-0 left-0 w-1 h-full bg-cyan-600"></div>
+                                         <h4 className="text-white font-black uppercase text-[15px]">{p.name}</h4>
+                                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1 mb-4">{p.category}</p>
+                                         <div className="bg-gray-900 p-2 rounded-lg border border-gray-800 flex justify-between items-center">
+                                             <span className="text-[10px] font-black text-gray-400 uppercase">Lote (kg)</span>
+                                             <input type="number" value={batchSizes[p.id] || 1000} onChange={(e) => setBatchSizes({...batchSizes, [p.id]: Number(e.target.value)})} className="bg-transparent text-cyan-400 font-mono text-right outline-none w-20" />
+                                         </div>
+                                     </div>
+                                ))}
+                            </div>
+                        )
                     )}
                 </div>
 
-                {/* Always-Visible Execute Region */}
-                {selectedProducts.length > 0 && (
-                    <div className="p-4 bg-gray-950/80 border-t border-cyan-500/20 flex justify-center shrink-0 backdrop-blur-md">
-                        <button 
-                            onClick={handleRunOptimization}
-                            disabled={isOptimizing}
-                            className="bg-cyan-600 hover:bg-cyan-500 text-white font-black px-12 py-3 rounded-xl shadow-[0_0_20px_rgba(8,145,178,0.3)] transition-all transform hover:scale-[1.02] flex items-center gap-3 text-[14px] uppercase tracking-widest"
-                        >
-                            {isOptimizing ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <SparklesIcon className="w-5 h-5 animate-pulse"/>}
-                            Ejecutar Optimización
-                        </button>
+                {/* Footer Optimizer Always Visible */}
+                <div className="p-4 bg-gray-900 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4 shrink-0">
+                    <div className="flex gap-4">
+                        <div className="flex flex-col">
+                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Global Batch</span>
+                            <span className="text-[18px] font-black font-mono text-cyan-400">{Object.values(batchSizes).reduce((a, b) => a + b, 0).toLocaleString()} <span className="text-[10px]">kg</span></span>
+                        </div>
                     </div>
-                )}
+                    <button 
+                        onClick={handleRunOptimization}
+                        disabled={isOptimizing}
+                        className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-12 py-3 rounded-xl shadow-[0_0_25px_rgba(16,185,129,0.3)] transition-all transform hover:scale-[1.05] flex items-center gap-3 text-[15px] uppercase tracking-[0.2em]"
+                    >
+                        {isOptimizing ? <RefreshIcon className="w-5 h-5 animate-spin" /> : <CalculatorIcon className="w-6 h-6"/>}
+                        OPTIMIZAR TODO EL GRUPO
+                    </button>
+                    <div className="w-[120px]"></div> {/* Spacer */}
+                </div>
             </div>
 
-            {/* Agile Workspace Right-Side Drawer */}
+            {/* Agile Workspace Drawer (Maintains current logic for results) */}
             {isDrawerOpen && resultsData && (
                 <>
-                    {/* Backdrop */}
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90]" onClick={handleAttemptCloseDrawer} />
-                    
-                    {/* Drawer */}
-                    <div className="fixed inset-y-0 right-0 w-[40vw] min-w-[450px] max-w-[800px] bg-gray-950 border-l border-gray-800 z-[100] shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col transform transition-transform animate-slide-in-right">
+                    <div className="fixed inset-y-0 right-0 w-[85vw] bg-gray-950 border-l border-gray-800 z-[100] shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col transform animate-slide-in-right">
                         <div className="p-4 bg-gray-900 border-b border-gray-800 flex justify-between items-center shrink-0">
                             <div className="flex items-center gap-3">
-                                <SparklesIcon className="w-5 h-5 text-cyan-400" />
-                                <div>
-                                    <h2 className="text-[16px] font-black text-white uppercase tracking-wide">Espacio de Trabajo Ágil</h2>
-                                    <p className="text-[10px] text-gray-400 uppercase tracking-widest">Feedback Loop Integrado</p>
-                                </div>
+                                <SparklesIcon className="w-5 h-5 text-emerald-400" />
+                                <h2 className="text-[16px] font-black text-white uppercase tracking-wide">Resultados del Lote Consolidado</h2>
                             </div>
-                            <button onClick={handleAttemptCloseDrawer} className="text-gray-500 hover:text-white bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg flex items-center gap-2 transition-colors font-bold text-[11px] uppercase">
-                                Cerrar <XCircleIcon className="w-4 h-4" />
+                            <button onClick={handleAttemptCloseDrawer} className="text-gray-500 hover:text-white bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-bold text-[11px] uppercase">
+                                Salir <XCircleIcon className="w-4 h-4" />
                             </button>
                         </div>
-                        <div className="flex-1 overflow-y-auto w-full relative">
-                            {/* Inside the drawer we embed the existing result screen with all its tactical power */}
+                        <div className="flex-1 overflow-y-auto relative bg-gray-900/30">
                             <GroupResultsScreen 
                                 results={resultsData.result} 
                                 assignments={resultsData.assignments} 
@@ -251,188 +438,10 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                 }}
                                 savedFormulas={savedFormulas}
                                 setSavedFormulas={setSavedFormulas}
-                                onOpenDetail={(id) => setViewingDetailId(id)}
                             />
                         </div>
                     </div>
                 </>
-            )}
-
-            {/* Requerimientos Editor Overlay */}
-            {viewingDetailId && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-black/80 backdrop-blur-md" onClick={() => setViewingDetailId(null)}></div>
-                    <div className="bg-gray-900 border border-gray-700 rounded-3xl w-full max-w-2xl h-[80vh] flex flex-col relative z-10 overflow-hidden shadow-2xl animate-fade-in-up">
-                        <div className="p-6 bg-gradient-to-r from-gray-800 to-gray-950 border-b border-gray-800 flex justify-between items-center">
-                            <div>
-                                <h3 className="text-xl font-black text-white uppercase tracking-tight">{products.find(p => p.id === viewingDetailId)?.name}</h3>
-                                <p className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest mt-1">Edición de Requerimientos Nutricionales</p>
-                            </div>
-                            <button onClick={() => setViewingDetailId(null)} className="bg-gray-800 hover:bg-red-500/20 text-gray-400 hover:text-red-400 p-2 rounded-xl transition-all">
-                                <XCircleIcon className="w-6 h-6" />
-                            </button>
-                        </div>
-                        <div className="flex bg-gray-950 border-b border-gray-800 px-6 shrink-0">
-                            <button 
-                                onClick={() => setActiveTab('nutrients')}
-                                className={`px-4 py-3 text-[11px] font-black uppercase tracking-widest border-b-2 transition-all ${activeTab === 'nutrients' ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
-                            >
-                                Requerimientos
-                            </button>
-                            <button 
-                                onClick={() => setActiveTab('ingredients')}
-                                className={`px-4 py-3 text-[11px] font-black uppercase tracking-widest border-b-2 transition-all ${activeTab === 'ingredients' ? 'border-indigo-500 text-indigo-400' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
-                            >
-                                Control Insumos
-                            </button>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-                           {activeTab === 'nutrients' && (
-                               <div className="space-y-6">
-                                   <div className="grid grid-cols-2 gap-4">
-                                       {nutrients.filter(n => {
-                                           const currentP = products.find(prod => prod.id === viewingDetailId);
-                                           return currentP?.constraints.some(c => c.nutrientId === n.id);
-                                       }).map(nut => {
-                                           const p = products.find(prod => prod.id === viewingDetailId);
-                                           const con = p?.constraints.find(c => c.nutrientId === nut.id) || { min: 0, max: 999 };
-                                           return (
-                                               <div key={nut.id} className="bg-gray-800/50 p-3 rounded-2xl border border-gray-700 flex flex-col gap-2 group/nut">
-                                                   <div className="flex justify-between items-center border-b border-gray-700/50 pb-2">
-                                                       <span className="text-xs font-black text-gray-200 uppercase truncate">{nut.name}</span>
-                                                       <button 
-                                                        onClick={() => {
-                                                            if (p && onUpdateProduct) {
-                                                                const newConstraints = p.constraints.filter(c => c.nutrientId !== nut.id);
-                                                                onUpdateProduct({ ...p, constraints: newConstraints });
-                                                            }
-                                                        }}
-                                                        className="opacity-0 group-hover/nut:opacity-100 text-red-500 hover:text-red-400 transition-opacity"
-                                                       >
-                                                           <XCircleIcon className="w-3.5 h-3.5" />
-                                                       </button>
-                                                   </div>
-                                                   <div className="flex gap-2">
-                                                       <div className="flex-1">
-                                                           <label className="text-[9px] text-gray-500 font-bold uppercase block mb-1">Mínimo</label>
-                                                           <input 
-                                                             type="number"
-                                                             value={con.min}
-                                                             onChange={(e) => {
-                                                                const val = parseFloat(e.target.value) || 0;
-                                                                if (p && onUpdateProduct) {
-                                                                    const newConstraints = [...p.constraints];
-                                                                    const idx = newConstraints.findIndex(c => c.nutrientId === nut.id);
-                                                                    if (idx >= 0) newConstraints[idx] = { ...newConstraints[idx], min: val };
-                                                                    else newConstraints.push({ nutrientId: nut.id, min: val, max: 999 });
-                                                                    onUpdateProduct({ ...p, constraints: newConstraints });
-                                                                }
-                                                             }}
-                                                             className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white focus:border-cyan-500 outline-none font-mono"
-                                                           />
-                                                       </div>
-                                                       <div className="flex-1">
-                                                           <label className="text-[9px] text-gray-500 font-bold uppercase block mb-1">Máximo</label>
-                                                           <input 
-                                                             type="number"
-                                                             value={con.max}
-                                                             onChange={(e) => {
-                                                                const val = parseFloat(e.target.value) || 999;
-                                                                if (p && onUpdateProduct) {
-                                                                    const newConstraints = [...p.constraints];
-                                                                    const idx = newConstraints.findIndex(c => c.nutrientId === nut.id);
-                                                                    if (idx >= 0) newConstraints[idx] = { ...newConstraints[idx], max: val };
-                                                                    else newConstraints.push({ nutrientId: nut.id, min: 0, max: val });
-                                                                    onUpdateProduct({ ...p, constraints: newConstraints });
-                                                                }
-                                                             }}
-                                                             className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white focus:border-cyan-500 outline-none font-mono"
-                                                           />
-                                                       </div>
-                                                   </div>
-                                               </div>
-                                           );
-                                       })}
-                                   </div>
-
-                                   {/* Nutrientes Disponibles para Agregar */}
-                                   <div className="bg-gray-950/50 p-4 rounded-2xl border border-gray-800">
-                                       <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4">Agregar Nutriente a Dieta</h4>
-                                       <div className="flex flex-wrap gap-2">
-                                           {nutrients
-                                               .filter(n => !products.find(p => p.id === viewingDetailId)?.constraints.some(c => c.nutrientId === n.id))
-                                               .map(nut => {
-                                                   const p = products.find(prod => prod.id === viewingDetailId);
-                                                   return (
-                                                       <button 
-                                                           key={nut.id} 
-                                                           onClick={() => {
-                                                               if (p && onUpdateProduct) {
-                                                                   const newConstraints = [...p.constraints, { nutrientId: nut.id, min: 0, max: 999 }];
-                                                                   onUpdateProduct({ ...p, constraints: newConstraints });
-                                                               }
-                                                           }}
-                                                           className="bg-gray-800 hover:bg-cyan-900/30 text-[10px] font-bold text-gray-400 hover:text-cyan-400 px-3 py-1.5 rounded-full border border-gray-700 hover:border-cyan-500/50 transition-all uppercase"
-                                                       >
-                                                           + {nut.name}
-                                                       </button>
-                                                   );
-                                           })}
-                                       </div>
-                                   </div>
-                               </div>
-                           )}
-
-                           {activeTab === 'ingredients' && (
-                               <div className="space-y-4">
-                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                       {ingredients.map(ing => {
-                                           const p = products.find(prod => prod.id === viewingDetailId);
-                                           const isIncluded = p?.ingredientConstraints?.some(r => r.ingredientId === ing.id) ?? true;
-                                           return (
-                                               <div key={ing.id} className={`p-3 rounded-xl border transition-all flex items-center justify-between ${isIncluded ? 'bg-indigo-500/5 border-indigo-500/30' : 'bg-gray-900/40 border-gray-800 opacity-60'}`}>
-                                                   <div className="flex items-center gap-3">
-                                                       <div className={`w-2 h-2 rounded-full ${isIncluded ? 'bg-indigo-500' : 'bg-gray-700'}`}></div>
-                                                       <div>
-                                                           <p className="text-[11px] font-black text-white uppercase">{ing.name}</p>
-                                                           <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">${ing.price} / kg</p>
-                                                       </div>
-                                                   </div>
-                                                   <button 
-                                                       onClick={() => {
-                                                            if (p && onUpdateProduct) {
-                                                                const currentConstraints = p.ingredientConstraints || [];
-                                                                let newConstraints;
-                                                                if (isIncluded) {
-                                                                    // We exclude it by adding a 0-0 constraint or removing it if the default is exclusion?
-                                                                    // Actually, based on logic: if isIncluded is true, it means it's NOT constrained or has a standard range.
-                                                                    // Let's stick to the simplest: exclusion = remove from list if list is "allowed", 
-                                                                    // but Product interface seems to use ingredientConstraints for limits.
-                                                                    // If it exists in ingredientConstraints, we manage its min/max.
-                                                                    // For "Exclude", we set min: 0, max: 0.
-                                                                    newConstraints = currentConstraints.filter(r => r.ingredientId !== ing.id);
-                                                                    newConstraints.push({ ingredientId: ing.id, min: 0, max: 0 });
-                                                                } else {
-                                                                    // Include again: remove the 0-0 constraint
-                                                                    newConstraints = currentConstraints.filter(r => r.ingredientId !== ing.id);
-                                                                }
-                                                                onUpdateProduct({ ...p, ingredientConstraints: newConstraints });
-                                                            }
-                                                       }}
-                                                       className={`px-3 py-1 rounded text-[10px] font-black uppercase transition-all ${isIncluded ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-500'}`}
-                                                   >
-                                                       {isIncluded ? 'Admitido' : 'Excluido'}
-                                                   </button>
-                                               </div>
-                                           );
-                                       })}
-                                   </div>
-                               </div>
-                           )}
-                        </div>
-                    </div>
-                </div>
             )}
         </div>
     );
