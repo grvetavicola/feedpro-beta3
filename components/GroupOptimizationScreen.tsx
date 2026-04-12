@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Product, Ingredient, Nutrient } from '../types';
+import { Product, Ingredient, Nutrient, SavedFormula } from '../types';
 import { solveFeedFormulation } from '../services/solver';
 import { CubeIcon, BeakerIcon, CalculatorIcon, RefreshIcon, XCircleIcon, CheckIcon, TrashIcon } from './icons';
 
@@ -368,6 +368,53 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleRunAll]);
 
+  // ── Save Bulk Execution ──
+  const handleSaveBulk = () => {
+    const successfulDiets = activeDiets.filter(diet => results[diet.id]?.feasible);
+    if (successfulDiets.length === 0) {
+      alert("No hay dietas optimizadas exitosamente para guardar.");
+      return;
+    }
+
+    const newFormulas: SavedFormula[] = successfulDiets.map(diet => {
+      // Build matrix product for a final solver run (to capture full result without touching F4)
+      const matrixProduct: Product = {
+        ...diet,
+        ingredientConstraints: activeRows
+          .filter(r => r.type === 'ing' && constraints[r.id]?.[diet.id])
+          .map(r => ({
+            ingredientId: r.id,
+            min: constraints[r.id][diet.id].min,
+            max: constraints[r.id][diet.id].max
+          })),
+        constraints: activeRows
+          .filter(r => r.type === 'nut' && constraints[r.id]?.[diet.id])
+          .map(r => ({
+            nutrientId: r.id,
+            min: constraints[r.id][diet.id].min,
+            max: constraints[r.id][diet.id].max
+          }))
+      };
+      
+      const batch = batchSizes[diet.id] || 1000;
+      const result = solveFeedFormulation(matrixProduct, ingredients, nutrients, batch, matrixMode === 'dynamic');
+      
+      return {
+        id: Math.random().toString(36).substr(2, 9),
+        clientId: diet.clientId,
+        name: diet.name,
+        date: new Date().toISOString(),
+        result
+      };
+    });
+
+    if (setSavedFormulas) {
+      setSavedFormulas((prev: any) => [...(Array.isArray(prev) ? prev : []), ...newFormulas]);
+      alert(`✅ ${newFormulas.length} Dieta(s) guardadas correctamente en el panel principal.`);
+      onLeaveFullscreen?.();
+    }
+  };
+
   // ── Injector options ───────────────────────────────────────────────────────
   const injOptions = useMemo(() => {
     const term = injSearch.toLowerCase();
@@ -399,6 +446,14 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
           >
             <RefreshIcon className="w-3 h-3 rotate-180" />
             Volver
+          </button>
+          <button
+            onClick={handleSaveBulk}
+            disabled={isRunning || !hasRun || !Object.values(results).some(r => r?.feasible)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-lg transition-all text-[10px] font-black uppercase tracking-widest border border-indigo-500 shadow-lg shadow-indigo-500/20"
+          >
+            <CheckIcon className="w-3 h-3" />
+            Guardar Dietas
           </button>
           <div className="w-px h-4 bg-gray-800 mx-1" />
           <span className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em]">
