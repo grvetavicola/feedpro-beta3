@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Product, Ingredient, Nutrient } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
-import { DatabaseIcon, CalculatorIcon, SparklesIcon, XCircleIcon, CubeIcon, RefreshIcon, BeakerIcon, ShoppingCartIcon, RatiosIcon } from './icons';
+import { DatabaseIcon, CalculatorIcon, SparklesIcon, XCircleIcon, CubeIcon, RefreshIcon, BeakerIcon, ShoppingCartIcon, RatiosIcon, SettingsIcon, CheckIcon } from './icons';
 import { solveGroupFormulation } from '../services/solver';
 import { GroupResultsScreen } from './GroupResultsScreen';
 
@@ -14,7 +14,7 @@ interface GroupOptimizationScreenProps {
   onOpenInNewWindow?: (data: any, name: string) => void;
   onUpdateProduct?: (p: Product) => void;
   setIsDirty?: (dirty: boolean) => void;
-  savedFormulas?: any[]; // Usually SavedFormula[] but simplified type here since it's passed from root
+  savedFormulas?: any[]; 
   setSavedFormulas?: (val: any) => void;
 }
 
@@ -45,12 +45,17 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [resultsData, setResultsData] = useState<{ result: any, assignments: any } | null>(null);
     const [showBulkPanel, setShowBulkPanel] = useState(false);
-    const [bulkFilter, setBulkFilter] = useState<{ nutrientId?: string, ingredientId?: string, relationId?: string, min?: number, max?: number }>({});
+    
+    // Multi-Selection Bulk State
+    const [selectedNutrientIds, setSelectedNutrientIds] = useState<string[]>([]);
+    const [selectedIngredientIds, setSelectedIngredientIds] = useState<string[]>([]);
+    const [bulkMin, setBulkMin] = useState<string>('');
+    const [bulkMax, setBulkMax] = useState<string>('');
     const [activeView, setActiveView] = useState<'matrix' | 'cards'>('matrix');
     
     // Category Color Map
     const getCategoryColor = (cat: string) => {
-        const c = cat.toLowerCase();
+        const c = (cat || '').toLowerCase();
         if (c.includes('postura') || c.includes('huevo')) return 'amber';
         if (c.includes('iniciador')) return 'cyan';
         if (c.includes('crecimiento')) return 'emerald';
@@ -104,7 +109,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
             if (result.feasible) {
                 setResultsData({ result, assignments });
                 setIsDrawerOpen(true);
-                setIsDirty?.(true); // Flag to prevent accidental closure
+                setIsDirty?.(true); 
             } else {
                 setResultsData({ result, assignments });
                 setIsDrawerOpen(true);
@@ -119,6 +124,54 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
             setIsDirty?.(false);
         }
     };
+
+    // Bulk Apply Logic
+    const handleBulkApplyNutrients = () => {
+        if (!onUpdateProduct || selectedNutrientIds.length === 0) return;
+        selectedProducts.forEach(p => {
+            const newP = { ...p, constraints: [...p.constraints] };
+            selectedNutrientIds.forEach(nutId => {
+                const idx = newP.constraints.findIndex(c => c.nutrientId === nutId);
+                const min = bulkMin === '' ? 0 : parseFloat(bulkMin);
+                const max = bulkMax === '' ? 999 : parseFloat(bulkMax);
+                if (idx >= 0) {
+                    newP.constraints[idx] = { ...newP.constraints[idx], min, max };
+                } else {
+                    newP.constraints.push({ nutrientId: nutId, min, max });
+                }
+            });
+            onUpdateProduct(newP);
+        });
+        setSelectedNutrientIds([]);
+        setBulkMin('');
+        setBulkMax('');
+    };
+
+    const handleBulkApplyIngredients = () => {
+        if (!onUpdateProduct || selectedIngredientIds.length === 0) return;
+        selectedProducts.forEach(p => {
+            const newP = { ...p, ingredientConstraints: [...p.ingredientConstraints] };
+            selectedIngredientIds.forEach(ingId => {
+                const idx = newP.ingredientConstraints.findIndex(c => c.ingredientId === ingId);
+                const min = bulkMin === '' ? 0 : parseFloat(bulkMin);
+                const max = bulkMax === '' ? 100 : parseFloat(bulkMax);
+                if (idx >= 0) {
+                    newP.ingredientConstraints[idx] = { ...newP.ingredientConstraints[idx], min, max };
+                } else {
+                    newP.ingredientConstraints.push({ ingredientId: ingId, min, max });
+                }
+            });
+            onUpdateProduct(newP);
+        });
+        setSelectedIngredientIds([]);
+        setBulkMin('');
+        setBulkMax('');
+    };
+
+    // Transposed Matrix Rows
+    const activeNutrientIds = Array.from(new Set(selectedProducts.flatMap(p => p.constraints.map(c => c.nutrientId))));
+    const activeIngredientIds = Array.from(new Set(selectedProducts.flatMap(p => p.ingredientConstraints.filter(c => c.max < 100 || c.min > 0).map(c => c.ingredientId))));
+    const activeRelationNames = Array.from(new Set(selectedProducts.flatMap(p => p.relationships.map(r => r.name))));
 
     return (
         <div className="p-3 space-y-4 flex flex-col h-full relative">
@@ -135,37 +188,22 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                 </div>
                 
                 <div className="flex items-center gap-4 bg-gray-950/50 p-1.5 rounded-lg border border-gray-800">
-                    {/* Stock Toggle */}
                     <div className={`px-3 py-1.5 rounded flex items-center gap-2 transition-all ${useStock ? 'bg-emerald-500/10 border-emerald-500/30 border' : 'border border-transparent'}`}>
-                        <div className="flex flex-col text-right">
-                            <span className="text-[9px] font-black text-gray-300 uppercase leading-none">Restringir Stock</span>
-                        </div>
+                        <span className="text-[9px] font-black text-gray-300 uppercase leading-none">Restringir Stock</span>
                         <button onClick={() => { setUseStock(!useStock); setIsDirty?.(true); }} className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors ${useStock ? 'bg-emerald-500' : 'bg-gray-600'}`}>
                             <span className={`inline-block h-2.5 w-2.5 transform rounded-full bg-white transition-transform ${useStock ? 'translate-x-4' : 'translate-x-1'}`} />
                         </button>
                     </div>
-                    
                     <div className="w-px h-6 bg-gray-700"></div>
-
-                    {/* Matrix Toggle */}
                     <div className={`px-3 py-1.5 rounded flex items-center gap-2 transition-all ${matrixMode === 'dynamic' ? 'bg-indigo-500/10 border-indigo-500/30 border' : 'border border-transparent'}`}>
-                        <div className="flex flex-col text-right">
-                            <span className="text-[9px] font-black text-gray-300 uppercase leading-none">Matriz Dinámica</span>
-                        </div>
+                        <span className="text-[9px] font-black text-gray-300 uppercase leading-none">Matriz Dinámica</span>
                         <button onClick={() => { setMatrixMode(matrixMode === 'dynamic' ? 'general' : 'dynamic'); setIsDirty?.(true); }} className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors ${matrixMode === 'dynamic' ? 'bg-indigo-500' : 'bg-gray-600'}`}>
                             <span className={`inline-block h-2.5 w-2.5 transform rounded-full bg-white transition-transform ${matrixMode === 'dynamic' ? 'translate-x-4' : 'translate-x-1'}`} />
                         </button>
                     </div>
-                    
                     <div className="w-px h-6 bg-gray-700"></div>
-
-                    {/* Global Relationships */}
                     <div className="px-2">
-                        <select 
-                            value={globalRelation}
-                            onChange={(e) => setGlobalRelation(e.target.value)}
-                            className="bg-gray-900 border border-gray-700 text-yellow-500 font-bold text-[10px] uppercase rounded px-2 py-1 outline-none focus:border-yellow-500"
-                        >
+                        <select value={globalRelation} onChange={(e) => setGlobalRelation(e.target.value)} className="bg-gray-900 border border-gray-700 text-yellow-500 font-bold text-[10px] uppercase rounded px-2 py-1 outline-none focus:border-yellow-500">
                             <option value="none">Sin relaciones activas</option>
                             <option value="ca_p">Mínimo Global Ca:P</option>
                             <option value="na_cl">Mínimo Global Na:Cl</option>
@@ -174,95 +212,89 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                 </div>
             </div>
 
-            {/* Bulk Control Panel - Segmented */}
-            <div className={`overflow-hidden transition-all duration-300 ${showBulkPanel ? 'max-h-[600px] mb-6' : 'max-h-0'}`}>
-                <div className="bg-indigo-950/20 border border-indigo-500/30 rounded-2xl p-6 shadow-2xl backdrop-blur-sm">
-                    <div className="flex items-center justify-between mb-6">
+            {/* Bulk Control Panel - Multi Selection */}
+            <div className={`overflow-hidden transition-all duration-300 ${showBulkPanel ? 'max-h-[800px] mb-6' : 'max-h-0'}`}>
+                <div className="bg-indigo-950/20 border border-indigo-500/30 rounded-2xl p-6 shadow-2xl backdrop-blur-sm space-y-6">
+                    <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-indigo-500/20 rounded-lg">
-                                <SparklesIcon className="w-5 h-5 text-indigo-400" />
-                            </div>
+                            <div className="p-2 bg-indigo-500/20 rounded-lg"><SparklesIcon className="w-5 h-5 text-indigo-400" /></div>
                             <div>
-                                <h3 className="text-[14px] font-black text-white uppercase tracking-widest leading-none">Acciones Globales de Lote</h3>
-                                <p className="text-[9px] text-gray-500 uppercase font-bold mt-1 tracking-tighter">Aplica ajustes estructurales a todas las dietas de la matriz</p>
+                                <h3 className="text-[14px] font-black text-white uppercase tracking-widest leading-none">Inyectar Parámetros al Lote</h3>
+                                <p className="text-[9px] text-gray-500 uppercase font-bold mt-1 tracking-tighter">Selecciona múltiples ítems para agregar a todas las dietas</p>
                             </div>
                         </div>
                         <button onClick={() => setShowBulkPanel(false)} className="text-gray-500 hover:text-white transition-colors"><XCircleIcon className="w-6 h-6"/></button>
                     </div>
                     
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {/* Section 3: Ratios/Relations */}
-                        <div className="bg-gray-900/40 border border-gray-800 rounded-xl p-4 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 p-8 bg-yellow-500/5 rounded-full -mr-4 -mt-4 blur-2xl"></div>
-                            <div className="flex items-center gap-2 mb-4">
-                                <RatiosIcon className="w-4 h-4 text-yellow-400" />
-                                <h4 className="text-[10px] font-black text-yellow-500 uppercase tracking-widest">Relaciones y Ratios (Lote)</h4>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                    <label className="text-[8px] font-black text-gray-500 uppercase px-1">Relación Técnica</label>
-                                    <select 
-                                        onChange={(e) => setBulkFilter({ ...bulkFilter, relationId: e.target.value, nutrientId: undefined, ingredientId: undefined })}
-                                        className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg p-2.5 text-[11px] font-bold outline-none focus:border-yellow-500 transition-colors"
+                        {/* Nutrients Multi Select */}
+                        <div className="bg-gray-900/40 border border-gray-800 rounded-xl p-4">
+                            <h4 className="text-[10px] font-black text-cyan-500 uppercase tracking-widest mb-3">Requerimientos Nutricionales</h4>
+                            <div className="h-40 overflow-y-auto mb-4 bg-gray-950 rounded border border-gray-800 p-2 grid grid-cols-2 gap-2 custom-scrollbar">
+                                {nutrients.map(n => (
+                                    <button 
+                                        key={n.id}
+                                        onClick={() => setSelectedNutrientIds(prev => prev.includes(n.id) ? prev.filter(id => id !== n.id) : [...prev, n.id])}
+                                        className={`flex items-center justify-between px-2 py-1.5 rounded text-[10px] font-bold uppercase transition-all ${selectedNutrientIds.includes(n.id) ? 'bg-cyan-600 text-white shadow-lg' : 'bg-gray-900 text-gray-500 hover:bg-gray-800'}`}
                                     >
-                                        <option value="">-- Seleccionar Relación --</option>
-                                        {Array.from(new Set(selectedProducts.flatMap(p => p.relationships.map(r => r.name)))).map(name => {
-                                            const rel = selectedProducts.flatMap(p => p.relationships).find(r => r.name === name);
-                                            return <option key={name} value={name}>{name}</option>;
-                                        })}
-                                    </select>
-                                </div>
-                                <div className="flex gap-2 items-end">
-                                    <div className="flex-1 space-y-1">
-                                        <label className="text-[8px] font-black text-gray-500 uppercase px-1">Ratio Mín</label>
-                                        <input type="number" step="0.01" onChange={(e) => setBulkFilter({...bulkFilter, min: parseFloat(e.target.value)})} placeholder="0.0" className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg p-2.5 text-[11px] font-mono outline-none focus:border-yellow-500" />
-                                    </div>
-                                    <div className="flex-1 space-y-1">
-                                        <label className="text-[8px] font-black text-gray-500 uppercase px-1">Ratio Máx</label>
-                                        <input type="number" step="0.01" onChange={(e) => setBulkFilter({...bulkFilter, max: parseFloat(e.target.value)})} placeholder="99.9" className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg p-2.5 text-[11px] font-mono outline-none focus:border-yellow-500" />
-                                    </div>
-                                </div>
+                                        <span className="truncate pr-2">{n.name}</span>
+                                        {selectedNutrientIds.includes(n.id) && <CheckIcon className="w-3 h-3" />}
+                                    </button>
+                                ))}
                             </div>
-                            <button 
-                                onClick={() => {
-                                    if (!onUpdateProduct || !bulkFilter.relationId) return;
-                                    selectedProducts.forEach(p => {
-                                        const newP = { ...p };
-                                        const idx = newP.relationships.findIndex(r => r.name === bulkFilter.relationId);
-                                        if (idx >= 0) {
-                                            newP.relationships[idx] = { ...newP.relationships[idx], min: bulkFilter.min ?? 0, max: bulkFilter.max ?? 999 };
-                                            onUpdateProduct(newP);
-                                        }
-                                    });
-                                }}
-                                className="w-full mt-4 bg-yellow-600/10 hover:bg-yellow-600 text-yellow-500 hover:text-white border border-yellow-500/20 font-black py-2.5 rounded-lg uppercase text-[9px] tracking-[0.2em] transition-all shadow-lg"
-                            >
-                                Aplicar Relación a Lote
-                            </button>
+                            <div className="flex gap-3 items-end">
+                                <div className="flex-1 space-y-1">
+                                    <label className="text-[8px] font-black text-gray-500 uppercase">Mín Global</label>
+                                    <input type="number" value={bulkMin} onChange={e => setBulkMin(e.target.value)} placeholder="0.0" className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg p-2 text-[11px] font-mono outline-none" />
+                                </div>
+                                <div className="flex-1 space-y-1">
+                                    <label className="text-[8px] font-black text-gray-500 uppercase">Máx Global</label>
+                                    <input type="number" value={bulkMax} onChange={e => setBulkMax(e.target.value)} placeholder="99.9" className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg p-2 text-[11px] font-mono outline-none" />
+                                </div>
+                                <button onClick={handleBulkApplyNutrients} className="bg-cyan-600 hover:bg-cyan-500 text-white font-black px-4 py-2 rounded-lg text-[10px] uppercase transition-all shadow-lg shadow-cyan-900/20">Aplicar</button>
+                            </div>
+                        </div>
+
+                        {/* Ingredients Multi Select */}
+                        <div className="bg-gray-900/40 border border-gray-800 rounded-xl p-4">
+                            <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-3">Límites de Inclusión (Insumos)</h4>
+                            <div className="h-40 overflow-y-auto mb-4 bg-gray-950 rounded border border-gray-800 p-2 grid grid-cols-2 gap-2 custom-scrollbar">
+                                {ingredients.map(i => (
+                                    <button 
+                                        key={i.id}
+                                        onClick={() => setSelectedIngredientIds(prev => prev.includes(i.id) ? prev.filter(id => id !== i.id) : [...prev, i.id])}
+                                        className={`flex items-center justify-between px-2 py-1.5 rounded text-[10px] font-bold uppercase transition-all ${selectedIngredientIds.includes(i.id) ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-900 text-gray-500 hover:bg-gray-800'}`}
+                                    >
+                                        <span className="truncate pr-2">{i.name}</span>
+                                        {selectedIngredientIds.includes(i.id) && <CheckIcon className="w-3 h-3" />}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="flex gap-3 items-end">
+                                <div className="flex-1 space-y-1">
+                                    <label className="text-[8px] font-black text-gray-500 uppercase">Min %</label>
+                                    <input type="number" value={bulkMin} onChange={e => setBulkMin(e.target.value)} placeholder="0" className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg p-2 text-[11px] font-mono outline-none" />
+                                </div>
+                                <div className="flex-1 space-y-1">
+                                    <label className="text-[8px] font-black text-gray-500 uppercase">Max %</label>
+                                    <input type="number" value={bulkMax} onChange={e => setBulkMax(e.target.value)} placeholder="100" className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg p-2 text-[11px] font-mono outline-none" />
+                                </div>
+                                <button onClick={handleBulkApplyIngredients} className="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-4 py-2 rounded-lg text-[10px] uppercase transition-all shadow-lg shadow-indigo-900/20">Aplicar</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-                    </div>
-                </div>
-            </div>
 
-            {/* Main Command Center: Matrix View */}
+            {/* VERTICAL MATRIX (Excel Inspired) */}
             <div className="flex-1 bg-gray-900/50 rounded-2xl border border-gray-800 shadow-2xl flex flex-col overflow-hidden">
                 <div className="p-4 bg-gray-900 border-b border-gray-800 flex justify-between items-center shrink-0">
                     <div className="flex items-center gap-4">
-                        <h3 className="text-[12px] font-black text-white uppercase tracking-[0.2em] flex items-center gap-2">
-                           Consola de Comando Matricial 
-                           <span className="bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded-full text-[10px] border border-cyan-500/20">{selectedProducts.length} Dietas</span>
-                        </h3>
+                        <h3 className="text-[12px] font-black text-white uppercase tracking-[0.2em]">Consola de Nutrición Vertical</h3>
                         <div className="h-4 w-px bg-gray-700"></div>
                         <button onClick={() => setShowBulkPanel(!showBulkPanel)} className="flex items-center gap-2 text-[10px] font-black text-indigo-400 hover:text-indigo-300 uppercase transition-colors">
-                            <SparklesIcon className="w-3.5 h-3.5" /> Ajustes Globales
+                            <SparklesIcon className="w-3.5 h-3.5" /> Inyectar Global
                         </button>
-                    </div>
-                    <div className="flex bg-gray-950 p-1 rounded-lg border border-gray-800">
-                        <button onClick={() => setActiveView('matrix')} className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase transition-all ${activeView === 'matrix' ? 'bg-gray-800 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}>Matriz</button>
-                        <button onClick={() => setActiveView('cards')} className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase transition-all ${activeView === 'cards' ? 'bg-gray-800 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}>Tarjetas</button>
                     </div>
                 </div>
 
@@ -273,202 +305,185 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                             <p className="text-gray-400 font-black uppercase tracking-widest text-[14px]">Sin Selección Activa</p>
                         </div>
                     ) : (
-                        activeView === 'matrix' ? (
-                            <table className="w-full text-left border-collapse table-fixed">
-                                <thead className="sticky top-0 z-20 bg-gray-900 shadow-md">
-                                    <tr className="border-b border-gray-700">
-                                        <th className="p-3 w-[250px] text-[10px] font-black text-gray-500 uppercase tracking-widest bg-gray-900">Dieta / Categoría</th>
-                                        <th className="p-3 w-[120px] text-[10px] font-black text-cyan-500 uppercase tracking-widest bg-gray-900 border-l border-gray-800">Lote (kg)</th>
-                                        {Array.from(new Set(selectedProducts.flatMap(p => p.constraints.map(c => c.nutrientId)))).map(nutId => {
-                                            const nut = nutrients.find(n => n.id === nutId);
-                                            return (
-                                                <th key={nutId} className="p-3 w-[150px] text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-900 border-l border-gray-800 text-center">
-                                                    {nut?.name} <span className="text-[8px] opacity-50 block">{nut?.unit}</span>
-                                                </th>
-                                            );
-                                        })}
-                                        {Array.from(new Set(selectedProducts.flatMap(p => p.relationships.map(r => r.name)))).map(relName => (
-                                            <th key={relName} className="p-3 w-[150px] text-[10px] font-black text-yellow-500 uppercase tracking-widest bg-gray-900 border-l border-gray-800 text-center">
-                                                {relName} <span className="text-[8px] opacity-50 block">Ratio A/B</span>
+                        <table className="w-full text-left border-collapse table-fixed">
+                            <thead className="sticky top-0 z-30 bg-gray-950">
+                                <tr>
+                                    <th className="p-4 w-[250px] bg-gray-900 border-r border-gray-800">
+                                        <div className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Parámetros / Dietas</div>
+                                    </th>
+                                    {selectedProducts.map(p => {
+                                        const styles = getColorClasses(getCategoryColor(p.category || ''));
+                                        return (
+                                            <th key={p.id} className={`p-4 w-[180px] border-l border-gray-800/50 text-center ${styles.bg}`}>
+                                                <div className="flex flex-col items-center gap-1">
+                                                    <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase text-white shadow ${styles.badge}`}>{p.category || 'Sin Cat'}</span>
+                                                    <span className="text-[11px] font-black text-white uppercase truncate max-w-full">{p.name}</span>
+                                                    <div className="mt-2 w-full">
+                                                        <label className="text-[8px] font-bold text-gray-500 uppercase block mb-1">Batch (kg)</label>
+                                                        <input type="number" value={batchSizes[p.id] || 1000} onChange={e => setBatchSizes({...batchSizes, [p.id]: Number(e.target.value)})} className="w-full bg-black/40 border border-white/10 rounded px-2 py-1 text-[11px] text-center text-white font-mono outline-none focus:border-cyan-500" />
+                                                    </div>
+                                                </div>
                                             </th>
-                                        ))}
-                                        {Array.from(new Set(selectedProducts.flatMap(p => p.ingredientConstraints.filter(c => c.max < 100 || c.min > 0).map(c => c.ingredientId)))).map(ingId => {
-                                            const ing = ingredients.find(i => i.id === ingId);
-                                            return (
-                                                <th key={ingId} className="p-3 w-[150px] text-[10px] font-black text-indigo-400 uppercase tracking-widest bg-gray-900 border-l border-gray-800 text-center">
-                                                    {ing?.name} <span className="text-[8px] opacity-50 block">Inclusión %</span>
-                                                </th>
-                                            );
-                                        })}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                {Object.entries(selectedProducts.reduce((acc, p) => {
-                                    const cat = p.category || 'Sin Categoría';
-                                    if (!acc[cat]) acc[cat] = [];
-                                    acc[cat].push(p);
-                                    return acc;
-                                }, {} as Record<string, Product[]>)).map(([category, prods]) => {
-                                    const colorKey = getCategoryColor(category);
-                                    const styles = getColorClasses(colorKey);
+                                        );
+                                    })}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {/* SECTION: NUTRIENTS */}
+                                <tr className="bg-gray-900 shadow-inner">
+                                    <td colSpan={selectedProducts.length + 1} className="px-4 py-2 border-y border-gray-800 bg-cyan-500/5">
+                                        <div className="flex items-center gap-2">
+                                            <BeakerIcon className="w-4 h-4 text-cyan-500" />
+                                            <span className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em]">Requerimientos Nutricionales</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {activeNutrientIds.map(nutId => {
+                                    const nut = nutrients.find(n => n.id === nutId);
                                     return (
-                                        <React.Fragment key={category}>
-                                            <tr className="bg-gray-950 border-b border-gray-800">
-                                                <td colSpan={100} className="p-2 px-4">
-                                                    <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${styles.badge} text-white shadow-lg`}>
-                                                        {category}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                            {prods.map(product => (
-                                                <tr key={product.id} className={`border-b border-gray-800/80 ${styles.hover} transition-colors group`}>
-                                                    <td className="p-3 font-bold text-white text-[13px] uppercase truncate">
-                                                        <div className="flex items-center gap-2">
-                                                            <div className={`w-1.5 h-6 ${styles.line} rounded-full transition-all group-hover:scale-y-125`}></div>
-                                                            {product.name}
+                                        <tr key={nutId} className="border-b border-gray-800/50 hover:bg-gray-800/20 transition-colors">
+                                            <td className="p-3 pl-8 text-[11px] font-bold text-gray-300 uppercase bg-gray-950/20 border-r border-gray-800">
+                                                <div className="flex flex-col">
+                                                    <span>{nut?.name}</span>
+                                                    <span className="text-[8px] text-gray-600 font-mono">{nut?.unit}</span>
+                                                </div>
+                                            </td>
+                                            {selectedProducts.map(p => {
+                                                const con = p.constraints.find(c => c.nutrientId === nutId);
+                                                return (
+                                                    <td key={p.id} className="p-2 border-l border-gray-800/30">
+                                                        <div className="flex items-center gap-1">
+                                                            <input type="number" step="0.01" value={con?.min ?? ''} placeholder="min" onChange={e => {
+                                                                if (!onUpdateProduct) return;
+                                                                const val = parseFloat(e.target.value);
+                                                                const newC = [...p.constraints];
+                                                                const idx = newC.findIndex(c => c.nutrientId === nutId);
+                                                                if (idx >= 0) newC[idx].min = isNaN(val) ? 0 : val;
+                                                                else newC.push({ nutrientId: nutId, min: isNaN(val) ? 0 : val, max: 999 });
+                                                                onUpdateProduct({ ...p, constraints: newC });
+                                                            }} className="w-1/2 bg-gray-950/50 border border-gray-800 text-[10px] text-gray-400 rounded p-1.5 text-center font-mono focus:border-cyan-500" />
+                                                            <input type="number" step="0.01" value={con && con.max < 999 ? con.max : ''} placeholder="max" onChange={e => {
+                                                                if (!onUpdateProduct) return;
+                                                                const val = parseFloat(e.target.value);
+                                                                const newC = [...p.constraints];
+                                                                const idx = newC.findIndex(c => c.nutrientId === nutId);
+                                                                if (idx >= 0) newC[idx].max = isNaN(val) ? 999 : val;
+                                                                else newC.push({ nutrientId: nutId, min: 0, max: isNaN(val) ? 999 : val });
+                                                                onUpdateProduct({ ...p, constraints: newC });
+                                                            }} className="w-1/2 bg-gray-950/50 border border-gray-800 text-[10px] text-white font-black rounded p-1.5 text-center font-mono focus:border-cyan-500" />
                                                         </div>
                                                     </td>
-                                                    <td className="p-3 border-l border-gray-800/50">
-                                                        <input 
-                                                            type="number" 
-                                                            value={batchSizes[product.id] || 1000}
-                                                            onChange={(e) => setBatchSizes({...batchSizes, [product.id]: Number(e.target.value)})}
-                                                            className={`w-full bg-gray-950/50 border border-gray-800 ${styles.text} font-mono text-[11px] rounded px-2 py-1 outline-none text-right focus:border-cyan-500`}
-                                                        />
-                                                    </td>
-                                                    {/* Nutrients */}
-                                                    {Array.from(new Set(selectedProducts.flatMap(p => p.constraints.map(c => c.nutrientId)))).map(nutId => {
-                                                        const con = product.constraints.find(c => c.nutrientId === nutId);
-                                                        return (
-                                                            <td key={nutId} className="p-3 border-l border-gray-800/50">
-                                                                <div className="flex items-center gap-1">
-                                                                    <input 
-                                                                        type="number" step="0.01" value={con?.min ?? ''} placeholder="Mín"
-                                                                        onChange={(e) => {
-                                                                            if (!onUpdateProduct) return;
-                                                                            const val = parseFloat(e.target.value);
-                                                                            const newC = [...product.constraints];
-                                                                            const idx = newC.findIndex(c => c.nutrientId === nutId);
-                                                                            if (idx >= 0) newC[idx].min = isNaN(val) ? 0 : val;
-                                                                            else newC.push({ nutrientId: nutId, min: isNaN(val) ? 0 : val, max: 999 });
-                                                                            onUpdateProduct({ ...product, constraints: newC });
-                                                                        }}
-                                                                        className="w-1/2 bg-gray-950/50 border border-gray-800 text-[10px] text-gray-400 rounded px-1 py-1 text-center font-mono focus:border-cyan-500"
-                                                                    />
-                                                                    <input 
-                                                                        type="number" step="0.01" value={con && con.max < 999 ? con.max : ''} placeholder="Máx"
-                                                                        onChange={(e) => {
-                                                                            if (!onUpdateProduct) return;
-                                                                            const val = parseFloat(e.target.value);
-                                                                            const newC = [...product.constraints];
-                                                                            const idx = newC.findIndex(c => c.nutrientId === nutId);
-                                                                            if (idx >= 0) newC[idx].max = isNaN(val) ? 999 : val;
-                                                                            else newC.push({ nutrientId: nutId, min: 0, max: isNaN(val) ? 999 : val });
-                                                                            onUpdateProduct({ ...product, constraints: newC });
-                                                                        }}
-                                                                        className="w-1/2 bg-gray-950/50 border border-gray-800 text-[10px] text-gray-200 font-bold rounded px-1 py-1 text-center font-mono focus:border-cyan-500"
-                                                                    />
-                                                                </div>
-                                                            </td>
-                                                        );
-                                                    })}
-                                                    {/* Relationships */}
-                                                    {Array.from(new Set(selectedProducts.flatMap(p => p.relationships.map(r => r.name)))).map(relName => {
-                                                        const rel = product.relationships.find(r => r.name === relName);
-                                                        return (
-                                                            <td key={relName} className="p-3 border-l border-gray-800/50 bg-yellow-500/5">
-                                                                <div className="flex items-center gap-1">
-                                                                    <input 
-                                                                        type="number" step="0.01" value={rel?.min ?? ''} placeholder="Mín"
-                                                                        onChange={(e) => {
-                                                                            if (!onUpdateProduct) return;
-                                                                            const val = parseFloat(e.target.value);
-                                                                            const newR = [...product.relationships];
-                                                                            const idx = newR.findIndex(r => r.name === relName);
-                                                                            if (idx >= 0) {
-                                                                                newR[idx].min = isNaN(val) ? 0 : val;
-                                                                                onUpdateProduct({ ...product, relationships: newR });
-                                                                            }
-                                                                        }}
-                                                                        className="w-1/2 bg-yellow-950/20 border border-yellow-800/30 text-[10px] text-yellow-500 font-mono rounded px-1 py-1 text-center focus:border-yellow-500"
-                                                                    />
-                                                                    <input 
-                                                                        type="number" step="0.01" value={rel && rel.max < 999 ? rel.max : ''} placeholder="Máx"
-                                                                        onChange={(e) => {
-                                                                            if (!onUpdateProduct) return;
-                                                                            const val = parseFloat(e.target.value);
-                                                                            const newR = [...product.relationships];
-                                                                            const idx = newR.findIndex(r => r.name === relName);
-                                                                            if (idx >= 0) {
-                                                                                newR[idx].max = isNaN(val) ? 999 : val;
-                                                                                onUpdateProduct({ ...product, relationships: newR });
-                                                                            }
-                                                                        }}
-                                                                        className="w-1/2 bg-yellow-950/20 border border-yellow-800/30 text-[10px] text-yellow-200 font-bold rounded px-1 py-1 text-center font-mono focus:border-yellow-500"
-                                                                    />
-                                                                </div>
-                                                            </td>
-                                                        );
-                                                    })}
-                                                    {/* Ingredient Inclusion */}
-                                                    {Array.from(new Set(selectedProducts.flatMap(p => p.ingredientConstraints.filter(c => c.max < 100 || c.min > 0).map(c => c.ingredientId)))).map(ingId => {
-                                                        const con = product.ingredientConstraints.find(c => c.ingredientId === ingId);
-                                                        return (
-                                                            <td key={ingId} className="p-3 border-l border-gray-800/50 bg-indigo-500/5">
-                                                                <div className="flex items-center gap-1">
-                                                                    <input 
-                                                                        type="number" step="0.01" value={con?.min ?? ''} placeholder="Mín"
-                                                                        onChange={(e) => {
-                                                                            if (!onUpdateProduct) return;
-                                                                            const val = parseFloat(e.target.value);
-                                                                            const newC = [...product.ingredientConstraints];
-                                                                            const idx = newC.findIndex(c => c.ingredientId === ingId);
-                                                                            if (idx >= 0) newC[idx].min = isNaN(val) ? 0 : val;
-                                                                            else newC.push({ ingredientId: ingId, min: isNaN(val) ? 0 : val, max: 100 });
-                                                                            onUpdateProduct({ ...product, ingredientConstraints: newC });
-                                                                        }}
-                                                                        className="w-1/2 bg-indigo-950/20 border border-indigo-900/30 text-[10px] text-indigo-400 rounded px-1 py-1 text-center font-mono focus:border-indigo-500"
-                                                                    />
-                                                                    <input 
-                                                                        type="number" step="0.01" value={con && con.max < 100 ? con.max : ''} placeholder="Máx"
-                                                                        onChange={(e) => {
-                                                                            if (!onUpdateProduct) return;
-                                                                            const val = parseFloat(e.target.value);
-                                                                            const newC = [...product.ingredientConstraints];
-                                                                            const idx = newC.findIndex(c => c.ingredientId === ingId);
-                                                                            if (idx >= 0) newC[idx].max = isNaN(val) ? 100 : val;
-                                                                            else newC.push({ ingredientId: ingId, min: 0, max: isNaN(val) ? 100 : val });
-                                                                            onUpdateProduct({ ...product, ingredientConstraints: newC });
-                                                                        }}
-                                                                        className="w-1/2 bg-indigo-950/20 border border-indigo-900/30 text-[10px] text-white font-bold rounded px-1 py-1 text-center font-mono focus:border-indigo-500"
-                                                                    />
-                                                                </div>
-                                                            </td>
-                                                        );
-                                                    })}
-                                                </tr>
-                                            ))}
-                                        </React.Fragment>
+                                                );
+                                            })}
+                                        </tr>
                                     );
                                 })}
-                                </tbody>
-                            </table>
-                        ) : (
-                            /* Card View (Original) */
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 p-4">
-                                {selectedProducts.map((p) => (
-                                     <div key={p.id} className="bg-gray-950 border border-gray-800 p-4 rounded-xl shadow-lg relative overflow-hidden group">
-                                         <div className="absolute top-0 left-0 w-1 h-full bg-cyan-600"></div>
-                                         <h4 className="text-white font-black uppercase text-[15px]">{p.name}</h4>
-                                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1 mb-4">{p.category}</p>
-                                         <div className="bg-gray-900 p-2 rounded-lg border border-gray-800 flex justify-between items-center">
-                                             <span className="text-[10px] font-black text-gray-400 uppercase">Lote (kg)</span>
-                                             <input type="number" value={batchSizes[p.id] || 1000} onChange={(e) => setBatchSizes({...batchSizes, [p.id]: Number(e.target.value)})} className="bg-transparent text-cyan-400 font-mono text-right outline-none w-20" />
-                                         </div>
-                                     </div>
-                                ))}
-                            </div>
-                        )
+
+                                {/* SECTION: RATIOS */}
+                                {activeRelationNames.length > 0 && (
+                                    <>
+                                        <tr className="bg-gray-900 shadow-inner">
+                                            <td colSpan={selectedProducts.length + 1} className="px-4 py-2 border-y border-gray-800 bg-yellow-500/5">
+                                                <div className="flex items-center gap-2">
+                                                    <RatiosIcon className="w-4 h-4 text-yellow-500" />
+                                                    <span className="text-[10px] font-black text-yellow-500 uppercase tracking-[0.3em]">Relaciones y Balances</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {activeRelationNames.map(relName => (
+                                            <tr key={relName} className="border-b border-gray-800/50 hover:bg-gray-800/20 transition-colors">
+                                                <td className="p-3 pl-8 text-[11px] font-bold text-yellow-500 uppercase bg-gray-950/20 border-r border-gray-800">{relName}</td>
+                                                {selectedProducts.map(p => {
+                                                    const rel = p.relationships.find(r => r.name === relName);
+                                                    return (
+                                                        <td key={p.id} className="p-2 border-l border-gray-800/30">
+                                                            <div className="flex items-center gap-1">
+                                                                <input type="number" step="0.01" value={rel?.min ?? ''} placeholder="min" onChange={e => {
+                                                                    if (!onUpdateProduct) return;
+                                                                    const val = parseFloat(e.target.value);
+                                                                    const newR = [...p.relationships];
+                                                                    const idx = newR.findIndex(r => r.name === relName);
+                                                                    if (idx >= 0) { newR[idx].min = isNaN(val) ? 0 : val; onUpdateProduct({ ...p, relationships: newR }); }
+                                                                }} className="w-1/2 bg-yellow-950/20 border border-yellow-800/30 text-[10px] text-yellow-500 rounded p-1.5 text-center font-mono focus:border-yellow-500" />
+                                                                <input type="number" step="0.01" value={rel && rel.max < 999 ? rel.max : ''} placeholder="max" onChange={e => {
+                                                                    if (!onUpdateProduct) return;
+                                                                    const val = parseFloat(e.target.value);
+                                                                    const newR = [...p.relationships];
+                                                                    const idx = newR.findIndex(r => r.name === relName);
+                                                                    if (idx >= 0) { newR[idx].max = isNaN(val) ? 999 : val; onUpdateProduct({ ...p, relationships: newR }); }
+                                                                }} className="w-1/2 bg-yellow-950/20 border border-yellow-800/30 text-[10px] text-white font-black rounded p-1.5 text-center font-mono focus:border-yellow-500" />
+                                                            </div>
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        ))}
+                                    </>
+                                )}
+
+                                {/* SECTION: INGREDIENTS */}
+                                <tr className="bg-gray-900 shadow-inner">
+                                    <td colSpan={selectedProducts.length + 1} className="px-4 py-2 border-y border-gray-800 bg-indigo-500/5">
+                                        <div className="flex items-center gap-2">
+                                            <CubeIcon className="w-4 h-4 text-indigo-400" />
+                                            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em]">Inclusión de Insumos (%)</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {activeIngredientIds.map(ingId => {
+                                    const ing = ingredients.find(i => i.id === ingId);
+                                    return (
+                                        <tr key={ingId} className="border-b border-gray-800/50 hover:bg-gray-800/20 transition-colors">
+                                            <td className="p-3 pl-8 text-[11px] font-bold text-gray-300 uppercase bg-gray-950/20 border-r border-gray-800">{ing?.name}</td>
+                                            {selectedProducts.map(p => {
+                                                const con = p.ingredientConstraints.find(c => c.ingredientId === ingId);
+                                                return (
+                                                    <td key={p.id} className="p-2 border-l border-gray-800/30">
+                                                        <div className="flex items-center gap-1">
+                                                            <input type="number" step="0.01" value={con?.min ?? ''} placeholder="min" onChange={e => {
+                                                                if (!onUpdateProduct) return;
+                                                                const val = parseFloat(e.target.value);
+                                                                const newC = [...p.ingredientConstraints];
+                                                                const idx = newC.findIndex(c => c.ingredientId === ingId);
+                                                                if (idx >= 0) newC[idx].min = isNaN(val) ? 0 : val;
+                                                                else newC.push({ ingredientId: ingId, min: isNaN(val) ? 0 : val, max: 100 });
+                                                                onUpdateProduct({ ...p, ingredientConstraints: newC });
+                                                            }} className="w-1/2 bg-indigo-950/20 border border-indigo-900/30 text-[10px] text-indigo-400 rounded p-1.5 text-center font-mono focus:border-indigo-500" />
+                                                            <input type="number" step="0.01" value={con && con.max < 100 ? con.max : ''} placeholder="max" onChange={e => {
+                                                                if (!onUpdateProduct) return;
+                                                                const val = parseFloat(e.target.value);
+                                                                const newC = [...p.ingredientConstraints];
+                                                                const idx = newC.findIndex(c => c.ingredientId === ingId);
+                                                                if (idx >= 0) newC[idx].max = isNaN(val) ? 100 : val;
+                                                                else newC.push({ ingredientId: ingId, min: 0, max: isNaN(val) ? 100 : val });
+                                                                onUpdateProduct({ ...p, ingredientConstraints: newC });
+                                                            }} className="w-1/2 bg-indigo-950/20 border border-indigo-900/30 text-[10px] text-white font-black rounded p-1.5 text-center font-mono focus:border-indigo-500" />
+                                                        </div>
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    );
+                                })}
+
+                                {/* SECTION: OPERATIONAL SUMMARY (STAYS BOTTOM LIKE EXCEL YELLOW BOX) */}
+                                <tr className="sticky bottom-0 z-30 bg-amber-500 shadow-[0_-10px_20px_rgba(0,0,0,0.5)]">
+                                    <td className="p-4 bg-amber-600 border-r border-amber-400">
+                                        <div className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
+                                            <SettingsIcon className="w-4 h-4" /> Resumen Operativo
+                                        </div>
+                                    </td>
+                                    {selectedProducts.map(p => (
+                                        <td key={p.id} className="p-4 border-l border-amber-400 text-center font-black text-white bg-amber-500">
+                                            <div className="flex flex-col">
+                                                <span className="text-[14px] font-mono">{(batchSizes[p.id] || 1000).toLocaleString()} kg</span>
+                                                <span className="text-[8px] opacity-70 uppercase">Total Estimado</span>
+                                            </div>
+                                        </td>
+                                    ))}
+                                </tr>
+                            </tbody>
+                        </table>
                     )}
                 </div>
 
@@ -486,17 +501,17 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                         className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-12 py-3 rounded-xl shadow-[0_0_25px_rgba(16,185,129,0.3)] transition-all transform hover:scale-[1.05] flex items-center gap-3 text-[15px] uppercase tracking-[0.2em]"
                     >
                         {isOptimizing ? <RefreshIcon className="w-5 h-5 animate-spin" /> : <CalculatorIcon className="w-6 h-6"/>}
-                        OPTIMIZAR TODO EL GRUPO
+                        OPTIMIZAR GRUPO DE DIETAS
                     </button>
-                    <div className="w-[120px]"></div> {/* Spacer */}
+                    <div className="w-[120px]"></div>
                 </div>
             </div>
 
-            {/* Agile Workspace Drawer (Maintains current logic for results) */}
+            {/* Results Drawer */}
             {isDrawerOpen && resultsData && (
                 <>
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90]" onClick={handleAttemptCloseDrawer} />
-                    <div className="fixed inset-y-0 right-0 w-[85vw] bg-gray-950 border-l border-gray-800 z-[100] shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col transform animate-slide-in-right">
+                    <div className="fixed inset-y-0 right-0 w-[85vw] bg-gray-950 border-l border-gray-800 z-[100] shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col transform">
                         <div className="p-4 bg-gray-900 border-b border-gray-800 flex justify-between items-center shrink-0">
                             <div className="flex items-center gap-3">
                                 <SparklesIcon className="w-5 h-5 text-emerald-400" />
@@ -506,23 +521,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                 Salir <XCircleIcon className="w-4 h-4" />
                             </button>
                         </div>
-                        <div className="flex-1 overflow-y-auto relative bg-gray-900/30">
-                            <GroupResultsScreen 
-                                results={resultsData.result} 
-                                assignments={resultsData.assignments} 
-                                products={products} 
-                                ingredients={ingredients} 
-                                nutrients={nutrients} 
-                                isDynamicMatrix={matrixMode === 'dynamic'} 
-                                onUpdateProduct={onUpdateProduct || (() => {})} 
-                                onCloseDrawer={() => {
-                                    setIsDrawerOpen(false);
-                                    setResultsData(null);
-                                    setIsDirty?.(false);
-                                }}
-                                savedFormulas={savedFormulas}
-                                setSavedFormulas={setSavedFormulas}
-                            />
+                        <div className="flex-1 overflow-y-auto bg-gray-900/30">
+                            <GroupResultsScreen results={resultsData.result} assignments={resultsData.assignments} products={products} ingredients={ingredients} nutrients={nutrients} isDynamicMatrix={matrixMode === 'dynamic'} onUpdateProduct={onUpdateProduct || (() => {})} onCloseDrawer={() => { setIsDrawerOpen(false); setResultsData(null); setIsDirty?.(false); }} savedFormulas={savedFormulas} setSavedFormulas={setSavedFormulas} />
                         </div>
                     </div>
                 </>
