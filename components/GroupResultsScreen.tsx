@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslations } from '../lib/i18n/LangContext';
-import { DatabaseIcon, CubeIcon, CalculatorIcon, TrendingUpIcon, XCircleIcon, SettingsIcon, CheckIcon, XIcon, RefreshIcon, DownloadIcon, BeakerIcon, ArrowLeftIcon } from './icons';
+import { DatabaseIcon, CubeIcon, CalculatorIcon, TrendingUpIcon, XCircleIcon, SettingsIcon, CheckIcon, XIcon, RefreshIcon, DownloadIcon, BeakerIcon } from './icons';
 import { Product, Ingredient, Nutrient } from '../types';
 import { solveFeedFormulation } from '../services/solver';
 
