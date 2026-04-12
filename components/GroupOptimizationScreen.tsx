@@ -141,6 +141,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
         setSelectedNutrientIds([]);
         setBulkNutMin('');
         setBulkNutMax('');
+        setShowBulkPanel(false); // AUTO-CLOSE AFTER INJECTION
     };
 
     const handleBulkApplyIngredients = () => {
@@ -162,6 +163,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
         setSelectedIngredientIds([]);
         setBulkIngMin('');
         setBulkIngMax('');
+        setShowBulkPanel(false); // AUTO-CLOSE AFTER INJECTION
     };
 
     const activeNutrientIds = Array.from(new Set(selectedProducts.flatMap(p => p.constraints.map(c => c.nutrientId))));
