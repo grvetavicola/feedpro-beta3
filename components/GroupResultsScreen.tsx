@@ -81,13 +81,16 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
                 const newItems = individualResult.items.map(it => {
                     const ing = ingredients.find(i => i.id === it.ingredientId);
                     const oldIt = old?.items.find(oi => oi.name === ing?.name);
-                    return { name: ing?.name || 'Desc', percentage: it.percentage, weight: it.weight, price: ing?.price || 0, shadowPrice: individualResult.shadowPrices?.[it.ingredientId] || 0, prevPercentage: oldIt?.percentage };
+                    return { name: ing?.name || 'Desc', percentage: it.percentage, weight: it.weight, price: ing?.price || 0, shadowPrice: (individualResult as any).shadowPrices?.[it.ingredientId] || 0, prevPercentage: oldIt?.percentage };
                 });
-                const newNutAnalysis = individualResult.nutrientAnalysis.map(na => {
-                    const oldNut = old?.nutrients.find(on => on.name === na.name);
-                    return { name: na.name, unit: na.unit, requiredMin: na.min, requiredMax: na.max, actual: na.actual, prevActual: oldNut?.actual };
+                const newNutAnalysis = ((individualResult as any).nutrientAnalysis || []).map((na: any) => {
+                    const oldNut = old?.nutrients.find(on => on.name === na.name || on.name === nutrients.find(n => n.id === na.nutrientId)?.name);
+                    const nutName = na.name || nutrients.find(n => n.id === na.nutrientId)?.name || 'Nutriente';
+                    const nutUnit = na.unit || nutrients.find(n => n.id === na.nutrientId)?.unit || '';
+                    const actualVal = na.actual ?? na.value ?? 0;
+                    return { name: nutName, unit: nutUnit, requiredMin: na.min, requiredMax: na.max, actual: actualVal, prevActual: oldNut?.actual };
                 });
-                return { ...prev, [assignId]: { ...old, isSuccessful: individualResult.feasible, currentCost: individualResult.totalCost, prevCost: old?.currentCost || null, items: newItems.sort((a,b) => b.percentage - a.percentage), nutrients: newNutAnalysis } };
+                return { ...prev, [assignId]: { ...old, isSuccessful: (individualResult as any).feasible ?? individualResult.items.length > 0, currentCost: individualResult.totalCost, prevCost: old?.currentCost || null, items: newItems.sort((a,b) => b.percentage - a.percentage), nutrients: newNutAnalysis } };
             });
         } catch(e) { console.error(e); }
         setIsOptimizingLocal(false);
@@ -107,13 +110,37 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
     const isTotalFailure = assignments.length > 0 && successfulCount === 0;
     const displayTotalCost = Object.values(localSolutions).reduce((acc, curr) => acc + (curr.isSuccessful ? curr.currentCost : 0), 0);
 
+    const handleExportGroupCSV = () => {
+        let csvContent = "\uFEFF";
+        csvContent += `FEEDPRO - REPORTE DE OPTIMIZACION GRUPAL\n`;
+        csvContent += `COSTO TOTAL LOTE:,${displayTotalCost.toFixed(2)} USD\n\n`;
+        Object.values(localSolutions).forEach(sol => {
+            const product = products.find(p => p.id === sol.productId);
+            csvContent += `--- DIETA: ${product?.name || 'Desconocida'} ---\n`;
+            csvContent += `INSUMO,INCLUSION(%),PESO(KG),PRECIO(USD)\n`;
+            sol.items.forEach(item => {
+                csvContent += `"${item.name}",${item.percentage.toFixed(3)}%,${item.weight.toFixed(3)},${item.price.toFixed(2)}\n`;
+            });
+            csvContent += `\nNUTRIENTE,REQUERIDO,ACTUAL,UNIDAD\n`;
+            sol.nutrients.forEach(n => {
+                csvContent += `"${n.name}","${n.requiredMin}-${n.requiredMax}",${n.actual.toFixed(3)},${n.unit}\n`;
+            });
+            csvContent += `\n`;
+        });
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.setAttribute('href', URL.createObjectURL(blob));
+        link.setAttribute('download', `Optimizacion_Grupal.csv`);
+        link.click();
+    };
+
     return (
         <div className="fixed inset-0 bg-black z-[9999] flex flex-col animate-fade-in overflow-hidden">
             {/* Fullscreen Header */}
             <div className="h-20 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-8 shrink-0">
                 <div className="flex items-center gap-6">
                     <button onClick={onCloseDrawer} className="bg-gray-800 hover:bg-gray-700 text-white p-3 rounded-full transition-all group scale-110 shadow-lg">
-                        <ArrowLeftIcon className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                        <svg className="w-6 h-6 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                     </button>
                     <div className="h-10 w-px bg-gray-700"></div>
                     <div>
