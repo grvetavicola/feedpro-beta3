@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 import { FormulationResult, Product, User, Ingredient, Nutrient, ProductConstraint } from '../types';
 import { analyzeFormulaWithGemini } from '../services/geminiService';
@@ -66,7 +67,95 @@ export const OptimizationResults: React.FC<OptimizationResultsProps> = ({ result
   }, [result, product, user, onUpgradeRequest, language, t]);
 
   const handleExportPDF = () => {
-    window.print();
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    
+    // Titulos
+    doc.setFontSize(16);
+    doc.text(`REPORTE DE PRODUCCION`, pageWidth / 2, 15, { align: 'center' });
+    doc.setFontSize(12);
+    doc.text(`DIETA: ${product.name}`, pageWidth / 2, 22, { align: 'center' });
+    
+    doc.setFontSize(10);
+    doc.text(`Fecha: ${new Date().toLocaleDateString()}  |  Costo Total: $${result.totalCost.toFixed(2)} USD`, pageWidth / 2, 28, { align: 'center' });
+
+    // Tabla 1: Insumos Aprobados
+    const tableData = result.items.map(item => {
+        const ing = ingredients.find(i => i.id === item.ingredientId);
+        return [
+            ing?.name || 'Insumo Eliminado',
+            item.percentage.toFixed(3) + ' %',
+            item.weight.toFixed(3) + ' kg',
+            '$ ' + item.cost.toFixed(3)
+        ];
+    });
+
+    const totalWeight = result.items.reduce((sum, item) => sum + item.weight, 0);
+    tableData.push(['TOTAL MEZCLA', '100.000 %', totalWeight.toFixed(3) + ' kg', '$ ' + result.totalCost.toFixed(2)]);
+
+    autoTable(doc, {
+        startY: 35,
+        head: [['Insumo', 'Inclusion (%)', 'Peso (kg)', 'Costo Parcial (USD)']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: { fillColor: [6, 182, 212], textColor: [255, 255, 255] },
+        footStyles: { fillColor: [30, 41, 59] },
+        styles: { fontSize: 8 },
+    });
+
+    let finalY = (doc as any).lastAutoTable.finalY + 10;
+
+    // Tabla 2: Sensibilidad / Shadow Pricing
+    if (result.rejectedItems && result.rejectedItems.length > 0) {
+        doc.setFontSize(10);
+        doc.text(`Sugerencias de Compra (Insumos Rechazados por Precio):`, 14, finalY);
+        
+        const rejectedData = result.rejectedItems.map(rej => {
+            const ing = ingredients.find(i => i.id === rej.ingredientId);
+            return [
+                ing?.name || 'N/A',
+                `$ ${rej.effectivePrice.toFixed(3)}`,
+                `$ ${rej.opportunityPrice.toFixed(3)}`,
+                `-$ ${rej.viabilityGap.toFixed(3)}`
+            ];
+        });
+
+        autoTable(doc, {
+            startY: finalY + 4,
+            head: [['Insumo', 'P. Efectivo', 'P. Oportunidad Necesario', 'Brecha a Cubrir']],
+            body: rejectedData,
+            theme: 'grid',
+            headStyles: { fillColor: [245, 158, 11] },
+            styles: { fontSize: 8 }
+        });
+        finalY = (doc as any).lastAutoTable.finalY + 10;
+    }
+
+    // Tabla 3: Matriz Nutricional
+    doc.setFontSize(10);
+    doc.text(`Matriz Nutricional Lograda:`, 14, finalY);
+    
+    const nutData = result.nutrientAnalysis.map(na => {
+        const nut = nutrients.find(n => n.id === na.nutrientId);
+        return [
+            nut?.name || 'N/A',
+            na.value.toFixed(4) + ' ' + (nut?.unit || ''),
+            na.min > 0 ? na.min.toFixed(4) : '-',
+            na.max < 999 ? na.max.toFixed(4) : '-',
+            na.met ? 'CUMPLE' : (na.value < na.min ? 'DEFICIT' : 'EXCESO')
+        ];
+    });
+
+    autoTable(doc, {
+        startY: finalY + 4,
+        head: [['Nutriente', 'Aporte Alcanzado', 'Min Req', 'Max Req', 'Situacion']],
+        body: nutData,
+        theme: 'grid',
+        headStyles: { fillColor: [55, 65, 81] },
+        styles: { fontSize: 8 }
+    });
+
+    doc.save(`Receta_${product.name.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`);
   };
 
     const handleExportCSV = () => {
@@ -88,6 +177,16 @@ export const OptimizationResults: React.FC<OptimizationResultsProps> = ({ result
     });
     
     csvContent += `\nTOTAL MEZCLA,,100.00%,${totalBatchSize.toFixed(2)},,${result.totalCost.toFixed(3)}\n\n`;
+
+    if (result.rejectedItems && result.rejectedItems.length > 0) {
+        csvContent += `\n--- ANALISIS DE SENSIBILIDAD (INSUMOS EXCLUIDOS) ---\n`;
+        csvContent += `NOMBRE,PRECIO_EFECTIVO(USD/KG),PRECIO_OPORTUNIDAD(USD/KG),BRECHA_VIABILIDAD(USD)\n`;
+        result.rejectedItems.forEach(rej => {
+            const ing = ingredients.find(i => i.id === rej.ingredientId);
+            csvContent += `"${ing?.name || 'N/A'}",${rej.effectivePrice.toFixed(4)},${rej.opportunityPrice.toFixed(4)},-${rej.viabilityGap.toFixed(4)}\n`;
+        });
+        csvContent += `\n`;
+    }
 
     csvContent += `--- MATRIZ NUTRICIONAL FINAL ---\n`;
     csvContent += `${t('common.name').toUpperCase()},APORTE_FINAL,MIN_REQ,MAX_REQ,UNIDAD,ESTADO\n`;
