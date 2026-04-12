@@ -120,7 +120,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   useEffect(() => {
     onEnterFullscreen?.();
     return () => onLeaveFullscreen?.();
-  }, []);
+  }, [onEnterFullscreen, onLeaveFullscreen]);
 
   // ── Active diets (local can differ from props while editing) ───────────────
   const [activeDietIds, setActiveDietIds] = useState<string[]>(selectedDietIds);
@@ -340,7 +340,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
       };
     });
 
-    setResults(newResults);
+     setResults(newResults);
     setIsRunning(false);
     setHasRun(true);
     setIsDirty?.(true);
@@ -355,6 +355,18 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
       return next;
     });
   };
+
+  // ── Global Keyboard Shortcuts ──
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'F4') {
+        e.preventDefault();
+        handleRunAll();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleRunAll]);
 
   // ── Injector options ───────────────────────────────────────────────────────
   const injOptions = useMemo(() => {
@@ -379,10 +391,20 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
       {/* ═══ TOPBAR ══════════════════════════════════════════════════════════ */}
       <div className="flex items-center gap-2 px-3 py-2 bg-gray-900 border-b border-gray-800 shrink-0">
 
-        {/* Brand */}
-        <span className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] shrink-0">
-          Optimización Grupal
-        </span>
+        {/* Brand & Exit */}
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => onLeaveFullscreen?.()}
+            className="flex items-center gap-1.5 px-2 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-lg transition-all text-[10px] font-black uppercase tracking-widest border border-gray-700"
+          >
+            <RefreshIcon className="w-3 h-3 rotate-180" />
+            Volver
+          </button>
+          <div className="w-px h-4 bg-gray-800 mx-1" />
+          <span className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em]">
+            Optimización Grupal
+          </span>
+        </div>
 
         <div className="w-px h-4 bg-gray-800 shrink-0" />
 
@@ -472,10 +494,14 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
         {/* ── Diet Selection Drawer ── */}
         {showDietPanel && (
           <div className="w-52 shrink-0 border-r border-gray-800 bg-gray-900/80 overflow-y-auto custom-scrollbar flex flex-col">
-            <div className="px-3 py-2 border-b border-gray-800 flex items-center justify-between">
+            <div className="px-3 py-2 border-b border-gray-800 flex items-center justify-between bg-gray-900/50">
               <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Seleccionar Dietas</span>
-              <button onClick={() => setShowDietPanel(false)} className="text-gray-600 hover:text-white transition-colors">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              <button 
+                onClick={() => setShowDietPanel(false)} 
+                className="p-1 hover:bg-gray-800 rounded-lg text-gray-600 hover:text-red-400 transition-all"
+                title="Cerrar panel"
+              >
+                <XCircleIcon className="w-4 h-4" />
               </button>
             </div>
             <div className="p-2 flex-1">
@@ -597,8 +623,9 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                         {activeDiets.map(diet => {
                           const con = constraints[row.id]?.[diet.id];
                           const formulaVal = results[diet.id]?.formula[row.id] ?? 0;
+                          const isFeasible = results[diet.id]?.feasible !== false;
                           return (
-                            <td key={diet.id} className="border border-gray-700 p-0" style={{ minWidth: 168 }}>
+                            <td key={diet.id} className={`border border-gray-700 p-0 transition-colors ${!isFeasible ? 'bg-red-500/5' : ''}`} style={{ minWidth: 168 }}>
                               <div className="grid grid-cols-3 divide-x divide-gray-700 h-full">
                                 <CellInput
                                   value={con?.min ?? ''}
@@ -656,9 +683,11 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                           const isWithin = con
                             ? nutVal >= con.min - 0.001 && (nutVal <= con.max + 0.001 || con.max >= 999)
                             : true;
+                          const isFeasible = results[diet.id]?.feasible !== false;
                           return (
-                            <td key={diet.id} className={`border p-0 ${
-                              !isWithin && hasRun ? 'border-red-600 bg-red-950/20' : 'border-gray-700'
+                            <td key={diet.id} className={`border p-0 transition-colors ${
+                              !isWithin && hasRun ? 'border-red-600 bg-red-950/20' : 
+                              !isFeasible ? 'bg-red-500/5 border-gray-700' : 'border-gray-700'
                             }`} style={{ minWidth: 168 }}>
                               <div className="grid grid-cols-3 divide-x divide-gray-700 h-full">
                                 <CellInput
