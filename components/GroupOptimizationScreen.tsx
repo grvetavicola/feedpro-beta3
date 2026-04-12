@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Product, Ingredient, Nutrient } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
-import { DatabaseIcon, CalculatorIcon, SparklesIcon, XCircleIcon, CubeIcon, RefreshIcon, BeakerIcon, ShoppingCartIcon, RatiosIcon, SettingsIcon, CheckIcon } from './icons';
+import { DatabaseIcon, CalculatorIcon, SparklesIcon, XCircleIcon, CubeIcon, RefreshIcon, BeakerIcon, ShoppingCartIcon, RatiosIcon, SettingsIcon, CheckIcon, TrashIcon } from './icons';
 import { solveGroupFormulation } from '../services/solver';
 import { GroupResultsScreen } from './GroupResultsScreen';
 
@@ -16,6 +16,7 @@ interface GroupOptimizationScreenProps {
   setIsDirty?: (dirty: boolean) => void;
   savedFormulas?: any[]; 
   setSavedFormulas?: (val: any) => void;
+  onRemoveDietFromSelection?: (id: string) => void;
 }
 
 export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = ({ 
@@ -28,7 +29,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     onUpdateProduct,
     setIsDirty,
     savedFormulas,
-    setSavedFormulas
+    setSavedFormulas,
+    onRemoveDietFromSelection
 }) => {
     const { t } = useTranslations();
     const [isOptimizing, setIsOptimizing] = useState(false);
@@ -141,7 +143,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
         setSelectedNutrientIds([]);
         setBulkNutMin('');
         setBulkNutMax('');
-        setShowBulkPanel(false); // AUTO-CLOSE AFTER INJECTION
+        setShowBulkPanel(false);
     };
 
     const handleBulkApplyIngredients = () => {
@@ -163,7 +165,23 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
         setSelectedIngredientIds([]);
         setBulkIngMin('');
         setBulkIngMax('');
-        setShowBulkPanel(false); // AUTO-CLOSE AFTER INJECTION
+        setShowBulkPanel(false);
+    };
+
+    const handleRemoveIngredientGlobally = (ingId: string) => {
+        if (!onUpdateProduct) return;
+        selectedProducts.forEach(p => {
+            const newC = p.ingredientConstraints.filter(c => c.ingredientId !== ingId);
+            onUpdateProduct({ ...p, ingredientConstraints: newC });
+        });
+    };
+
+    const handleRemoveNutrientGlobally = (nutId: string) => {
+        if (!onUpdateProduct) return;
+        selectedProducts.forEach(p => {
+            const newC = p.constraints.filter(c => c.nutrientId !== nutId);
+            onUpdateProduct({ ...p, constraints: newC });
+        });
     };
 
     const activeNutrientIds = Array.from(new Set(selectedProducts.flatMap(p => p.constraints.map(c => c.nutrientId))));
@@ -209,7 +227,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                 </div>
             </div>
 
-            {/* Bulk Control Panel - REORDERED: Ingredients Left, Nutrients Right */}
+            {/* Bulk Control Panel */}
             <div className={`overflow-hidden transition-all duration-300 ${showBulkPanel ? 'max-h-[800px] mb-6' : 'max-h-0'}`}>
                 <div className="bg-indigo-950/20 border border-indigo-500/30 rounded-2xl p-6 shadow-2xl backdrop-blur-sm space-y-6">
                     <div className="flex items-center justify-between">
@@ -224,7 +242,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                     </div>
                     
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {/* Ingredients Multi Select (LEFT) */}
+                        {/* Ingredients Multi Select */}
                         <div className="bg-gray-900/40 border border-gray-800 rounded-xl p-4">
                             <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-3">Límites de Inclusión (Insumos)</h4>
                             <div className="h-40 overflow-y-auto mb-4 bg-gray-950 rounded border border-gray-800 p-2 grid grid-cols-2 gap-2 custom-scrollbar">
@@ -252,7 +270,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                             </div>
                         </div>
 
-                        {/* Nutrients Multi Select (RIGHT) */}
+                        {/* Nutrients Multi Select */}
                         <div className="bg-gray-900/40 border border-gray-800 rounded-xl p-4">
                             <h4 className="text-[10px] font-black text-cyan-500 uppercase tracking-widest mb-3">Requerimientos Nutricionales</h4>
                             <div className="h-40 overflow-y-auto mb-4 bg-gray-950 rounded border border-gray-800 p-2 grid grid-cols-2 gap-2 custom-scrollbar">
@@ -283,7 +301,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                 </div>
             </div>
 
-            {/* VERTICAL MATRIX (REORDERED: Ingredients Top, Nutrients Bottom) */}
+            {/* VERTICAL MATRIX */}
             <div className="flex-1 bg-gray-900/50 rounded-2xl border border-gray-800 shadow-2xl flex flex-col overflow-hidden">
                 <div className="p-4 bg-gray-900 border-b border-gray-800 flex justify-between items-center shrink-0">
                     <div className="flex items-center gap-4">
@@ -305,13 +323,20 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                         <table className="w-full text-left border-collapse table-fixed">
                             <thead className="sticky top-0 z-30 bg-gray-950">
                                 <tr>
-                                    <th className="p-3 w-[250px] bg-gray-900 border-r border-gray-800">
+                                    <th className="p-3 w-[250px] bg-gray-900 border-r border-gray-800 relative">
                                         <div className="text-[9px] font-black text-gray-600 uppercase tracking-widest text-center">Insumos y Nutrición</div>
                                     </th>
                                     {selectedProducts.map(p => {
                                         const styles = getColorClasses(getCategoryColor(p.category || ''));
                                         return (
-                                            <th key={p.id} className={`p-3 w-[160px] border-l border-gray-800/50 text-center ${styles.bg}`}>
+                                            <th key={p.id} className={`p-3 w-[160px] border-l border-gray-800/50 text-center ${styles.bg} group/header relative`}>
+                                                <button 
+                                                    onClick={() => onRemoveDietFromSelection?.(p.id)}
+                                                    className="absolute -top-1 -right-1 opacity-0 group-hover/header:opacity-100 bg-red-500 text-white rounded-full p-1 shadow-lg transition-all hover:scale-110 z-40"
+                                                    title="Quitar Dieta de la Matriz"
+                                                >
+                                                    <XCircleIcon className="w-3 h-3" />
+                                                </button>
                                                 <div className="flex flex-col items-center gap-1">
                                                     <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase text-white shadow ${styles.badge}`}>{p.category || 'Sin Cat'}</span>
                                                     <span className="text-[10px] font-black text-white uppercase truncate max-w-full">{p.name}</span>
@@ -328,7 +353,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                 </tr>
                             </thead>
                             <tbody>
-                                {/* SECTION: INGREDIENTS (NOW AT THE TOP) */}
+                                {/* SECTION: INGREDIENTS */}
                                 <tr className="bg-gray-900 shadow-inner">
                                     <td colSpan={selectedProducts.length + 1} className="px-4 py-1.5 border-y border-gray-800 bg-indigo-500/10">
                                         <div className="flex items-center gap-2">
@@ -341,10 +366,15 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                     const ing = ingredients.find(i => i.id === ingId);
                                     return (
                                         <tr key={ingId} className="border-b border-gray-800/20 hover:bg-gray-800/20 transition-colors group">
-                                            <td className="p-2 pl-6 text-[10px] font-bold text-gray-400 group-hover:text-white uppercase bg-gray-950/20 border-r border-gray-800">
-                                                <div className="flex items-center gap-2 truncate">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-600"></div>
-                                                    {ing?.name}
+                                            <td className="p-2 pl-6 text-[10px] font-bold text-gray-400 group-hover:text-white uppercase bg-gray-950/20 border-r border-gray-800 relative">
+                                                <div className="flex items-center gap-2 truncate justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-600"></div>
+                                                        {ing?.name}
+                                                    </div>
+                                                    <button onClick={() => handleRemoveIngredientGlobally(ingId)} className="opacity-0 group-hover:opacity-100 text-red-400/50 hover:text-red-400 px-2 transition-all">
+                                                        <TrashIcon className="w-3 h-3" />
+                                                    </button>
                                                 </div>
                                             </td>
                                             {selectedProducts.map(p => {
@@ -378,7 +408,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                     );
                                 })}
 
-                                {/* SECTION: NUTRIENTS (NOW BELOW INGREDIENTS) */}
+                                {/* SECTION: NUTRIENTS */}
                                 <tr className="bg-gray-900 shadow-inner">
                                     <td colSpan={selectedProducts.length + 1} className="px-4 py-1.5 border-y border-gray-800 bg-cyan-500/10">
                                         <div className="flex items-center gap-2">
@@ -391,10 +421,15 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                     const nut = nutrients.find(n => n.id === nutId);
                                     return (
                                         <tr key={nutId} className="border-b border-gray-800/20 hover:bg-gray-800/20 transition-colors group">
-                                            <td className="p-2 pl-6 text-[10px] font-bold text-gray-400 group-hover:text-white uppercase bg-gray-950/20 border-r border-gray-800">
+                                            <td className="p-2 pl-6 text-[10px] font-bold text-gray-400 group-hover:text-white uppercase bg-gray-950/20 border-r border-gray-800 relative">
                                                 <div className="flex items-center justify-between">
-                                                    <span>{nut?.name}</span>
-                                                    <span className="text-[7px] text-gray-600 font-mono pr-2">{nut?.unit}</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span>{nut?.name}</span>
+                                                        <span className="text-[7px] text-gray-600 font-mono">{nut?.unit}</span>
+                                                    </div>
+                                                    <button onClick={() => handleRemoveNutrientGlobally(nutId)} className="opacity-0 group-hover:opacity-100 text-red-400/50 hover:text-red-400 px-2 transition-all">
+                                                        <TrashIcon className="w-3 h-3" />
+                                                    </button>
                                                 </div>
                                             </td>
                                             {selectedProducts.map(p => {
