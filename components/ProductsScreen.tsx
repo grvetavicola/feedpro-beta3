@@ -137,7 +137,16 @@ const SelectionModal = ({
     );
 };
 
-export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setProducts, ingredients, nutrients, bases = [], onOpenInNewWindow, setIsDirty }) => {
+export const ProductsScreen: React.FC<ProductsScreenProps> = ({ 
+    products, 
+    setProducts, 
+    ingredients, 
+    nutrients, 
+    bases = [], 
+    onOpenInNewWindow, 
+    onNavigate,
+    setIsDirty 
+}) => {
     const { t } = useTranslations();
     const [selectedProductId, setSelectedProductId] = useState<string | null>(products[0]?.id || null);
     const [newProductName, setNewProductName] = useState('');
