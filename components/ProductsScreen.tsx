@@ -333,8 +333,8 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ products, setPro
                                         <button key={b.id} onClick={() => applyBase(b)} className="text-[10px] bg-purple-900/30 text-purple-400 border border-purple-500/30 px-2 py-1 rounded hover:bg-purple-900/50 transition-colors">Base: {b.name}</button>
                                     ))}
                                     {onOpenInNewWindow && (
-                                        <button onClick={() => onOpenInNewWindow(null, `Optimizar: ${currentProduct.name}`)} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-4 py-1 rounded shadow text-[11px] uppercase flex items-center gap-1 transition-all">
-                                            <SparklesIcon className="w-3 h-3 animate-pulse" /> {t('nav.formulation')}
+                                        <button onClick={() => onNavigate('OPTIMIZATION')} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-4 py-1 rounded shadow text-[11px] uppercase flex items-center gap-1 transition-all">
+                                            <SparklesIcon className="w-3 h-3 animate-pulse" /> Optimizar Dieta
                                         </button>
                                     )}
                                 </div>
