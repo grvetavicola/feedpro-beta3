@@ -51,11 +51,13 @@ const StatusDot = ({ ok }: { ok: boolean }) => (
   <span className={`inline-block w-1.5 h-1.5 rounded-full shrink-0 ${ok ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'}`} />
 );
 
+// ─── Cell Input (transparent, Excel-style) ──────────────────────────────────
 const CellInput = ({
-  value, onChange, placeholder, isResult = false, dirty = false, injected = false
+  value, onChange, placeholder, isResult = false, dirty = false, injected = false, nutResult = false, nutOk = true
 }: {
   value: number | string; onChange?: (v: number) => void;
   placeholder?: string; isResult?: boolean; dirty?: boolean; injected?: boolean;
+  nutResult?: boolean; nutOk?: boolean;
 }) => {
   const [local, setLocal] = useState(value === 0 || value === '' ? '' : String(value));
   useEffect(() => { setLocal(value === 0 || value === '' ? '' : String(value)); }, [value]);
@@ -63,8 +65,21 @@ const CellInput = ({
   if (isResult) {
     const num = typeof value === 'number' ? value : parseFloat(String(value));
     return (
-      <div className={`text-center text-[11px] font-black font-mono py-1 px-1 ${num > 0 ? 'text-emerald-400' : 'text-gray-700'}`}>
+      <div className={`w-full text-center text-[11px] font-black font-mono py-1 px-1 select-none ${
+        num > 0.001 ? 'text-emerald-400' : 'text-gray-700'
+      }`}>
         {num > 0.001 ? num.toFixed(2) + '%' : '—'}
+      </div>
+    );
+  }
+
+  if (nutResult) {
+    const num = typeof value === 'number' ? value : parseFloat(String(value));
+    return (
+      <div className={`w-full text-center text-[11px] font-black font-mono py-1 px-1 select-none ${
+        !nutOk ? 'text-red-400' : num > 0 ? 'text-cyan-300' : 'text-gray-700'
+      }`}>
+        {num > 0 ? num.toFixed(2) : '—'}
       </div>
     );
   }
@@ -83,11 +98,12 @@ const CellInput = ({
       }}
       onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()}
       placeholder={placeholder ?? '—'}
-      className={`
-        w-full text-center text-[11px] font-mono py-1 px-0.5 outline-none bg-transparent transition-all
-        ${dirty ? 'text-yellow-300 placeholder-yellow-900' : injected ? 'text-blue-300' : 'text-gray-400 placeholder-gray-800'}
-        focus:text-white focus:bg-yellow-500/10 focus:ring-1 focus:ring-yellow-500 rounded
-      `}
+      style={{ background: 'transparent', border: 'none', outline: 'none', width: '100%' }}
+      className={`text-center text-[11px] font-mono py-1 px-0.5 transition-colors ${
+        dirty ? 'text-yellow-300 placeholder-yellow-900 bg-yellow-500/10' :
+        injected ? 'text-blue-300' :
+        'text-gray-300 placeholder-gray-700'
+      } focus:text-white focus:bg-blue-500/10`}
     />
   );
 };
@@ -512,34 +528,35 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
           ) : (
             <table className="table-fixed border-collapse text-xs w-full">
               {/* ── HEADER ── */}
-              <thead className="sticky top-0 z-30">
-                <tr className="bg-gray-950">
-                  {/* Sticky label col */}
-                  <th className="sticky left-0 z-40 bg-gray-950 border-b border-r border-gray-800 px-2 py-2 text-left w-[180px]">
-                    <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Parámetro</span>
+              <thead>
+                <tr style={{ position: 'sticky', top: 0, zIndex: 30 }}>
+                  {/* Sticky label col header */}
+                  <th style={{ position: 'sticky', left: 0, zIndex: 40, background: '#111827', minWidth: 180, maxWidth: 180 }}
+                    className="border border-gray-700 px-2 py-2 text-left">
+                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Parámetro / Costo</span>
                   </th>
                   {activeDiets.map(diet => {
                     const res = results[diet.id];
                     return (
-                      <th key={diet.id} className="border-b border-l border-gray-800 px-1 text-center bg-gray-950" style={{ width: 160 }}>
-                        <div className="flex flex-col items-center gap-1 py-1">
+                      <th key={diet.id} className="border border-gray-700 px-1 text-center bg-gray-900" style={{ minWidth: 168 }}>
+                        <div className="flex flex-col items-center gap-1 py-1.5">
                           <div className="flex items-center gap-1.5 w-full justify-center">
                             {res && <StatusDot ok={res.feasible} />}
-                            <span className="text-[9px] font-black text-gray-400 uppercase truncate max-w-[110px]">{diet.name}</span>
+                            <span className="text-[9px] font-black text-gray-300 uppercase truncate max-w-[110px]">{diet.name}</span>
                             <button onClick={() => { setActiveDietIds(prev => prev.filter(id => id !== diet.id)); onRemoveDietFromSelection?.(diet.id); }}
-                              className="text-gray-700 hover:text-red-400 transition-colors shrink-0">
+                              className="text-gray-600 hover:text-red-400 transition-colors shrink-0">
                               <XCircleIcon className="w-3 h-3" />
                             </button>
                           </div>
-                          {/* Batch size input */}
+                          {/* Batch size */}
                           <input type="number" value={batchSizes[diet.id] || 1000}
                             onChange={e => setBatchSizes(prev => ({ ...prev, [diet.id]: Number(e.target.value) }))}
-                            className="w-20 bg-gray-900 border border-gray-800 rounded px-1 py-0.5 text-[9px] text-center font-mono text-cyan-400 outline-none hover:border-cyan-500/40 focus:border-cyan-500 transition-colors" />
+                            className="w-20 bg-gray-800 border border-gray-700 rounded px-1 py-0.5 text-[9px] text-center font-mono text-cyan-400 outline-none hover:border-cyan-500/40 focus:border-cyan-500 transition-colors" />
                           {/* Sub-column headers */}
-                          <div className="grid grid-cols-3 w-full text-[8px] text-gray-700 font-black uppercase mt-1">
-                            <span className="text-center">Mín</span>
-                            <span className="text-center">Máx</span>
-                            <span className={`text-center ${res?.feasible ? 'text-emerald-600' : 'text-gray-700'}`}>Fórmula</span>
+                          <div className="grid grid-cols-3 w-full border-t border-gray-700 mt-1 pt-1">
+                            <span className="text-center text-[8px] text-gray-600 font-black uppercase">Mín</span>
+                            <span className="text-center text-[8px] text-gray-600 font-black uppercase border-x border-gray-700">Máx</span>
+                            <span className={`text-center text-[8px] font-black uppercase ${res?.feasible ? 'text-emerald-600' : 'text-gray-700'}`}>Fórmula</span>
                           </div>
                         </div>
                       </th>
@@ -562,13 +579,13 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                     </tr>
                     {ingRows.map(row => (
                       <tr key={row.id} className="hover:bg-gray-900/60 transition-colors group border-b border-gray-800/30">
-                        {/* STICKY FIRST COL */}
-                        <td className="sticky left-0 z-20 bg-gray-950 border-r border-gray-800 px-2 py-1 group-hover:bg-gray-900">
+                        <td style={{ position: 'sticky', left: 0, zIndex: 20, background: '#0a0f1a', minWidth: 180, maxWidth: 180 }}
+                          className="border border-gray-700 px-2 py-1">
                           <div className="flex items-center justify-between gap-1">
                             <div className="min-w-0">
-                              <div className="text-[10px] font-bold text-gray-300 truncate leading-tight">{row.name}</div>
+                              <div className="text-[10px] font-bold text-gray-200 truncate leading-tight">{row.name}</div>
                               {row.price !== undefined && (
-                                <div className="text-[9px] text-gray-600 font-mono leading-none mt-0.5">${row.price.toFixed(2)}/kg</div>
+                                <div className="text-[9px] text-gray-500 font-mono leading-none mt-0.5">${row.price.toFixed(2)}/kg</div>
                               )}
                             </div>
                             <button onClick={() => handleRemoveRow(row.id, 'ing')}
@@ -581,10 +598,10 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                           const con = constraints[row.id]?.[diet.id];
                           const formulaVal = results[diet.id]?.formula[row.id] ?? 0;
                           return (
-                            <td key={diet.id} className="border-l border-gray-800/20 px-0.5 py-0.5">
-                              <div className="grid grid-cols-3 gap-px bg-gray-900 rounded overflow-hidden border border-gray-800 hover:border-indigo-500/30 transition-colors">
+                            <td key={diet.id} className="border border-gray-700 p-0" style={{ minWidth: 168 }}>
+                              <div className="grid grid-cols-3 divide-x divide-gray-700 h-full">
                                 <CellInput
-                                  value={con?.min ?? 0}
+                                  value={con?.min ?? ''}
                                   onChange={v => updateConstraint(row.id, diet.id, 'min', v)}
                                   placeholder="0"
                                   dirty={con?.dirty}
@@ -620,12 +637,12 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                     </tr>
                     {nutRows.map(row => (
                       <tr key={row.id} className="hover:bg-gray-900/60 transition-colors group border-b border-gray-800/30">
-                        {/* STICKY FIRST COL */}
-                        <td className="sticky left-0 z-20 bg-gray-950 border-r border-gray-800 px-2 py-1 group-hover:bg-gray-900">
+                        <td style={{ position: 'sticky', left: 0, zIndex: 20, background: '#0a0f1a', minWidth: 180, maxWidth: 180 }}
+                          className="border border-gray-700 px-2 py-1">
                           <div className="flex items-center justify-between gap-1">
                             <div className="min-w-0">
-                              <div className="text-[10px] font-bold text-gray-300 truncate leading-tight">{row.name}</div>
-                              {row.unit && <div className="text-[9px] text-gray-600 font-mono leading-none mt-0.5">{row.unit}</div>}
+                              <div className="text-[10px] font-bold text-gray-200 truncate leading-tight">{row.name}</div>
+                              {row.unit && <div className="text-[9px] text-gray-500 font-mono leading-none mt-0.5">{row.unit}</div>}
                             </div>
                             <button onClick={() => handleRemoveRow(row.id, 'nut')}
                               className="opacity-0 group-hover:opacity-100 text-red-600 hover:text-red-400 transition-all shrink-0">
@@ -640,10 +657,12 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                             ? nutVal >= con.min - 0.001 && (nutVal <= con.max + 0.001 || con.max >= 999)
                             : true;
                           return (
-                            <td key={diet.id} className="border-l border-gray-800/20 px-0.5 py-0.5">
-                              <div className={`grid grid-cols-3 gap-px rounded overflow-hidden border transition-colors ${!isWithin && hasRun ? 'border-red-500/40 bg-red-950/30' : 'bg-gray-900 border-gray-800 hover:border-cyan-500/30'}`}>
+                            <td key={diet.id} className={`border p-0 ${
+                              !isWithin && hasRun ? 'border-red-600 bg-red-950/20' : 'border-gray-700'
+                            }`} style={{ minWidth: 168 }}>
+                              <div className="grid grid-cols-3 divide-x divide-gray-700 h-full">
                                 <CellInput
-                                  value={con?.min ?? 0}
+                                  value={con?.min ?? ''}
                                   onChange={v => updateConstraint(row.id, diet.id, 'min', v)}
                                   placeholder="0"
                                   dirty={con?.dirty}
@@ -656,10 +675,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                   dirty={con?.dirty}
                                   injected={con?.injected}
                                 />
-                                {/* Nutrient result: shows actual value */}
-                                <div className={`text-center text-[11px] font-black font-mono py-1 px-0.5 ${!isWithin && hasRun ? 'text-red-400' : nutVal > 0 ? 'text-cyan-400' : 'text-gray-700'}`}>
-                                  {nutVal > 0 ? nutVal.toFixed(2) : '—'}
-                                </div>
+                                <CellInput value={nutVal} nutResult nutOk={isWithin || !hasRun} />
                               </div>
                             </td>
                           );
@@ -669,19 +685,19 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                   </>
                 )}
 
-                {/* ── COST ROW ── */}
                 {hasRun && (
-                  <tr className="bg-emerald-950/30 border-t-2 border-emerald-800/40">
-                    <td className="sticky left-0 z-20 bg-emerald-950/40 border-r border-gray-800 px-2 py-2">
-                      <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">$/kg Total</span>
+                  <tr style={{ background: '#052e16' }}>
+                    <td style={{ position: 'sticky', left: 0, zIndex: 20, background: '#052e16', minWidth: 180 }}
+                      className="border border-emerald-900 px-2 py-2">
+                      <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">$/kg · Total</span>
                     </td>
                     {activeDiets.map(diet => {
                       const res = results[diet.id];
                       return (
-                        <td key={diet.id} className="border-l border-gray-800/20 px-1 py-2 text-center">
+                        <td key={diet.id} className="border border-emerald-900/50 px-1 py-2 text-center" style={{ minWidth: 168 }}>
                           {res?.feasible ? (
                             <div className="flex flex-col items-center">
-                              <span className="text-[13px] font-black font-mono text-emerald-400">${res.costPerKg.toFixed(4)}</span>
+                              <span className="text-[14px] font-black font-mono text-emerald-400">${res.costPerKg.toFixed(4)}</span>
                               <span className="text-[9px] text-gray-600 font-mono">${res.totalCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                             </div>
                           ) : (

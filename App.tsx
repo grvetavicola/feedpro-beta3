@@ -261,7 +261,10 @@ export default function App() {
             />
         )}
         
-        <div className={`fixed md:relative inset-y-0 left-0 z-50 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 md:flex flex-col h-full ${isOptimizationFullscreen ? 'hidden' : ''}`}>
+        <div
+          style={{ display: isOptimizationFullscreen ? 'none' : undefined }}
+          className={`fixed md:relative inset-y-0 left-0 z-50 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 md:flex flex-col h-full`}
+        >
             <ProductsSidebar 
               clients={clients}
               products={products}
@@ -308,7 +311,7 @@ export default function App() {
         
         {/* Main Content Area */}
         <div className="flex-[4] lg:flex-[5] flex border-l border-gray-800 relative z-0 flex-col w-full h-full min-w-0">
-        <main className="flex-1 relative flex flex-col bg-[radial-gradient(circle_at_50%_0%,rgba(6,182,212,0.05),transparent_50%)] overflow-hidden p-6 w-full">
+        <main className={`flex-1 relative flex flex-col bg-[radial-gradient(circle_at_50%_0%,rgba(6,182,212,0.05),transparent_50%)] overflow-hidden w-full ${isOptimizationFullscreen ? 'p-0' : 'p-6'}`}>
             <div className="flex-1 relative overflow-hidden flex flex-col">
                 {/* View Content */}
                 <div className="flex-1 overflow-y-auto w-full">
