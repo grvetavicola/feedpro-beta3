@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { marked } from 'marked';
 import { User, Ingredient, Nutrient, Product, ChatMessage } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
 import { chatWithAssistant } from '../services/geminiService';
@@ -266,7 +267,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ user = { name: 'Admin'
                     {msg.role === 'assistant' && <div className="w-8 h-8 rounded-full bg-cyan-500/50 flex items-center justify-center flex-shrink-0"><AIIcon className="w-5 h-5 text-cyan-200" /></div>}
                     <div className={`max-w-xl p-3 rounded-2xl relative group ${msg.role === 'user' ? 'bg-cyan-600 text-white rounded-br-none' : 'bg-gray-700 text-gray-300 rounded-bl-none'}`}>
                         {msg.image && <img src={msg.image} alt="Attachment" className="max-w-xs max-h-48 rounded-lg mb-2" />}
-                        {msg.content && <p className="text-sm" dangerouslySetInnerHTML={{ __html: msg.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br />') }} />}
+                        {msg.content && <div className="text-sm markdown-body [&_table]:w-full [&_table]:my-3 [&_table]:text-xs [&_table]:text-left [&_table]:border-collapse [&_table]:border [&_table]:border-gray-700 [&_th]:bg-gray-900 [&_th]:border [&_th]:border-gray-700/50 [&_th]:px-3 [&_th]:py-2 [&_th]:text-cyan-400 [&_th]:font-bold [&_th]:uppercase [&_td]:px-3 [&_td]:py-2 [&_td]:border [&_td]:border-gray-700/30 [&_strong]:text-cyan-300 [&_strong]:font-bold [&_ul]:list-disc [&_ul]:ml-5 [&_ul]:space-y-1 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-5 [&_ol]:space-y-1 [&_ol]:mb-2 [&_p]:mb-2 leading-relaxed" dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) as string }} />}
                         {msg.role === 'assistant' && (
                             <button 
                                 onClick={() => copyToClipboard(msg.content)} 
