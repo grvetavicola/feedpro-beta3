@@ -116,11 +116,26 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   onEnterFullscreen, onLeaveFullscreen
 }) => {
 
-  // ── Fullscreen mount/unmount ────────────────────────────────────────────────
+  // ── Fullscreen mount/unmount + F4 global key ───────────────────────────────
+  // Ref so the F4 listener always calls the latest version (avoids stale closure)
+  const handleRunAllRef = React.useRef<() => void>(() => {});
+
   useEffect(() => {
     onEnterFullscreen?.();
-    return () => onLeaveFullscreen?.();
-  }, []);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'F4') {
+        e.preventDefault();
+        handleRunAllRef.current();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      onLeaveFullscreen?.();
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);  // eslint-disable-line
 
   // ── Active diets (local can differ from props while editing) ───────────────
   const [activeDietIds, setActiveDietIds] = useState<string[]>(selectedDietIds);
@@ -356,6 +371,9 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     });
   };
 
+  // Keep ref up-to-date so the F4 key listener always has the latest handleRunAll
+  handleRunAllRef.current = handleRunAll;
+
   // ── Injector options ───────────────────────────────────────────────────────
   const injOptions = useMemo(() => {
     const term = injSearch.toLowerCase();
@@ -378,6 +396,17 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     >
       {/* ═══ TOPBAR ══════════════════════════════════════════════════════════ */}
       <div className="flex items-center gap-2 px-3 py-2 bg-gray-900 border-b border-gray-800 shrink-0">
+
+        {/* Back button */}
+        <button
+          onClick={() => onLeaveFullscreen?.()}
+          className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors text-gray-400 hover:text-white shrink-0"
+        >
+          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+          Volver
+        </button>
+
+        <div className="w-px h-4 bg-gray-800 shrink-0" />
 
         {/* Brand */}
         <span className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] shrink-0">
@@ -538,11 +567,17 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                   {activeDiets.map(diet => {
                     const res = results[diet.id];
                     return (
-                      <th key={diet.id} className="border border-gray-700 px-1 text-center bg-gray-900" style={{ minWidth: 168 }}>
+                      <th key={diet.id}
+                        className={`border border-gray-700 px-1 text-center ${
+                          results[diet.id] && !results[diet.id]!.feasible ? 'bg-red-950/40' : 'bg-gray-900'
+                        }`}
+                        style={{ minWidth: 168 }}>
                         <div className="flex flex-col items-center gap-1 py-1.5">
                           <div className="flex items-center gap-1.5 w-full justify-center">
-                            {res && <StatusDot ok={res.feasible} />}
-                            <span className="text-[9px] font-black text-gray-300 uppercase truncate max-w-[110px]">{diet.name}</span>
+                            {results[diet.id] && <StatusDot ok={results[diet.id]!.feasible} />}
+                            <span className={`text-[9px] font-black uppercase truncate max-w-[110px] ${
+                              results[diet.id] && !results[diet.id]!.feasible ? 'text-red-400' : 'text-gray-300'
+                            }`}>{diet.name}</span>
                             <button onClick={() => { setActiveDietIds(prev => prev.filter(id => id !== diet.id)); onRemoveDietFromSelection?.(diet.id); }}
                               className="text-gray-600 hover:text-red-400 transition-colors shrink-0">
                               <XCircleIcon className="w-3 h-3" />
@@ -552,11 +587,18 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                           <input type="number" value={batchSizes[diet.id] || 1000}
                             onChange={e => setBatchSizes(prev => ({ ...prev, [diet.id]: Number(e.target.value) }))}
                             className="w-20 bg-gray-800 border border-gray-700 rounded px-1 py-0.5 text-[9px] text-center font-mono text-cyan-400 outline-none hover:border-cyan-500/40 focus:border-cyan-500 transition-colors" />
+                          {/* Infeasible badge */}
+                          {results[diet.id] && !results[diet.id]!.feasible && (
+                            <span className="text-[8px] font-black text-red-400 bg-red-900/40 px-1.5 py-0.5 rounded-full uppercase tracking-wider">INFACTIBLE</span>
+                          )}
                           {/* Sub-column headers */}
                           <div className="grid grid-cols-3 w-full border-t border-gray-700 mt-1 pt-1">
                             <span className="text-center text-[8px] text-gray-600 font-black uppercase">Mín</span>
                             <span className="text-center text-[8px] text-gray-600 font-black uppercase border-x border-gray-700">Máx</span>
-                            <span className={`text-center text-[8px] font-black uppercase ${res?.feasible ? 'text-emerald-600' : 'text-gray-700'}`}>Fórmula</span>
+                            <span className={`text-center text-[8px] font-black uppercase ${
+                              results[diet.id]?.feasible ? 'text-emerald-600' :
+                              results[diet.id] && !results[diet.id]!.feasible ? 'text-red-600' : 'text-gray-700'
+                            }`}>Fórmula</span>
                           </div>
                         </div>
                       </th>
