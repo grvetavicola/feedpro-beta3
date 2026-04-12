@@ -354,9 +354,8 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {nutrients.map(nut => {
+                                                        {nutrients.filter(n => product.constraints.some(c => c.nutrientId === n.id)).map(nut => {
                                                             const con = product.constraints.find(c => c.nutrientId === nut.id) || { min: 0, max: 999 };
-                                                            const isConstrained = con.min > 0 || con.max < 999;
                                                             return (
                                                                 <tr key={nut.id} className="border-b border-gray-800/50">
                                                                     <td className="py-1 text-[10px] font-bold text-gray-300 truncate max-w-[80px]" title={nut.name}>{nut.name}</td>
