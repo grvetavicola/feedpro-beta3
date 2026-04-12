@@ -273,14 +273,17 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                         </div>
                         <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
                            <div className="grid grid-cols-2 gap-4">
-                               {nutrients.map(nut => {
+                               {nutrients.filter(n => p?.constraints.some(c => c.nutrientId === n.id)).map(nut => {
                                    const p = products.find(prod => prod.id === viewingDetailId);
                                    const con = p?.constraints.find(c => c.nutrientId === nut.id) || { min: 0, max: 999 };
                                    return (
                                        <div key={nut.id} className="bg-gray-800/50 p-3 rounded-2xl border border-gray-700 flex flex-col gap-2">
                                            <div className="flex justify-between items-center border-b border-gray-700/50 pb-2">
                                                <span className="text-xs font-black text-gray-200 uppercase truncate">{nut.name}</span>
-                                               <span className="text-[10px] text-gray-500 font-bold">{nut.unit}</span>
+                                               <div className="flex items-center gap-2">
+                                                   <span className="text-[10px] text-cyan-500 font-bold uppercase tracking-tighter bg-cyan-500/10 px-1 rounded">Activo</span>
+                                                   <span className="text-[10px] text-gray-500 font-bold">{nut.unit}</span>
+                                               </div>
                                            </div>
                                            <div className="flex gap-2">
                                                <div className="flex-1">
@@ -323,6 +326,13 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                        </div>
                                    )
                                })}
+                               {/* Hint for adding more nutrients */}
+                               {products.find(p => p.id === viewingDetailId)?.constraints.length === 0 && (
+                                   <div className="col-span-2 py-10 text-center">
+                                       <p className="text-gray-500 text-sm italic font-bold">No hay nutrientes definidos para esta dieta.</p>
+                                       <p className="text-[10px] text-gray-600 uppercase mt-2">Los nutrientes mostrados aquí se sincronizan con la "Definición de Dietas".</p>
+                                   </div>
+                               )}
                            </div>
                         </div>
                     </div>
