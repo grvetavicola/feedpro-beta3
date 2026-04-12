@@ -203,9 +203,9 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
         <div className="flex flex-col h-full overflow-hidden animate-fade-in text-[12px]">
 
             {/* ═══════════════════════════════════════════════════════════════════
-                BLOQUE SUPERIOR COLAPSABLE
+                BLOQUE SUPERIOR COLAPSABLE — máx 30vh
             ══════════════════════════════════════════════════════════════════════ */}
-            <div className="shrink-0 border border-gray-800 rounded-xl bg-gray-900/50 overflow-hidden shadow-xl mb-2">
+            <div className="shrink-0 border border-gray-700 rounded-xl bg-gray-900/80 overflow-hidden shadow-2xl mb-2" style={{maxHeight: '30vh'}}>
 
                 {/* ─── Barra de resumen (siempre visible) ─── */}
                 <div className="flex items-center gap-4 px-4 py-2.5 border-b border-gray-800/50">
@@ -254,12 +254,12 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                 </div>
 
                 {/* ─── Panel expandible ─── */}
-                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isPanelExpanded ? 'max-h-[500px]' : 'max-h-0'}`}>
-                    <div className="grid grid-cols-[220px_1fr] divide-x divide-gray-800">
+                <div className={`overflow-hidden transition-all duration-200 ease-in-out ${isPanelExpanded ? 'flex-1' : 'max-h-0'}`} style={{overflowY: 'auto'}}>
+                    <div className="grid grid-cols-[220px_1fr] divide-x divide-gray-700 h-full">
 
                         {/* ── Columna Izq: Árbol de Dietas ── */}
-                        <div className="p-3 overflow-y-auto max-h-[460px] custom-scrollbar">
-                            <p className="text-[9px] font-black text-gray-600 uppercase tracking-[0.3em] mb-2 px-1">Selección de Dietas</p>
+                        <div className="p-3 overflow-y-auto custom-scrollbar" style={{maxHeight: 'calc(30vh - 44px)'}}>
+                            <p className="text-[9px] font-black text-gray-500 uppercase tracking-[0.3em] mb-2 px-1">Selección de Dietas</p>
                             {Object.entries(dietsByCategory).map(([cat, prods]) => {
                                 const allSelected = prods.every(p => localSelectedIds.includes(p.id));
                                 const someSelected = prods.some(p => localSelectedIds.includes(p.id));
@@ -272,7 +272,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                             <div className={`w-3 h-3 rounded border flex items-center justify-center transition-all shrink-0 ${allSelected ? 'bg-emerald-500 border-emerald-500' : someSelected ? 'bg-emerald-900 border-emerald-500' : 'border-gray-700 bg-transparent'}`}>
                                                 {(allSelected || someSelected) && <CheckIcon className="w-2 h-2 text-white" />}
                                             </div>
-                                            <span className="text-[10px] font-black text-gray-400 group-hover:text-white uppercase truncate">{cat}</span>
+                                            <span className="text-[10px] font-black text-gray-200 group-hover:text-white uppercase truncate">{cat}</span>
                                             <span className="ml-auto text-[9px] text-gray-600">{prods.filter(p => localSelectedIds.includes(p.id)).length}/{prods.length}</span>
                                         </button>
                                         <div className="ml-4 space-y-0.5 mt-0.5">
@@ -280,7 +280,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                                 <button
                                                     key={p.id}
                                                     onClick={() => toggleDiet(p.id)}
-                                                    className={`w-full flex items-center gap-2 px-2 py-1 rounded-lg transition-all text-left ${localSelectedIds.includes(p.id) ? 'bg-emerald-500/10 text-emerald-300' : 'text-gray-600 hover:bg-gray-800/40 hover:text-gray-300'}`}
+                                                    className={`w-full flex items-center gap-2 px-2 py-1 rounded-lg transition-all text-left ${localSelectedIds.includes(p.id) ? 'bg-emerald-500/10 text-emerald-300' : 'text-gray-400 hover:bg-gray-800/40 hover:text-gray-100'}`}
                                                 >
                                                     <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${localSelectedIds.includes(p.id) ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]' : 'bg-gray-700'}`} />
                                                     <span className="text-[10px] font-bold truncate">{p.name}</span>
@@ -302,17 +302,17 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                         </div>
 
                         {/* ── Columna Der: Inyector Compacto ── */}
-                        <div className="p-3 flex flex-col gap-3">
-                            <p className="text-[9px] font-black text-gray-600 uppercase tracking-[0.3em]">Inyección de Parámetros al Grupo</p>
+                        <div className="p-3 flex flex-col gap-2 overflow-y-auto custom-scrollbar" style={{maxHeight: 'calc(30vh - 44px)'}}>
+                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em]">Añadir parámetro a las dietas seleccionadas:</p>
 
                             {/* Fila única del Inyector */}
-                            <div className="flex items-center gap-2 bg-gray-950 border border-gray-800 rounded-xl px-3 py-2">
+                            <div className="flex items-center gap-2 bg-gray-800 border border-gray-600 rounded-xl px-3 py-2">
                                 {/* Modo toggle */}
-                                <div className="flex rounded-lg overflow-hidden border border-gray-800 shrink-0">
-                                    <button onClick={() => setInjectorMode('ing')} className={`px-3 py-1.5 text-[9px] font-black uppercase transition-all ${injectorMode === 'ing' ? 'bg-indigo-600 text-white' : 'bg-gray-900 text-gray-600 hover:text-gray-400'}`}>
+                                <div className="flex rounded-lg overflow-hidden border border-gray-700 shrink-0">
+                                    <button onClick={() => setInjectorMode('ing')} className={`px-3 py-1.5 text-[9px] font-black uppercase transition-all ${injectorMode === 'ing' ? 'bg-indigo-600 text-white' : 'bg-gray-900 text-gray-300 hover:text-white hover:bg-gray-800'}`}>
                                         <CubeIcon className="w-3 h-3 inline mr-1"/>Insumo
                                     </button>
-                                    <button onClick={() => setInjectorMode('nut')} className={`px-3 py-1.5 text-[9px] font-black uppercase transition-all ${injectorMode === 'nut' ? 'bg-cyan-600 text-white' : 'bg-gray-900 text-gray-600 hover:text-gray-400'}`}>
+                                    <button onClick={() => setInjectorMode('nut')} className={`px-3 py-1.5 text-[9px] font-black uppercase transition-all ${injectorMode === 'nut' ? 'bg-cyan-600 text-white' : 'bg-gray-900 text-gray-300 hover:text-white hover:bg-gray-800'}`}>
                                         <BeakerIcon className="w-3 h-3 inline mr-1"/>Nutriente
                                     </button>
                                 </div>
@@ -322,27 +322,27 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                     value={injectorSearch}
                                     onChange={e => setInjectorSearch(e.target.value)}
                                     placeholder={injectorMode === 'ing' ? 'Buscar insumo...' : 'Buscar nutriente...'}
-                                    className="flex-1 bg-transparent text-white text-[11px] outline-none placeholder-gray-700 min-w-0"
+                                    className="flex-1 bg-transparent text-white text-[11px] outline-none placeholder-gray-500 min-w-0"
                                 />
                                 {/* Min/Max */}
-                                <input type="number" value={injectorMin} onChange={e => setInjectorMin(e.target.value)} placeholder="Mín" className="w-14 bg-gray-900 border border-gray-800 text-white text-[10px] text-center rounded-lg px-1 py-1.5 outline-none font-mono" />
-                                <span className="text-gray-700 text-[10px]">–</span>
-                                <input type="number" value={injectorMax} onChange={e => setInjectorMax(e.target.value)} placeholder="Máx" className="w-14 bg-gray-900 border border-gray-800 text-white text-[10px] text-center rounded-lg px-1 py-1.5 outline-none font-mono" />
+                                <input type="number" value={injectorMin} onChange={e => setInjectorMin(e.target.value)} placeholder="Mín" className="w-14 bg-gray-900 border border-gray-600 text-white text-[10px] text-center rounded-lg px-1 py-1.5 outline-none font-mono focus:border-indigo-500 transition-colors" />
+                                <span className="text-gray-500 text-[10px] font-bold">–</span>
+                                <input type="number" value={injectorMax} onChange={e => setInjectorMax(e.target.value)} placeholder="Máx" className="w-14 bg-gray-900 border border-gray-600 text-white text-[10px] text-center rounded-lg px-1 py-1.5 outline-none font-mono focus:border-indigo-500 transition-colors" />
                             </div>
 
                             {/* Dropdown de opciones filtradas */}
                             {injectorSearch.length > 0 && (
-                                <div className="bg-gray-950 border border-gray-800 rounded-xl overflow-hidden max-h-28 overflow-y-auto custom-scrollbar">
+                                <div className="bg-gray-900 border border-gray-600 rounded-xl overflow-hidden max-h-32 overflow-y-auto custom-scrollbar shadow-xl">
                                     {injectorOptions.length === 0 ? (
-                                        <p className="text-[10px] text-gray-700 text-center py-3">Sin resultados</p>
+                                        <p className="text-[10px] text-gray-500 text-center py-3">Sin resultados</p>
                                     ) : injectorOptions.map(opt => (
                                         <button
                                             key={opt.id}
                                             onClick={() => { handleQuickInject(opt.id, opt.name); setInjectorSearch(''); }}
-                                            className="w-full text-left px-3 py-1.5 text-[11px] text-gray-400 hover:bg-gray-800 hover:text-white transition-colors flex items-center justify-between"
+                                            className="w-full text-left px-3 py-2 text-[11px] text-gray-200 hover:bg-emerald-700 hover:text-white transition-colors flex items-center justify-between group"
                                         >
                                             <span className="font-bold">{opt.name}</span>
-                                            <span className="text-[9px] text-gray-700 font-mono">+ Añadir</span>
+                                            <span className="text-[9px] bg-emerald-600 group-hover:bg-emerald-500 text-white font-black px-2 py-0.5 rounded-full transition-colors">+ Añadir</span>
                                         </button>
                                     ))}
                                 </div>
@@ -387,7 +387,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
             {/* ═══════════════════════════════════════════════════════════════════
                 MATRIZ DE DATOS (ocupa todo el resto)
             ══════════════════════════════════════════════════════════════════════ */}
-            <div className="flex-1 border border-gray-800 rounded-xl bg-gray-900/40 overflow-auto custom-scrollbar shadow-inner">
+            <div className="flex-1 min-h-0 border border-gray-700 rounded-xl bg-gray-900/40 overflow-auto custom-scrollbar shadow-inner">
                 {selectedProducts.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-center opacity-20">
                         <DatabaseIcon className="w-16 h-16 mb-4 text-gray-700" />
