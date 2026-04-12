@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Ingredient, Nutrient } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
-import { TruckIcon, PlusIcon, TrashIcon, SaveIcon, CalculatorIcon, XCircleIcon } from './icons';
+import { TruckIcon, PlusIcon, TrashIcon, SaveIcon, CalculatorIcon, XCircleIcon, SparklesIcon } from './icons';
 
 interface SimulationScreenProps {
     ingredients: Ingredient[];
@@ -152,21 +152,25 @@ export const SimulationScreen: React.FC<SimulationScreenProps> = ({ ingredients,
     const sortedNutrients = useMemo(() => [...nutrients].sort((a,b) => (Number(a.code) || 0) - (Number(b.code) || 0)), [nutrients]);
 
     return (
-        <div className="p-3 space-y-3 h-full flex flex-col">
-            <div className="flex justify-between items-center bg-gray-800/40 p-2 rounded border border-gray-700/50">
-                <div className="flex items-center gap-2">
-                    <div className="bg-gray-800 p-1.5 rounded border border-gray-700">
-                        <TruckIcon className="w-4 h-4 text-cyan-400" />
-                    </div>
-                    <div>
-                        <h2 className="text-[15px] font-bold text-white leading-none">{t('nav.simulation')}</h2>
-                        <p className="text-[10px] text-gray-500 mt-0.5 leading-none">Mezcla manual con vehículo automático.</p>
-                    </div>
+        <div className="p-3 space-y-3 h-full flex flex-col animate-fade-in w-full">
+            <div className="relative bg-gradient-to-br from-cyan-900/40 to-indigo-900/40 rounded-xl p-4 border border-cyan-500/20 overflow-hidden shadow-md flex flex-col md:flex-row justify-between items-center gap-4 shrink-0">
+                <div className="absolute top-0 right-0 p-8 bg-white/5 rounded-full -mr-12 -mt-12 blur-3xl opacity-30"></div>
+                <div className="relative z-10 flex items-center gap-4 w-full md:w-auto">
+                     <div className="bg-cyan-950/50 p-2.5 rounded-xl border border-cyan-800/50 backdrop-blur-sm shadow-inner shrink-0 hidden sm:flex items-center justify-center">
+                         <img src="/icons/simulation.png" className="w-8 h-8 object-contain saturate-200 hue-rotate-15 contrast-125 brightness-125 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" alt="Icon Simulation" />
+                     </div>
+                     <div className="space-y-0.5 max-w-xl text-left w-full">
+                        <div className="flex items-center gap-2 text-cyan-400 font-bold text-[10px] uppercase tracking-wider mb-1">
+                          <SparklesIcon className="w-3 h-3"/> Consolidación Táctica
+                        </div>
+                        <h1 className="text-xl md:text-2xl font-black text-white leading-tight uppercase tracking-tight">{t('nav.simulation')}</h1>
+                        <p className="text-gray-400 font-bold text-[11px] md:text-[12px] leading-snug uppercase tracking-widest">Mezcla manual con vehículo automático.</p>
+                     </div>
                 </div>
                 <button 
                     onClick={() => setIsSaveModalOpen(true)} 
                     disabled={simulatedIngredients.length === 0}
-                    className="bg-green-600 hover:bg-green-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-lg shadow-green-900/20"
+                    className="relative z-10 bg-green-600 hover:bg-green-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm shadow-lg shadow-green-900/20 w-full md:w-auto transition-all"
                 >
                     <SaveIcon className="w-4 h-4"/> Guardar como Ingrediente
                 </button>
