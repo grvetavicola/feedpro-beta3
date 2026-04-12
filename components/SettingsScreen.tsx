@@ -98,8 +98,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                 <div className="lg:col-span-2 bg-gray-900 shadow-2xl border border-gray-800 p-6 rounded-3xl space-y-6">
                     <div className="flex items-center justify-between border-b border-gray-800 pb-4">
                         <div className="flex items-center gap-3">
-                            <div className="bg-emerald-500/20 p-2 rounded-xl text-emerald-400">
-                                <DatabaseIcon className="w-5 h-5" />
+                            <div className="bg-emerald-500/20 p-2 rounded-xl flex items-center justify-center">
+                                <img src="/icons/clients.png" alt="Icono Clientes" className="w-6 h-6 object-contain filter saturate-200 hue-rotate-15 drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]" />
                             </div>
                             <div>
                                 <h3 className="text-lg font-black text-white leading-none uppercase tracking-tighter">Perfiles de Clientes</h3>
@@ -125,11 +125,11 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                         {clients.map(client => (
                             <div key={client.id} className="bg-gray-800/40 border border-gray-700 p-4 rounded-2xl flex items-center gap-4 group hover:border-cyan-500/30 transition-all">
-                                <div className="relative w-16 h-16 bg-gray-900 rounded-xl border border-gray-700 overflow-hidden flex items-center justify-center shrink-0">
+                                <div className="relative w-16 h-16 bg-gray-800 rounded-xl border border-gray-700 overflow-hidden flex items-center justify-center shrink-0">
                                     {client.logo ? (
                                         <img src={client.logo} alt={client.name} className="w-full h-full object-contain" />
                                     ) : (
-                                        <UserIcon className="w-6 h-6 text-gray-700" />
+                                        <img src="/icons/clients.png" alt="Sin Logo" className="w-8 h-8 object-contain opacity-20 grayscale brightness-150 mix-blend-screen" />
                                     )}
                                     <label className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                                         <SearchIcon className="w-4 h-4 text-cyan-400" />
@@ -168,8 +168,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                     <div className="bg-gray-900 border border-gray-800 p-6 rounded-3xl space-y-4">
 
                         <div className="flex items-center gap-3 border-b border-gray-800 pb-4">
-                            <div className="bg-indigo-500/20 p-2 rounded-xl text-indigo-400">
-                                <GlobeIcon className="w-5 h-5" />
+                            <div className="bg-indigo-500/20 p-2 rounded-xl flex items-center justify-center">
+                                <img src="/icons/localization.png" alt="Icono Localizacion" className="w-6 h-6 object-contain drop-shadow-[0_0_5px_rgba(99,102,241,0.5)]" />
                             </div>
                             <h3 className="text-lg font-black text-white uppercase tracking-tighter leading-none">Localización</h3>
                         </div>
