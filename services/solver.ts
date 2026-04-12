@@ -220,6 +220,13 @@ export const solveGroupFormulation = (
             if (rel.min > 0) model.constraints[`rel_${aId}_${rel.id}_min`] = { min: 0 };
             if (rel.max < 999) model.constraints[`rel_${aId}_${rel.id}_max`] = { max: 0 };
         });
+        // Add Ingredient Inclusion Constraints for this product
+        product.ingredientConstraints.forEach(ic => {
+            model.constraints[`ing_limit_${aId}_${ic.ingredientId}`] = { 
+               min: ic.min || 0, 
+               max: ic.max === undefined ? 100 : ic.max 
+           };
+        });
     });
 
     // 2. Global Stock Constraints
@@ -244,6 +251,9 @@ export const solveGroupFormulation = (
                 
                 // Contributes to product weight
                 [`totalWeight_${aId}`]: 1,
+
+                // Contributes to product-specific ingredient limit
+                [`ing_limit_${aId}_${ing.id}`]: 1,
                 
                 // Contributes to product nutrients (scaled)
                 ...Object.entries((isDynamicMatrix && Object.keys(ing.dynamicNutrients || {}).length > 0) ? (ing.dynamicNutrients as Record<string, number>) : ing.nutrients).reduce((acc, [nutId, val]) => {
