@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { ViewState, Product, Ingredient, Nutrient, Client, SavedFormula, User } from './types';
 import { Dashboard } from './components/Dashboard';
 import { IngredientsScreen } from './components/IngredientsScreen';
@@ -58,6 +59,7 @@ export default function App() {
   
   // Unified Optimization State
   const [selectedDietIds, setSelectedDietIds] = useState<string[]>([]);
+  const [isOptimizationPortalOpen, setIsOptimizationPortalOpen] = useState(false);
   
   // UI Interaction States
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -330,8 +332,40 @@ export default function App() {
                                 case 'INGREDIENTS': return <IngredientsScreen ingredients={ingredients} setIngredients={setIngredients} nutrients={nutrients} setNutrients={setNutrients} setIsDirty={setIsDirty} />;
                                 case 'NUTRIENTS': return <NutrientsScreen nutrients={nutrients} setNutrients={setNutrients} />;
                                 case 'PRODUCTS': return <ProductsScreen products={products} setProducts={setProducts} ingredients={effectiveIngredients} nutrients={nutrients} onOpenInNewWindow={(data, name) => handleOpenTask('OPTIMIZATION', name, data)} onNavigate={setView} setIsDirty={setIsDirty} />;
-                                case 'OPTIMIZATION': return <GroupOptimizationScreen products={products} ingredients={effectiveIngredients} nutrients={nutrients} isDynamicMatrix={isDynamicMatrix} selectedDietIds={selectedDietIds} onOpenInNewWindow={(data, name) => handleOpenTask('GROUP_OPTIMIZATION', name, data)} onUpdateProduct={(updatedProduct) => setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p))} setIsDirty={setIsDirty} savedFormulas={savedFormulas} setSavedFormulas={setSavedFormulas} />;
-                                case 'GROUP_OPTIMIZATION': return <GroupOptimizationScreen products={products} ingredients={effectiveIngredients} nutrients={nutrients} isDynamicMatrix={isDynamicMatrix} selectedDietIds={selectedDietIds} onOpenInNewWindow={(data, name) => handleOpenTask('GROUP_OPTIMIZATION', name, data)} onUpdateProduct={(updatedProduct) => setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p))} setIsDirty={setIsDirty} savedFormulas={savedFormulas} setSavedFormulas={setSavedFormulas} />;
+                                case 'OPTIMIZATION': return (
+                                    <div className="flex flex-col items-center justify-center h-full gap-6">
+                                        <div className="text-center">
+                                            <p className="text-[11px] font-black text-gray-500 uppercase tracking-[0.4em] mb-3">Centro de Optimización</p>
+                                            <p className="text-2xl font-black text-white">{selectedDietIds.length} dietas seleccionadas</p>
+                                            <p className="text-gray-500 text-sm mt-2">Selecciona dietas desde el panel izquierdo y abre la consola</p>
+                                        </div>
+                                        <button
+                                            onClick={() => setIsOptimizationPortalOpen(true)}
+                                            disabled={selectedDietIds.length === 0}
+                                            className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black px-16 py-5 rounded-3xl shadow-2xl transform transition-all hover:scale-[1.03] active:scale-95 flex items-center gap-4 text-[15px] uppercase tracking-[0.3em]"
+                                        >
+                                            <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" /></svg>
+                                            ABRIR CONSOLA DE OPTIMIZACIÓN
+                                        </button>
+                                    </div>
+                                );
+                                case 'GROUP_OPTIMIZATION': return (
+                                    <div className="flex flex-col items-center justify-center h-full gap-6">
+                                        <div className="text-center">
+                                            <p className="text-[11px] font-black text-gray-500 uppercase tracking-[0.4em] mb-3">Centro de Optimización</p>
+                                            <p className="text-2xl font-black text-white">{selectedDietIds.length} dietas seleccionadas</p>
+                                            <p className="text-gray-500 text-sm mt-2">Selecciona dietas desde el panel izquierdo y abre la consola</p>
+                                        </div>
+                                        <button
+                                            onClick={() => setIsOptimizationPortalOpen(true)}
+                                            disabled={selectedDietIds.length === 0}
+                                            className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black px-16 py-5 rounded-3xl shadow-2xl transform transition-all hover:scale-[1.03] active:scale-95 flex items-center gap-4 text-[15px] uppercase tracking-[0.3em]"
+                                        >
+                                            <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" /></svg>
+                                            ABRIR CONSOLA DE OPTIMIZACIÓN
+                                        </button>
+                                    </div>
+                                );
                                 case 'SIMULATION': return <SimulationScreen ingredients={effectiveIngredients} setIngredients={setIngredients} nutrients={nutrients} />;
                                 case 'CLIENTS': 
                                     if (user.assignedClientId && user.assignedClientId !== 'ALL') {
@@ -594,6 +628,25 @@ export default function App() {
                   </div>
               </div>
           </div>
+      )}
+
+      {/* --- OPTIMIZATION FULLSCREEN PORTAL --- */}
+      {isOptimizationPortalOpen && ReactDOM.createPortal(
+        <GroupOptimizationScreen
+          products={products}
+          ingredients={effectiveIngredients}
+          nutrients={nutrients}
+          isDynamicMatrix={isDynamicMatrix}
+          selectedDietIds={selectedDietIds}
+          onOpenInNewWindow={(data, name) => handleOpenTask('GROUP_OPTIMIZATION', name, data)}
+          onUpdateProduct={(updatedProduct) => setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p))}
+          setIsDirty={setIsDirty}
+          savedFormulas={savedFormulas}
+          setSavedFormulas={setSavedFormulas}
+          onRemoveDietFromSelection={(id) => setSelectedDietIds(prev => prev.filter(d => d !== id))}
+          onClosePortal={() => setIsOptimizationPortalOpen(false)}
+        />,
+        document.body
       )}
 
       {/* --- LOADING OVERLAY --- */}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Product, Ingredient, Nutrient } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
-import { DatabaseIcon, CalculatorIcon, SparklesIcon, XCircleIcon, CubeIcon, RefreshIcon, BeakerIcon, ShoppingCartIcon, RatiosIcon, SettingsIcon, CheckIcon, TrashIcon, ArrowLeftIcon } from './icons';
+import { DatabaseIcon, CalculatorIcon, SparklesIcon, XCircleIcon, CubeIcon, RefreshIcon, BeakerIcon, RatiosIcon, SettingsIcon, CheckIcon, TrashIcon } from './icons';
 import { solveGroupFormulation } from '../services/solver';
 import { GroupResultsScreen } from './GroupResultsScreen';
 
@@ -17,6 +17,7 @@ interface GroupOptimizationScreenProps {
   savedFormulas?: any[]; 
   setSavedFormulas?: (val: any) => void;
   onRemoveDietFromSelection?: (id: string) => void;
+  onClosePortal?: () => void;
 }
 
 export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = ({ 
@@ -30,7 +31,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     setIsDirty,
     savedFormulas,
     setSavedFormulas,
-    onRemoveDietFromSelection
+    onRemoveDietFromSelection,
+    onClosePortal
 }) => {
     const { t } = useTranslations();
     const [isOptimizing, setIsOptimizing] = useState(false);
@@ -216,8 +218,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                             <button onClick={() => setShowBulkPanel(!showBulkPanel)} className="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-6 py-3 rounded-xl uppercase tracking-widest text-[11px] shadow-xl flex items-center gap-2 transition-all">
                                 <SparklesIcon className="w-5 h-5"/> Inyectar Global
                             </button>
-                            <button onClick={() => window.location.reload()} className="p-3 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded-xl border border-gray-700 transition-all">
-                                <ArrowLeftIcon className="w-5 h-5"/>
+                            <button onClick={() => onClosePortal?.()} className="p-3 bg-gray-800 hover:bg-red-900 text-gray-400 hover:text-white rounded-xl border border-gray-700 transition-all" title="Salir de la Consola">
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                             </button>
                         </div>
                     </div>
