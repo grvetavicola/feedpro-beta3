@@ -44,6 +44,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     // Drawer State
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [resultsData, setResultsData] = useState<{ result: any, assignments: any } | null>(null);
+    const [viewingDetailId, setViewingDetailId] = useState<string | null>(null);
 
     const selectedProducts = products.filter(p => selectedDietIds.includes(p.id));
 
@@ -167,7 +168,12 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                 <div key={product.id} className="bg-gray-900 border border-cyan-500/30 p-3 rounded-xl shadow-lg shadow-cyan-950/20 flex flex-col gap-3 relative overflow-hidden group">
                                     <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500"></div>
                                     <div className="pl-2">
-                                        <h4 className="text-[14px] font-black text-white truncate">{product.name}</h4>
+                                        <button 
+                                            onClick={() => setViewingDetailId(product.id)}
+                                            className="text-[14px] font-black text-white hover:text-cyan-400 text-left transition-colors uppercase group-hover:underline decoration-cyan-500/50 underline-offset-4"
+                                        >
+                                            {product.name}
+                                        </button>
                                         <div className="flex items-center gap-2 mt-1">
                                             <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">REF-{product.code}</span>
                                             {product.category && <span className="text-[9px] text-emerald-500/70 font-black uppercase tracking-tighter bg-emerald-500/10 px-1 rounded">CAT: {product.category}</span>}
@@ -175,7 +181,10 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                     </div>
                                     
                                     <div className="bg-gray-950 p-2 rounded-lg border border-gray-800 flex items-center justify-between pl-3 mt-auto">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Lote Objetivo (kg):</span>
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Lote Objetivo:</span>
+                                            <span className="text-[8px] text-cyan-500 font-bold uppercase tracking-widest">A Optimizar (kg)</span>
+                                        </div>
                                         <input 
                                             type="number" 
                                             value={batchSizes[product.id] || 1000}
@@ -241,10 +250,83 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                 }}
                                 savedFormulas={savedFormulas}
                                 setSavedFormulas={setSavedFormulas}
+                                onOpenDetail={(id) => setViewingDetailId(id)}
                             />
                         </div>
                     </div>
                 </>
+            )}
+
+            {/* Requerimientos Editor Overlay */}
+            {viewingDetailId && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-md" onClick={() => setViewingDetailId(null)}></div>
+                    <div className="bg-gray-900 border border-gray-700 rounded-3xl w-full max-w-2xl h-[80vh] flex flex-col relative z-10 overflow-hidden shadow-2xl animate-fade-in-up">
+                        <div className="p-6 bg-gradient-to-r from-gray-800 to-gray-950 border-b border-gray-800 flex justify-between items-center">
+                            <div>
+                                <h3 className="text-xl font-black text-white uppercase tracking-tight">{products.find(p => p.id === viewingDetailId)?.name}</h3>
+                                <p className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest mt-1">Edición de Requerimientos Nutricionales</p>
+                            </div>
+                            <button onClick={() => setViewingDetailId(null)} className="bg-gray-800 hover:bg-red-500/20 text-gray-400 hover:text-red-400 p-2 rounded-xl transition-all">
+                                <XCircleIcon className="w-6 h-6" />
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                           <div className="grid grid-cols-2 gap-4">
+                               {nutrients.map(nut => {
+                                   const p = products.find(prod => prod.id === viewingDetailId);
+                                   const con = p?.constraints.find(c => c.nutrientId === nut.id) || { min: 0, max: 999 };
+                                   return (
+                                       <div key={nut.id} className="bg-gray-800/50 p-3 rounded-2xl border border-gray-700 flex flex-col gap-2">
+                                           <div className="flex justify-between items-center border-b border-gray-700/50 pb-2">
+                                               <span className="text-xs font-black text-gray-200 uppercase truncate">{nut.name}</span>
+                                               <span className="text-[10px] text-gray-500 font-bold">{nut.unit}</span>
+                                           </div>
+                                           <div className="flex gap-2">
+                                               <div className="flex-1">
+                                                   <label className="text-[9px] text-gray-500 font-bold uppercase block mb-1">Mínimo</label>
+                                                   <input 
+                                                     type="number"
+                                                     value={con.min}
+                                                     onChange={(e) => {
+                                                        const val = parseFloat(e.target.value) || 0;
+                                                        if (p && onUpdateProduct) {
+                                                            const newConstraints = [...p.constraints];
+                                                            const idx = newConstraints.findIndex(c => c.nutrientId === nut.id);
+                                                            if (idx >= 0) newConstraints[idx] = { ...newConstraints[idx], min: val };
+                                                            else newConstraints.push({ nutrientId: nut.id, min: val, max: 999 });
+                                                            onUpdateProduct({ ...p, constraints: newConstraints });
+                                                        }
+                                                     }}
+                                                     className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white focus:border-cyan-500 outline-none font-mono"
+                                                   />
+                                               </div>
+                                               <div className="flex-1">
+                                                   <label className="text-[9px] text-gray-500 font-bold uppercase block mb-1">Máximo</label>
+                                                   <input 
+                                                     type="number"
+                                                     value={con.max}
+                                                     onChange={(e) => {
+                                                        const val = parseFloat(e.target.value) || 999;
+                                                        if (p && onUpdateProduct) {
+                                                            const newConstraints = [...p.constraints];
+                                                            const idx = newConstraints.findIndex(c => c.nutrientId === nut.id);
+                                                            if (idx >= 0) newConstraints[idx] = { ...newConstraints[idx], max: val };
+                                                            else newConstraints.push({ nutrientId: nut.id, min: 0, max: val });
+                                                            onUpdateProduct({ ...p, constraints: newConstraints });
+                                                        }
+                                                     }}
+                                                     className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white focus:border-cyan-500 outline-none font-mono"
+                                                   />
+                                               </div>
+                                           </div>
+                                       </div>
+                                   )
+                               })}
+                           </div>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

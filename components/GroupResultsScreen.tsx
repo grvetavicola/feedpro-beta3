@@ -15,6 +15,7 @@ interface GroupResultsScreenProps {
     onCloseDrawer?: () => void;
     savedFormulas?: any[];
     setSavedFormulas?: (val: any) => void;
+    onOpenDetail?: (id: string) => void;
 }
 
 // -----------------------------------------------------
@@ -64,7 +65,7 @@ const SmartInput = ({ value, onChange, placeholder, className, isMax = false }: 
 };
 
 
-export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results, assignments, products, ingredients, nutrients, isDynamicMatrix = false, onUpdateProduct, onCloseDrawer, savedFormulas, setSavedFormulas }) => {
+export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results, assignments, products, ingredients, nutrients, isDynamicMatrix = false, onUpdateProduct, onCloseDrawer, savedFormulas, setSavedFormulas, onOpenDetail }) => {
     const { t } = useTranslations();
     
     // Custom Local State for Tracking Re-Optimizations
@@ -270,9 +271,17 @@ export const GroupResultsScreen: React.FC<GroupResultsScreenProps> = ({ results,
                                     <div>
                                         <div className="flex items-center gap-2 mb-1">
                                             <div className={`w-2.5 h-2.5 rounded-full ${isSuccessful ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'}`}></div>
-                                            <h4 className="font-black text-white uppercase text-xl leading-none">{product?.name}</h4>
+                                            <button 
+                                                onClick={() => onOpenDetail?.(product.id)}
+                                                className="font-black text-white hover:text-cyan-400 transition-colors uppercase text-xl leading-none text-left"
+                                            >
+                                                {product?.name}
+                                            </button>
                                         </div>
-                                        <p className="text-xs text-gray-400 font-black uppercase tracking-widest pl-4">Volomen: <span className={isSuccessful ? 'text-emerald-400' : 'text-red-400'}>{assign.batchSize.toLocaleString()} kg</span></p>
+                                        <div className="flex flex-col pl-4">
+                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-none">Volumen de Optimización:</p>
+                                            <p className={`text-[13px] font-black uppercase tracking-tight ${isSuccessful ? 'text-emerald-400/80' : 'text-red-400/80'}`}>{assign.batchSize.toLocaleString()} kg</p>
+                                        </div>
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <div className="text-right flex flex-col justify-center">
