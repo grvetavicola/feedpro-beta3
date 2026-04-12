@@ -39,45 +39,56 @@ export const Header: React.FC<HeaderProps> = ({
     return (
         <header className="shrink-0 h-14 border-b border-black/10 z-50 flex items-center px-4 gap-4 relative overflow-hidden bg-white">
             {/* Banner Unificado: Calce exacto sin perder resolución */}
-            <div className="absolute inset-0 pointer-events-none select-none">
-                {/* Capa Base C (Centro expandido) */}
+            {/* Banner Unificado: Calce exacto sin perder resolución */}
+            <div className="absolute inset-0 pointer-events-none select-none bg-indigo-950">
+                {/* Logo A (Izquierda - Gallina Gris) */}
                 <div 
-                    className="absolute inset-0"
-                    style={{
-                        backgroundImage: 'url("/banner C.jpg")',
-                        backgroundSize: '100% 100%',
-                        backgroundPosition: 'center',
-                        backgroundRepeat: 'no-repeat'
-                    }}
-                />
-                {/* Logo FeedPro (Centro Absoluto encima de Banners) */}
-                <div className="absolute inset-0 flex items-center justify-center z-10 mix-blend-screen opacity-90 pr-6">
-                    <img src="/FeedPro-sinfondo.PNG" alt="FeedPro 360" className="max-h-[38px] object-contain drop-shadow-xl" />
-                </div>
-                {/* Logo A (Izquierda) */}
-                <div 
-                    className="absolute left-0 top-0 h-full w-[40%]"
+                    className="absolute left-0 top-0 h-full w-[45%] z-0"
                     style={{
                         backgroundImage: 'url("/banner A.jpg")',
-                        backgroundSize: 'auto 105%',
+                        backgroundSize: 'cover',
                         backgroundPosition: 'left center',
                         backgroundRepeat: 'no-repeat',
-                        WebkitMaskImage: 'linear-gradient(to right, black 80%, transparent 100%)',
-                        maskImage: 'linear-gradient(to right, black 80%, transparent 100%)'
+                        WebkitMaskImage: 'linear-gradient(to right, black 85%, transparent 100%)',
+                        maskImage: 'linear-gradient(to right, black 85%, transparent 100%)'
                     }}
                 />
-                {/* Logo B (Derecha) */}
+                
+                {/* Logo B (Derecha - Gallina Azul) - Solución línea blanca */}
                 <div 
-                    className="absolute right-0 top-0 h-full w-[40%]"
+                    className="absolute right-0 top-0 h-full w-[45%] z-0 mt-[1px]" /* Added micro-adjustment to kill any upper white bleeds */
                     style={{
                         backgroundImage: 'url("/banner B.jpg")',
-                        backgroundSize: 'auto 105%',
-                        backgroundPosition: 'right center',
+                        backgroundSize: 'cover', /* Garantiza que tape todo hacia el límite inferior, borrando la línea blanca */
+                        backgroundPosition: 'left center',
                         backgroundRepeat: 'no-repeat',
-                        WebkitMaskImage: 'linear-gradient(to left, black 80%, transparent 100%)',
-                        maskImage: 'linear-gradient(to left, black 80%, transparent 100%)'
+                        WebkitMaskImage: 'linear-gradient(to left, black 85%, transparent 100%)',
+                        maskImage: 'linear-gradient(to left, black 85%, transparent 100%)'
                     }}
                 />
+
+                {/* Capa Base C (Centro expandido) - Por delante de las orillas para tapar cortes imperfectos */}
+                <div 
+                    className="absolute inset-0 z-10"
+                    style={{
+                        backgroundImage: 'url("/banner C.jpg")',
+                        backgroundSize: '100% 105%', /* Exceder 5% para purgar blancos */
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat',
+                        WebkitMaskImage: 'linear-gradient(to right, transparent 20%, black 40%, black 60%, transparent 80%)',
+                        maskImage: 'linear-gradient(to right, transparent 20%, black 40%, black 60%, transparent 80%)'
+                    }}
+                />
+
+                {/* Logo FeedPro (Posicionado a la Izquierda junto a Gallina Gris, en TONO CELESTE CYÁN) */}
+                <div className="absolute left-[20%] md:left-[22%] lg:left-[18%] xl:left-[15%] top-1/2 -translate-y-1/2 z-20 mix-blend-screen overflow-visible">
+                    <img 
+                        src="/FeedPro-sinfondo.PNG" 
+                        alt="FeedPro 360" 
+                        className="w-[180px] max-w-[30vw] object-contain drop-shadow-[0_0_12px_rgba(6,182,212,1)]" 
+                        style={{ filter: "brightness(0) saturate(100%) invert(60%) sepia(90%) saturate(3000%) hue-rotate(160deg) brightness(110%) contrast(150%)" }}
+                    />
+                </div>
             </div>
             
             <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth flex-1 relative z-10 w-full pl-2">
