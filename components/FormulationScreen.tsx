@@ -57,7 +57,7 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
           setShowResultsModal(true);
       }
   }, [forceResult]);
-  const [availableIngredientIds, setAvailableIngredientIds] = useState<Set<string>>(new Set(ingredients.map(i => i.id)));
+  const [availableIngredientIds, setAvailableIngredientIds] = useState<Set<string>>(new Set()); // LÓGICA INVERSA: Empezar con 0 seleccionados
 
   const currentProductData = useMemo(() => products.find(p => p.id === selectedProductId), [products, selectedProductId]);
 
@@ -116,10 +116,15 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
     <div className="p-3 space-y-3 flex flex-col h-full bg-gray-950/20">
       
       {/* Header Panel */}
-      <div className="bg-gray-800 rounded p-2 px-4 border border-gray-700 shadow flex flex-col md:flex-row justify-between items-center gap-3">
-          <div className="flex items-center gap-3">
-              <CalculatorIcon className="text-cyan-400 w-5 h-5 ml-1"/>
-              <div><h2 className="text-[15px] font-bold text-white tracking-tight leading-none">{t('optimization.consoleTitle')}</h2><p className="text-[11px] text-gray-500 font-medium leading-none mt-1">{t('optimization.consoleSubtitle')}</p></div>
+      <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl p-3 px-5 border border-gray-700 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-4">
+              <div className="bg-cyan-500/10 p-2 rounded-lg border border-cyan-500/20">
+                <SparklesIcon className="text-cyan-400 w-6 h-6"/>
+              </div>
+              <div>
+                <h2 className="text-[16px] font-black text-white uppercase tracking-tighter leading-none">Consola de Optimización</h2>
+                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-1.5 line-clamp-1">Motor Táctico de Formulación de Precisión</p>
+              </div>
           </div>
           <div className="flex gap-2 bg-gray-900/50 p-1.5 rounded border border-gray-700/50">
              <div className="flex flex-col"><label className="text-[9px] text-gray-500 font-bold uppercase ml-1 mb-0.5">{t('common.diet')}</label><select value={selectedProductId || ''} onChange={e => setSelectedProductId(e.target.value)} className="bg-gray-800 text-[13px] text-white px-2 py-1 rounded border border-gray-700 outline-none focus:border-cyan-500 min-w-[150px]">{products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
