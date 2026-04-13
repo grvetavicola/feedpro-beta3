@@ -283,7 +283,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   const rowNut = activeRows.filter(r => r.type === 'nut');
 
   return (
-    <div className="flex flex-col h-screen w-full overflow-hidden bg-black text-white font-sans antialiased select-none">
+    <div className="flex-1 flex flex-col w-full h-full min-h-0 bg-gray-950 text-white font-sans antialiased select-none overflow-hidden">
       
       {/* Selector Global Modal */}
       {showCatalog && (
@@ -327,7 +327,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
              
              <div className="p-10 border-t border-gray-800 bg-black/40 flex items-center justify-between flex-none">
                <span className="text-sm font-bold text-gray-500 uppercase italic">{catalogSelection.size} seleccionados</span>
-               <button onClick={handleBulkAdd} disabled={catalogSelection.size === 0} className="px-20 py-6 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-30 text-white font-black uppercase rounded-3xl shadow-xl transition-all">Inyectar Selección</button>
+             <button onClick={handleBulkAdd} disabled={catalogSelection.size === 0} className="px-20 py-6 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-30 text-white font-black uppercase rounded-3xl shadow-xl transition-all">Inyectar Selección</button>
              </div>
            </div>
         </div>
@@ -374,8 +374,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
               </div>
            </div>
            
-           <button className="px-8 h-11 bg-yellow-600 hover:bg-yellow-500 text-black font-black uppercase text-[11px] rounded-2xl shadow-xl transition-all flex items-center gap-3">
-             <RefreshIcon className="w-5 h-5 bg-black/10 rounded" /> Agregar Relaciones
+           <button className="px-8 h-11 bg-gray-800 hover:bg-gray-700 text-gray-400 font-bold uppercase text-[10px] rounded-2xl border border-gray-700 transition-all flex items-center gap-3">
+             <RefreshIcon className="w-5 h-5 opacity-40" /> Relaciones (Auto)
            </button>
         </div>
       </nav>
