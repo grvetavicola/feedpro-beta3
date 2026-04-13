@@ -271,6 +271,26 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     setConstraints(p => { const n = { ...p }; delete n[id]; return n; });
   };
 
+  const handleSaveBulk = () => {
+    const successfulDiets = activeDiets.filter(diet => results[diet.id]?.feasible);
+    if (successfulDiets.length === 0) {
+      alert('Primero optimice con F4. Solo se guardan dietas con solución ÓPTIMA.');
+      return;
+    }
+    const saved = successfulDiets.map(diet => {
+      const matrixProduct: Product = {
+        ...diet,
+        ingredientConstraints: activeRows.filter(r => r.type === 'ing' && constraints[r.id]?.[diet.id]).map(r => ({ ingredientId: r.id, min: constraints[r.id][diet.id].min, max: constraints[r.id][diet.id].max })),
+        constraints: activeRows.filter(r => r.type === 'nut' && constraints[r.id]?.[diet.id]).map(r => ({ nutrientId: r.id, min: constraints[r.id][diet.id].min, max: constraints[r.id][diet.id].max }))
+      };
+      const result = solveFeedFormulation(matrixProduct, ingredients, nutrients, batchSizes[diet.id] || 1000, isDynamic);
+      return { id: Math.random().toString(36).substr(2, 9), clientId: diet.clientId, name: diet.name.toUpperCase(), date: new Date().toISOString(), result };
+    });
+    setSavedFormulas?.((prev: any) => [...(prev || []), ...saved]);
+    alert(`✅ ${saved.length} dieta(s) guardadas correctamente.`);
+    onLeaveFullscreen?.();
+  };
+
   useEffect(() => {
     const L = (e: KeyboardEvent) => { if (e.key === 'F4') { e.preventDefault(); handleRunAll(); } };
     window.addEventListener('keydown', L);
