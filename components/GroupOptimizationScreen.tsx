@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Product, Ingredient, Nutrient, SavedFormula } from '../types';
 import { solveFeedFormulation } from '../services/solver';
-import { CubeIcon, BeakerIcon, CalculatorIcon, RefreshIcon, XCircleIcon, CheckIcon, TrashIcon } from './icons';
+import { CubeIcon, BeakerIcon, CalculatorIcon, RefreshIcon, XCircleIcon, CheckIcon, TrashIcon, SearchIcon } from './icons';
 
 // ─── Interfaces & Types ───────────────────────────────────────────────────────
 interface CellConstraint {
@@ -45,91 +45,98 @@ interface GroupOptimizationScreenProps {
   onLeaveFullscreen?: () => void;
 }
 
-// ─── Components ─────────────────────────────────────────────────────────────
+// ─── Staff-Grade Components ───────────────────────────────────────────────────
+
 const StatusDot = ({ ok }: { ok: boolean }) => (
-  <span className={`inline-block w-3.5 h-3.5 rounded-full shrink-0 ${ok ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.7)]' : 'bg-red-500 animate-pulse outline outline-4 outline-red-500/20'}`} />
+  <span className={`inline-block w-4 h-4 rounded-full shrink-0 shadow-lg ${ok ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-red-500 shadow-red-500/50 animate-pulse'}`} />
 );
 
 const CellInput = ({
-  value, onChange, placeholder, isResult = false, dirty = false, injected = false, nutResult = false, nutOk = true
+  value, onChange, min, max, isResult = false, dirty = false, feasible = true, nutResult = false
 }: {
   value: number | string; onChange?: (v: number) => void;
-  placeholder?: string; isResult?: boolean; dirty?: boolean; injected?: boolean;
-  nutResult?: boolean; nutOk?: boolean;
+  min?: number; max?: number; isResult?: boolean; dirty?: boolean; 
+  feasible?: boolean; nutResult?: boolean;
 }) => {
   const [local, setLocal] = useState(value === 0 || value === '' ? '' : String(value));
   useEffect(() => { setLocal(value === 0 || value === '' ? '—' : String(value)); }, [value]);
 
-  if (isResult) {
-    const num = typeof value === 'number' ? value : parseFloat(String(value));
-    return (
-      <div className={`w-full text-center text-[17px] font-bold font-mono py-2 opacity-90 select-none ${
-        num > 0.0001 ? 'text-emerald-400' : 'text-gray-800'
-      }`}>
-        {num > 0.0001 ? num.toFixed(2) : '—'}
-      </div>
-    );
-  }
+  const numValue = typeof value === 'number' ? value : parseFloat(String(value));
+  const isOutOfRange = (min !== undefined && numValue < (min - 0.001)) || (max !== undefined && numValue > (max + 0.001));
+  const isInvalidRange = min !== undefined && max !== undefined && min > max;
 
-  if (nutResult) {
-    const num = typeof value === 'number' ? value : parseFloat(String(value));
+  if (isResult || nutResult) {
     return (
-      <div className={`w-full text-center text-[17px] font-bold font-mono py-2 select-none ${
-        !nutOk ? 'text-red-400 bg-red-950/30' : num > 0 ? 'text-cyan-400' : 'text-gray-800'
+      <div className={`w-full h-full flex items-center justify-center text-[17px] font-bold font-mono py-1 px-1 transition-all select-none ${
+        !feasible ? 'text-red-500' :
+        isOutOfRange ? 'bg-red-600/30 text-red-100' :
+        numValue > 0 ? (nutResult ? 'text-cyan-400' : 'text-emerald-400') : 'text-gray-800'
       }`}>
-        {num > 0 ? num.toFixed(2) : '—'}
+        {numValue > 0.0001 ? numValue.toFixed(2) : '—'}
       </div>
     );
   }
 
   return (
-    <input
-      type="text"
-      inputMode="decimal"
-      value={local === '—' ? '' : local}
-      onFocus={e => e.target.select()}
-      onChange={e => setLocal(e.target.value)}
-      onBlur={() => {
-        const parsed = parseFloat(local.replace(',', '.'));
-        if (!isNaN(parsed) && onChange) onChange(parsed);
-        else if ((local === '' || local === '—') && onChange) onChange(0);
-      }}
-      onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()}
-      placeholder={placeholder ?? '—'}
-      style={{ background: 'transparent', border: 'none', outline: 'none', width: '100%' }}
-      className={`text-center text-[17px] font-bold font-mono py-2 px-1 transition-all ${
-        dirty ? 'text-yellow-400 bg-yellow-500/10' :
-        injected ? 'text-indigo-400' :
-        'text-white placeholder-gray-800'
-      } focus:text-white focus:bg-indigo-600/20`}
-    />
+    <div className={`w-full h-full relative border-none flex items-center justify-center transition-all ${isInvalidRange ? 'bg-red-900/40' : ''}`}>
+        <input
+          type="text"
+          inputMode="decimal"
+          value={local === '—' ? '' : local}
+          onFocus={e => e.target.select()}
+          onChange={e => setLocal(e.target.value)}
+          onBlur={() => {
+            const parsed = parseFloat(local.replace(',', '.'));
+            if (!isNaN(parsed) && onChange) onChange(parsed);
+            else if ((local === '' || local === '—') && onChange) onChange(0);
+          }}
+          onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()}
+          className={`w-full h-full text-center text-[17px] font-bold font-mono transition-all outline-none bg-transparent ${
+            isInvalidRange ? 'text-red-500' :
+            dirty ? 'text-yellow-400 bg-yellow-500/5' :
+            'text-white placeholder-gray-800'
+          } focus:bg-indigo-600/20`}
+        />
+    </div>
   );
 };
 
-// ─── Main Logic Container ─────────────────────────────────────────────────────
+// ─── Group Optimization Engine ────────────────────────────────────────────────
+
 export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = ({
-  products, ingredients, nutrients, isDynamicMatrix,
+  products, ingredients, nutrients, isDynamicMatrix: initialIsDynamic,
   selectedDietIds, onUpdateProduct, setIsDirty,
   savedFormulas, setSavedFormulas, onRemoveDietFromSelection,
   onEnterFullscreen, onLeaveFullscreen
 }) => {
 
-  // 1. HOOKS PRIMERO
+  // 1. HOOKS PRIMERO (Staff standard)
   const [activeDietIds, setActiveDietIds] = useState<string[]>(selectedDietIds);
-  const activeDiets = useMemo(() => products.filter(p => activeDietIds.includes(p.id)), [products, activeDietIds]);
+  const [isDynamic, setIsDynamic] = useState(initialIsDynamic);
   const [constraints, setConstraints] = useState<Record<string, Record<string, CellConstraint>>>({});
   const [activeRows, setActiveRows] = useState<MatrixRow[]>([]);
   const [results, setResults] = useState<Record<string, DietResult | null>>({});
   const [isRunning, setIsRunning] = useState(false);
   const [hasRun, setHasRun] = useState(false);
-  const [injMode, setInjMode] = useState<'ing' | 'nut'>('ing');
-  const [injSearch, setInjSearch] = useState('');
-  const [injMin, setInjMin] = useState('');
-  const [injMax, setInjMax] = useState('');
-  const [batchSizes, setBatchSizes] = useState<Record<string, number>>({});
   const [showCatalog, setShowCatalog] = useState(false);
   const [catalogSelection, setCatalogSelection] = useState<Set<string>>(new Set());
-  const [showDietPanel, setShowDietPanel] = useState(false);
+  const [catalogSearch, setCatalogSearch] = useState('');
+  const [batchSizes, setBatchSizes] = useState<Record<string, number>>({});
+  const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>({});
+
+  // Memoized Data
+  const activeDiets = useMemo(() => products.filter(p => activeDietIds.includes(p.id)), [products, activeDietIds]);
+  const dietsByCategory = useMemo(() => {
+    const map: Record<string, Product[]> = {};
+    products.forEach(p => {
+      const cat = p.category || 'GENERAL';
+      if (!map[cat]) map[cat] = [];
+      map[cat].push(p);
+    });
+    return map;
+  }, [products]);
+
+  const totalLoadedKg = useMemo(() => activeDiets.reduce((acc, d) => acc + (batchSizes[d.id] || 1000), 0), [activeDiets, batchSizes]);
 
   // Sync effect
   useEffect(() => { setActiveDietIds(selectedDietIds); }, [selectedDietIds]);
@@ -178,19 +185,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     setActiveRows(rows);
   }, [activeDiets, ingredients, nutrients]);
 
-  const totalLoadedKg = useMemo(() => activeDiets.reduce((acc, d) => acc + (batchSizes[d.id] || 1000), 0), [activeDiets, batchSizes]);
-
-  const dietsByCategory = useMemo(() => {
-    const map: Record<string, Product[]> = {};
-    products.forEach(p => {
-      const cat = p.category || 'GENERAL';
-      if (!map[cat]) map[cat] = [];
-      map[cat].push(p);
-    });
-    return map;
-  }, [products]);
-
-  // 2. CALLBACKS
+  // 2. CALLBACKS (CORE ENGINE)
   const handleRunAll = useCallback(() => {
     if (activeDiets.length === 0) return;
     setIsRunning(true);
@@ -202,13 +197,21 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
         ingredientConstraints: activeRows.filter(r => r.type === 'ing' && constraints[r.id]?.[diet.id]).map(r => ({ ingredientId: r.id, min: constraints[r.id][diet.id].min, max: constraints[r.id][diet.id].max })),
         constraints: activeRows.filter(r => r.type === 'nut' && constraints[r.id]?.[diet.id]).map(r => ({ nutrientId: r.id, min: constraints[r.id][diet.id].min, max: constraints[r.id][diet.id].max }))
       };
-      const result = solveFeedFormulation(matrixProduct, ingredients, nutrients, batchSizes[diet.id] || 1000, isDynamicMatrix);
+      
+      const res = solveFeedFormulation(matrixProduct, ingredients, nutrients, batchSizes[diet.id] || 1000, isDynamic);
+      
       const formulaMap: Record<string, number> = {};
-      result.items.forEach(item => { formulaMap[item.ingredientId] = item.percentage; });
+      res.items.forEach(item => { formulaMap[item.ingredientId] = item.percentage; });
       const nutMap: Record<string, number> = {};
-      result.nutrientAnalysis.forEach(na => { nutMap[na.nutrientId] = na.value; });
+      res.nutrientAnalysis.forEach(na => { nutMap[na.nutrientId] = na.value; });
 
-      newResults[diet.id] = { feasible: result.status === 'OPTIMAL', costPerKg: result.totalCost / (batchSizes[diet.id] || 1000), formula: formulaMap, nutrients: nutMap, totalCost: result.totalCost };
+      newResults[diet.id] = {
+        feasible: res.status === 'OPTIMAL',
+        costPerKg: res.totalCost / (batchSizes[diet.id] || 1000),
+        formula: formulaMap,
+        nutrients: nutMap,
+        totalCost: res.totalCost
+      };
     });
 
     setResults(newResults);
@@ -220,24 +223,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
       Object.keys(next).forEach(r => Object.keys(next[r]).forEach(d => next[r][d].dirty = false));
       return next;
     });
-  }, [activeDiets, activeRows, constraints, batchSizes, ingredients, nutrients, isDynamicMatrix, setIsDirty]);
-
-  const handleSaveBulk = () => {
-    const successfulDiets = activeDiets.filter(diet => results[diet.id]?.feasible);
-    if (successfulDiets.length === 0) return alert("Haga F4 primero en dietas viables.");
-    const saved: SavedFormula[] = successfulDiets.map(diet => {
-      const matrixProduct: Product = {
-        ...diet,
-        ingredientConstraints: activeRows.filter(r => r.type === 'ing' && constraints[r.id]?.[diet.id]).map(r => ({ ingredientId: r.id, min: constraints[r.id][diet.id].min, max: constraints[r.id][diet.id].max })),
-        constraints: activeRows.filter(r => r.type === 'nut' && constraints[r.id]?.[diet.id]).map(r => ({ nutrientId: r.id, min: constraints[r.id][diet.id].min, max: constraints[r.id][diet.id].max }))
-      };
-      const result = solveFeedFormulation(matrixProduct, ingredients, nutrients, batchSizes[diet.id] || 1000, isDynamicMatrix);
-      return { id: Math.random().toString(36).substr(2, 9), clientId: diet.clientId, name: diet.name.toUpperCase(), date: new Date().toISOString(), result };
-    });
-    setSavedFormulas?.((prev: any) => [...(prev || []), ...saved]);
-    alert("✅ Guardado masivo completado.");
-    onLeaveFullscreen?.();
-  };
+  }, [activeDiets, activeRows, constraints, batchSizes, ingredients, nutrients, isDynamic, setIsDirty]);
 
   const updateConstraint = (rowId: string, dietId: string, field: 'min' | 'max', val: number) => {
     setConstraints(prev => ({
@@ -251,9 +237,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     setHasRun(false);
   };
 
-  const handleAddRow = (id: string, customMin?: number, customMax?: number) => {
-    const min = customMin ?? (injMin === '' ? 0 : parseFloat(injMin));
-    const max = customMax ?? (injMax === '' ? (injMode === 'ing' ? 100 : 999) : parseFloat(injMax));
+  const handleAddRow = (id: string) => {
     if (!activeRows.find(r => r.id === id)) {
       const ing = ingredients.find(i => i.id === id);
       const nut = nutrients.find(n => n.id === id);
@@ -262,7 +246,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     }
     setConstraints(prev => {
       const next = { ...prev };
-      activeDiets.forEach(d => { if (!next[id]) next[id] = {}; next[id][d.id] = { min, max, dirty: false, injected: true }; });
+      activeDiets.forEach(d => { if (!next[id]) next[id] = {}; next[id][d.id] = { min: 0, max: initialIsDynamic ? 999 : 100, dirty: false, injected: true }; });
       return next;
     });
     setHasRun(false);
@@ -279,12 +263,6 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     setConstraints(p => { const n = { ...p }; delete n[id]; return n; });
   };
 
-  const filteredInj = useMemo(() => {
-    const t = injSearch.toLowerCase();
-    if (t.length < 2) return [];
-    return (injMode === 'ing' ? ingredients : nutrients).filter(x => x.name.toLowerCase().includes(t)).slice(0, 10);
-  }, [injSearch, injMode, ingredients, nutrients]);
-
   // 3. LISTENERS
   useEffect(() => {
     const L = (e: KeyboardEvent) => { if (e.key === 'F4') { e.preventDefault(); handleRunAll(); } };
@@ -298,287 +276,287 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   const rowNut = activeRows.filter(r => r.type === 'nut');
 
   return (
-    <div className="flex flex-col h-screen w-full overflow-hidden bg-black text-white font-sans">
+    <div className="flex flex-col h-screen w-full overflow-hidden bg-black text-white font-sans antialiased">
       
-      {/* 🔹 CATALOG OVERLAY */}
+      {/* 🔹 SELECTOR GLOBAL MODAL */}
       {showCatalog && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-3xl z-[100] flex items-center justify-center p-6">
-          <div className="bg-gray-900 border-2 border-gray-800 rounded-[2.5rem] w-full max-w-5xl h-[85vh] flex flex-col shadow-[0_0_100px_rgba(30,58,138,0.5)] overflow-hidden">
-            <div className="p-8 border-b border-gray-800 flex items-center justify-between">
+        <div className="fixed inset-0 bg-black/95 backdrop-blur-3xl z-[200] flex items-center justify-center p-8">
+          <div className="bg-gray-900 border border-gray-800 rounded-[3rem] w-full max-w-6xl h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="p-10 border-b border-gray-800 flex items-center justify-between">
               <div>
-                <h2 className="text-3xl font-black text-indigo-400 uppercase tracking-tighter italic">Explorador de Catálogo</h2>
-                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-2">Inyección masiva de vectores a la matriz FeedPro 360</p>
+                <h2 className="text-4xl font-black text-indigo-400 uppercase tracking-tighter italic leading-none">Selector Global de Matriz</h2>
+                <p className="text-[11px] text-gray-500 font-bold uppercase tracking-widest mt-3">Gestión Maestro de Vectores e Inyecciones masivas</p>
               </div>
-              <button onClick={() => setShowCatalog(false)} className="p-3 hover:bg-red-950/20 text-gray-600 hover:text-red-500 transition-all"><XCircleIcon className="w-10 h-10" /></button>
+              <button onClick={() => setShowCatalog(false)} className="p-4 hover:bg-gray-800 rounded-full transition-all text-gray-400 hover:text-white"><XCircleIcon className="w-12 h-12" /></button>
             </div>
-            <div className="flex-1 overflow-y-auto p-8 grid grid-cols-2 gap-12 custom-scrollbar">
+            
+            <div className="flex-none p-6 bg-gray-950/50 border-b border-gray-800">
+               <div className="relative max-w-xl mx-auto">
+                  <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600" />
+                  <input type="text" value={catalogSearch} onChange={e => setCatalogSearch(e.target.value)} placeholder="BUSCAR INSUMO O NUTRIENTE..."
+                    className="w-full h-12 bg-gray-900 border border-gray-800 rounded-2xl pl-12 pr-6 text-sm font-bold uppercase outline-none focus:border-indigo-600 transition-all" />
+               </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-10 grid grid-cols-2 gap-16 custom-scrollbar">
               <div className="space-y-4">
-                <div className="flex items-center gap-3 text-indigo-400 font-black text-[11px] uppercase border-b border-indigo-900/50 pb-3 mb-4"><CubeIcon className="w-5 h-5" /> Insumos Globales</div>
-                {ingredients.map(i => (
-                  <label key={i.id} className="flex items-center gap-4 p-4 bg-gray-950/50 rounded-2xl hover:bg-indigo-600/10 cursor-pointer border border-transparent hover:border-indigo-600/30 transition-all">
-                    <input type="checkbox" checked={catalogSelection.has(i.id)} onChange={() => { const s = new Set(catalogSelection); if (s.has(i.id)) s.delete(i.id); else s.add(i.id); setCatalogSelection(s); }} className="w-6 h-6 rounded border-gray-700 bg-black text-indigo-600" />
-                    <span className="text-sm font-bold uppercase text-gray-200">{i.name}</span>
+                <div className="text-indigo-400 font-extrabold text-xs uppercase border-b border-indigo-900 pb-3 mb-6 tracking-widest flex items-center gap-2"><CubeIcon className="w-5 h-5"/> Catálogo de Insumos</div>
+                {ingredients.filter(i => i.name.toLowerCase().includes(catalogSearch.toLowerCase())).map(i => (
+                  <label key={i.id} className="flex items-center gap-4 p-5 bg-gray-950/40 rounded-3xl hover:bg-indigo-600/10 cursor-pointer border border-transparent hover:border-indigo-500/30 transition-all select-none">
+                    <input type="checkbox" checked={catalogSelection.has(i.id)} onChange={() => { const s = new Set(catalogSelection); if (s.has(i.id)) s.delete(i.id); else s.add(i.id); setCatalogSelection(s); }} className="w-6 h-6 rounded border-gray-800 bg-black text-indigo-600 focus:ring-indigo-600/50" />
+                    <span className="text-sm font-black uppercase text-gray-200">{i.name}</span>
                   </label>
                 ))}
               </div>
               <div className="space-y-4">
-                <div className="flex items-center gap-3 text-cyan-400 font-black text-[11px] uppercase border-b border-cyan-900/50 pb-3 mb-4"><BeakerIcon className="w-5 h-5" /> Perfil Nutricional</div>
-                {nutrients.map(n => (
-                  <label key={n.id} className="flex items-center gap-4 p-4 bg-gray-950/50 rounded-2xl hover:bg-cyan-600/10 cursor-pointer border border-transparent hover:border-cyan-600/30 transition-all">
-                    <input type="checkbox" checked={catalogSelection.has(n.id)} onChange={() => { const s = new Set(catalogSelection); if (s.has(n.id)) s.delete(n.id); else s.add(n.id); setCatalogSelection(s); }} className="w-6 h-6 rounded border-gray-700 bg-black text-cyan-600" />
-                    <span className="text-sm font-bold uppercase text-gray-200">{n.name}</span>
+                <div className="text-cyan-400 font-extrabold text-xs uppercase border-b border-cyan-900 pb-3 mb-6 tracking-widest flex items-center gap-2"><BeakerIcon className="w-5 h-5"/> Parámetros de Calidad</div>
+                {nutrients.filter(n => n.name.toLowerCase().includes(catalogSearch.toLowerCase())).map(n => (
+                  <label key={n.id} className="flex items-center gap-4 p-5 bg-gray-950/40 rounded-3xl hover:bg-cyan-600/10 cursor-pointer border border-transparent hover:border-cyan-500/30 transition-all select-none">
+                    <input type="checkbox" checked={catalogSelection.has(n.id)} onChange={() => { const s = new Set(catalogSelection); if (s.has(n.id)) s.delete(n.id); else s.add(n.id); setCatalogSelection(s); }} className="w-6 h-6 rounded border-gray-800 bg-black text-cyan-600 focus:ring-cyan-600/50" />
+                    <span className="text-sm font-black uppercase text-gray-200">{n.name}</span>
                   </label>
                 ))}
               </div>
             </div>
-            <div className="p-8 border-t border-gray-800 flex items-center justify-between bg-black/40">
-              <span className="text-sm font-black text-gray-400 uppercase tracking-widest">{catalogSelection.size} Elementos seleccionables</span>
-              <button onClick={handleBulkAdd} disabled={catalogSelection.size === 0} className="px-16 py-5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-20 text-white font-black uppercase text-base rounded-2xl transition-all shadow-[0_10px_40px_rgba(16,185,129,0.3)]">Añadir Seleccionados</button>
+
+            <div className="p-10 border-t border-gray-800 bg-black/40 flex items-center justify-between">
+              <span className="text-sm font-bold text-gray-500 uppercase italic">{catalogSelection.size} elementos para inyectar</span>
+              <button onClick={handleBulkAdd} disabled={catalogSelection.size === 0} className="px-20 py-6 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-30 text-white font-black uppercase text-lg rounded-3xl shadow-xl transition-all">Añadir a la Matriz</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 🚀 HEADER MULTI-FILA */}
-      <div className="flex-none bg-gray-900 border-b-2 border-gray-800 z-50">
-        {/* ROW 1: NAVIGATION & STATUS */}
+      {/* 🚀 HEADER MULTI-CAPA FIX-Z (Staff UX) */}
+      <nav className="flex-none bg-gray-900 border-b-2 border-gray-800 z-50">
         <div className="h-20 px-8 flex items-center justify-between border-b border-gray-800">
           <div className="flex items-center gap-4">
-            <button onClick={() => onLeaveFullscreen?.()} className="flex items-center gap-3 px-6 h-12 bg-red-700 hover:bg-red-600 text-white font-black uppercase text-xs rounded-xl transition-all shadow-lg active:scale-95">
+            <button onClick={() => onLeaveFullscreen?.()} className="flex items-center gap-3 px-8 h-12 bg-red-700 hover:bg-red-600 text-white font-black uppercase text-[11px] rounded-2xl shadow-lg transition-all active:scale-95">
               <RefreshIcon className="w-5 h-5 rotate-180" /> Volver
             </button>
-            <button onClick={handleSaveBulk} className="flex items-center gap-3 px-6 h-12 bg-gray-800 hover:bg-indigo-900 text-gray-300 hover:text-white font-black uppercase text-xs rounded-xl border border-gray-700 transition-all">
+            <button onClick={handleSaveBulk} className="flex items-center gap-3 px-8 h-12 bg-indigo-950/40 hover:bg-indigo-600 text-indigo-400 hover:text-white font-black uppercase text-[11px] rounded-2xl border border-indigo-900/40 transition-all">
               <CheckIcon className="w-5 h-5" /> Guardar Dietas
             </button>
           </div>
 
-          <div className="flex items-center gap-6 px-10 py-3 bg-black/40 rounded-[2rem] border border-gray-800">
-            <div className="flex flex-col items-center">
-              <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Dietas Activas</span>
-              <span className="text-2xl font-black text-indigo-400 font-mono leading-none">{activeDiets.length}</span>
-            </div>
-            <div className="w-px h-8 bg-gray-800" />
-            <div className="flex flex-col items-center">
-              <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Carga Total Kg</span>
-              <span className="text-2xl font-black text-cyan-400 font-mono leading-none">{totalLoadedKg.toLocaleString()}</span>
-            </div>
-            <div className="w-px h-8 bg-gray-800" />
-            <div className="flex flex-col items-center">
-              <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Modo</span>
-              <span className="text-xs font-black text-white uppercase italic leading-none">{isDynamicMatrix ? 'Delta-Override' : 'General'}</span>
-            </div>
+          <div className="flex items-center gap-10 px-12 py-3 bg-black/60 rounded-full border border-gray-800">
+             <div className="flex flex-col items-center">
+                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Dietas Activas</span>
+                <span className="text-2xl font-black text-indigo-400 font-mono leading-none">{activeDiets.length}</span>
+             </div>
+             <div className="w-px h-8 bg-gray-800" />
+             <div className="flex flex-col items-center">
+                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Carga Total Kg</span>
+                <span className="text-2xl font-black text-cyan-400 font-mono leading-none">{totalLoadedKg.toLocaleString()}</span>
+             </div>
           </div>
 
           <button onClick={handleRunAll} disabled={isRunning || activeDiets.length === 0}
-            className="flex items-center gap-4 px-12 h-14 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-30 text-white font-black uppercase text-lg italic tracking-tighter rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all">
-            {isRunning ? <RefreshIcon className="w-7 h-7 animate-spin" /> : <CalculatorIcon className="w-7 h-7" />} OPTIMIZAR (F4)
+            className="flex items-center gap-4 px-16 h-14 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-30 text-white font-black uppercase text-xl italic tracking-tighter rounded-2xl shadow-2xl transition-all active:scale-95">
+            {isRunning ? <RefreshIcon className="w-8 h-8 animate-spin" /> : <CalculatorIcon className="w-8 h-8" />} OPTIMIZAR (F4)
           </button>
         </div>
 
-        {/* ROW 2: DATA CONTROLS */}
-        <div className="h-16 px-8 flex items-center gap-6 bg-gray-950/50">
-          <button onClick={() => setShowCatalog(true)} className="flex items-center gap-3 px-6 h-11 bg-indigo-950/30 hover:bg-indigo-600 text-indigo-400 hover:text-white font-black uppercase text-[11px] rounded-xl border border-indigo-900/40 transition-all shrink-0">
-            <span className="text-xl">🛒</span> Explorar Catálogo
-          </button>
-          
-          <div className="w-px h-6 bg-gray-800" />
-
-          <div className="flex h-11 rounded-xl overflow-hidden border border-gray-800 shrink-0">
-            <button onClick={() => {setInjMode('ing'); setInjSearch('');}} className={`px-5 font-black text-[10px] uppercase transition-all ${injMode === 'ing' ? 'bg-indigo-600 text-white' : 'bg-gray-900 text-gray-600 hover:text-gray-400'}`}>Insumos</button>
-            <button onClick={() => {setInjMode('nut'); setInjSearch('');}} className={`px-5 font-black text-[10px] uppercase transition-all ${injMode === 'nut' ? 'bg-cyan-600 text-white' : 'bg-gray-900 text-gray-600 hover:text-gray-400'}`}>Nutrientes</button>
-          </div>
-
-          <div className="relative flex-1">
-            <input type="text" value={injSearch} onChange={e => setInjSearch(e.target.value)} placeholder="ESCRIBE 2 LETRAS PARA BUSCAR..."
-              className="w-full h-11 bg-gray-900 border border-gray-800 rounded-xl px-5 text-sm font-bold uppercase tracking-wider text-white outline-none focus:border-indigo-500 transition-all" />
-            {filteredInj.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-gray-900 border-2 border-gray-700 rounded-2xl shadow-2xl z-[100] max-h-[300px] overflow-y-auto">
-                {filteredInj.map(o => (
-                  <button key={o.id} onClick={() => { handleAddRow(o.id); setInjSearch(''); }} className="w-full text-left px-5 py-4 text-xs font-black uppercase text-gray-300 hover:bg-indigo-600 hover:text-white border-b border-gray-800 flex items-center justify-between">
-                    <span>{o.name}</span> <span className="text-[10px] bg-emerald-600/20 text-emerald-500 px-3 py-1 rounded-lg">+ Añadir</span>
-                  </button>
-                ))}
+        <div className="h-16 px-8 flex items-center justify-between bg-gray-950/50">
+           <div className="flex items-center gap-6">
+              <button onClick={() => setShowCatalog(true)} className="flex items-center gap-3 px-8 h-11 bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase text-[11px] rounded-2xl shadow-xl transition-all">
+                <span className="text-xl">🛒</span> Selector Global
+              </button>
+              <div className="flex h-11 rounded-2xl overflow-hidden border border-gray-800 bg-gray-900">
+                <button onClick={() => setIsDynamic(false)} className={`px-6 font-black text-[10px] uppercase transition-all ${!isDynamic ? 'bg-gray-700 text-white' : 'text-gray-600 hover:text-gray-300'}`}>Matriz Estándar</button>
+                <button onClick={() => setIsDynamic(true)} className={`px-6 font-black text-[10px] uppercase transition-all ${isDynamic ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:text-gray-300'}`}>Dinámica</button>
               </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <input type="number" value={injMin} onChange={e => setInjMin(e.target.value)} placeholder="0" className="w-16 h-11 bg-gray-900 border border-gray-800 rounded-xl text-center font-black font-mono text-emerald-400 outline-none focus:border-emerald-500" />
-            <input type="number" value={injMax} onChange={e => setInjMax(e.target.value)} placeholder="100" className="w-16 h-11 bg-gray-900 border border-gray-800 rounded-xl text-center font-black font-mono text-emerald-400 outline-none focus:border-emerald-500" />
-            <button onClick={() => injSearch && handleAddRow(injSearch)} className="px-6 h-11 bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase text-xs rounded-xl shadow-lg transition-all active:scale-95">+ Add</button>
-          </div>
+           </div>
+           
+           <button className="flex items-center gap-3 px-8 h-11 bg-yellow-600 hover:bg-yellow-500 text-black font-black uppercase text-[11px] rounded-2xl shadow-xl transition-all">
+             <RefreshIcon className="w-5 h-5 bg-black/10 rounded" /> Agregar Relaciones
+           </button>
         </div>
-      </div>
+      </nav>
 
-      {/* 📊 MATRIZ CANVAS */}
-      <div className="flex-1 flex overflow-hidden relative">
-        {/* Diet Side-panel */}
-        <button onClick={() => setShowDietPanel(!showDietPanel)} className="absolute left-0 top-1/2 -translate-y-1/2 z-[45] bg-gray-900 border border-l-0 border-gray-800 p-2 rounded-r-2xl text-gray-600 hover:text-white transition-all">
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d={showDietPanel ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"} /></svg>
-        </button>
+      {/* 📊 MATRIZ CANVAS CON SIDEBAR Staff-Grade */}
+      <main className="flex-1 flex overflow-hidden w-full relative">
+        
+        {/* SIDEBAR ACORDEÓN (w-64) */}
+        <aside className="w-64 shrink-0 border-r-2 border-gray-800 bg-gray-950 flex flex-col pt-4">
+           <div className="px-6 mb-10">
+              <span className="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] block">Jerarquía de Dietas</span>
+              <div className="h-1 w-10 bg-indigo-600 mt-2 rounded-full" />
+           </div>
 
-        {showDietPanel && (
-          <aside className="w-80 shrink-0 border-r border-gray-800 bg-gray-950 overflow-y-auto custom-scrollbar p-6">
-            <div className="flex items-center justify-between mb-8">
-              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Selector Maestra</span>
-              <button onClick={() => setShowDietPanel(false)} className="text-gray-700 hover:text-white"><XCircleIcon className="w-6 h-6" /></button>
-            </div>
-            <div className="space-y-6">
-              {Object.entries(dietsByCategory).map(([cat, list]) => (
-                <div key={cat} className="space-y-2">
-                  <div className="text-[9px] font-black text-indigo-500 uppercase tracking-widest pl-2 mb-3 grayscale opacity-50">{cat}</div>
-                  {list.map(d => (
-                    <button key={d.id} onClick={() => setActiveDietIds(prev => prev.includes(d.id) ? prev.filter(id => id !== d.id) : [...prev, d.id])}
-                      className={`w-full text-left px-4 py-3.5 rounded-2xl text-xs font-bold transition-all border-2 ${activeDietIds.includes(d.id) ? 'bg-indigo-600/10 border-indigo-600/40 text-indigo-100 shadow-[0_0_20px_rgba(79,70,229,0.1)]' : 'bg-transparent border-transparent text-gray-600 hover:text-gray-300'}`}>
-                      {d.name.toUpperCase()}
-                    </button>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </aside>
-        )}
+           <div className="flex-1 overflow-y-auto px-4 space-y-3 custom-scrollbar">
+              {Object.entries(dietsByCategory).map(([cat, list]) => {
+                const allSel = list.every(d => activeDietIds.includes(d.id));
+                const isExp = expandedCats[cat] ?? true;
+                return (
+                  <div key={cat} className="space-y-1">
+                     <div className="flex items-center justify-between p-3 bg-gray-900/50 rounded-2xl border border-gray-800 group transition-all hover:border-gray-700">
+                        <button onClick={() => setExpandedCats(p => ({...p, [cat]: !isExp}))} className="flex-1 flex items-center gap-3 text-[10px] font-black uppercase text-gray-500 group-hover:text-indigo-400">
+                           <div className={`transition-transform ${isExp ? 'rotate-90' : ''}`}>▶</div>
+                           {cat}
+                        </button>
+                        <input type="checkbox" checked={allSel} onChange={() => { const ids = list.map(d => d.id); setActiveDietIds(prev => allSel ? prev.filter(id => !ids.includes(id)) : Array.from(new Set([...prev, ...ids]))); }} className="w-5 h-5 rounded border-gray-700 bg-black text-indigo-600" />
+                     </div>
+                     {isExp && (
+                       <div className="flex flex-col gap-1 pl-4 mt-2 border-l-2 border-gray-900 ml-2">
+                          {list.map(d => (
+                            <button key={d.id} onClick={() => setActiveDietIds(prev => prev.includes(d.id) ? prev.filter(id => id !== d.id) : [...prev, d.id])}
+                              className={`w-full text-left px-4 py-3 rounded-xl text-[11px] font-bold transition-all ${activeDietIds.includes(d.id) ? 'bg-indigo-600/10 text-indigo-400 border border-indigo-900/40' : 'text-gray-600 hover:text-gray-300'}`}>
+                              {d.name.toUpperCase()}
+                            </button>
+                          ))}
+                       </div>
+                     )}
+                  </div>
+                );
+              })}
+           </div>
+        </aside>
 
+        {/* MATRIZ DINÁMICA DE ALTA DENSIDAD */}
         <div className="flex-1 overflow-auto custom-scrollbar bg-black p-8">
-          {activeDiets.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center opacity-25 grayscale">
-              <CalculatorIcon className="w-36 h-36 text-gray-800 mb-6" />
-              <p className="text-2xl font-black uppercase tracking-[0.5em] text-gray-700">Seleccione dietas del panel lateral</p>
-            </div>
-          ) : (
-            <table className="border-separate border-spacing-0 min-w-max">
-              <thead>
-                <tr className="sticky top-0 z-30">
-                  <th className="sticky left-0 z-40 bg-black border-2 border-gray-800 p-6 text-left w-[280px] min-w-[280px]">
-                    <span className="text-[12px] font-black text-gray-600 uppercase tracking-widest italic">Vectores de Matriz</span>
-                  </th>
-                  {activeDiets.map(d => {
-                    const r = results[d.id];
-                    return (
-                      <th key={d.id} className="border-2 border-l-0 border-gray-800 p-4 bg-gray-900 w-[180px] min-w-[180px] transition-all">
-                        <div className="flex flex-col items-center gap-4">
-                          <div className="flex items-center gap-2 w-full justify-center px-2">
-                            {r && <StatusDot ok={r.feasible} />}
-                            <span className="text-[13px] font-black text-white uppercase italic truncate tracking-tight">{d.name}</span>
-                            <button onClick={() => setActiveDietIds(p => p.filter(id => id !== d.id))} className="text-gray-700 hover:text-red-500 transition-colors"><XCircleIcon className="w-5 h-5" /></button>
-                          </div>
-                          <div className="flex items-center gap-2 bg-black/60 px-4 py-1.5 rounded-xl border border-gray-800">
-                            <span className="text-[8px] font-black text-gray-600 uppercase">Kg:</span>
-                            <input type="number" value={batchSizes[d.id]||1000} onChange={e => setBatchSizes(p => ({...p, [d.id]: Number(e.target.value)}))} className="w-16 bg-transparent text-xs font-black font-mono text-cyan-400 text-center outline-none" />
-                          </div>
-                          <div className="grid grid-cols-3 w-full border-t border-gray-800 mt-2 bg-black/40 divide-x divide-gray-800">
-                             <div className="py-3 text-[9px] font-black text-gray-600 uppercase italic text-center">Mín</div>
-                             <div className="py-3 text-[9px] font-black text-gray-600 uppercase italic text-center">Máx</div>
-                             <div className={`py-3 text-[9px] font-black uppercase text-center ${r?.feasible ? 'text-emerald-500' : 'text-gray-700'}`}>%</div>
-                          </div>
-                        </div>
-                      </th>
-                    );
-                  })}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-900 border-x-2 border-gray-800">
-                {/* INSUMOS */}
-                <tr className="bg-indigo-950/20">
-                  <td colSpan={activeDiets.length + 1} className="sticky left-0 z-20 px-8 py-4 border-y border-gray-800 font-black text-indigo-400 text-[11px] uppercase tracking-widest italic bg-gray-950/95">
-                    Insumos — Rango de Inclusión Global
-                  </td>
-                </tr>
-                {rowIng.map(row => (
-                  <tr key={row.id} className="hover:bg-gray-900/50 group">
-                    <td className="sticky left-0 z-10 bg-black border border-gray-900 px-6 py-4">
-                       <div className="flex items-center justify-between gap-4">
-                          <div className="truncate">
-                             <span className="text-[15px] font-black text-gray-100 uppercase tracking-tighter block leading-none">{row.name}</span>
-                             {row.price !== undefined && <span className="text-[10px] text-gray-600 font-mono font-bold italic mt-2 block">$ {row.price.toFixed(2)}/kg</span>}
-                          </div>
-                          <button onClick={() => handleRemoveRow(row.id)} className="p-2 text-gray-800 hover:text-red-500 hover:bg-red-950/20 rounded-xl opacity-0 group-hover:opacity-100 transition-all"><TrashIcon className="w-5 h-5" /></button>
-                       </div>
-                    </td>
-                    {activeDiets.map(d => {
-                      const c = constraints[row.id]?.[d.id];
-                      const f = results[d.id]?.formula[row.id] ?? 0;
-                      return (
-                        <td key={d.id} className="border border-gray-900 p-0">
-                           <div className="grid grid-cols-3 divide-x divide-gray-950 h-full">
-                              <CellInput value={c?.min ?? ''} onChange={v => updateConstraint(row.id, d.id, 'min', v)} dirty={c?.dirty} injected={c?.injected} />
-                              <CellInput value={c && c.max < 100 ? c.max : ''} onChange={v => updateConstraint(row.id, d.id, 'max', v)} dirty={c?.dirty} injected={c?.injected} />
-                              <CellInput value={f} isResult />
-                           </div>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-
-                {/* NUTRIENTES */}
-                <tr className="bg-cyan-950/20">
-                  <td colSpan={activeDiets.length + 1} className="sticky left-0 z-20 px-8 py-4 border-y border-gray-800 font-black text-cyan-400 text-[11px] uppercase tracking-widest italic bg-gray-950/95">
-                    Requerimientos — Perfil Técnico Nutricional
-                  </td>
-                </tr>
-                {rowNut.map(row => (
-                  <tr key={row.id} className="hover:bg-gray-900/50 group">
-                    <td className="sticky left-0 z-10 bg-black border border-gray-900 px-6 py-4">
-                       <div className="flex items-center justify-between gap-4">
-                          <div className="truncate">
-                             <span className="text-[15px] font-black text-gray-100 uppercase tracking-tighter block leading-none">{row.name}</span>
-                             {row.unit && <span className="text-[10px] text-gray-600 font-mono font-bold italic mt-2 block uppercase">{row.unit}</span>}
-                          </div>
-                          <button onClick={() => handleRemoveRow(row.id)} className="p-2 text-gray-800 hover:text-red-500 hover:bg-red-950/20 rounded-xl opacity-0 group-hover:opacity-100 transition-all"><TrashIcon className="w-5 h-5" /></button>
-                       </div>
-                    </td>
-                    {activeDiets.map(d => {
-                      const c = constraints[row.id]?.[d.id];
-                      const n = results[d.id]?.nutrients[row.id] ?? 0;
-                      const ok = c ? n >= (c.min - 0.001) && (n <= (c.max + 0.001) || c.max >= 999) : true;
-                      return (
-                        <td key={d.id} className="border border-gray-900 p-0">
-                           <div className="grid grid-cols-3 divide-x divide-gray-950 h-full">
-                              <CellInput value={c?.min ?? ''} onChange={v => updateConstraint(row.id, d.id, 'min', v)} dirty={c?.dirty} injected={c?.injected} />
-                              <CellInput value={c && c.max < 999 ? c.max : ''} onChange={v => updateConstraint(row.id, d.id, 'max', v)} dirty={c?.dirty} injected={c?.injected} />
-                              <CellInput value={n} nutResult nutOk={ok || !hasRun} />
-                           </div>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-
-                {/* RESULTADOS FINALES */}
-                {hasRun && (
-                  <tr className="bg-emerald-950/30 backdrop-blur-xl">
-                    <td className="sticky left-0 z-20 bg-emerald-950/80 border-y border-emerald-900 px-8 py-8">
-                       <span className="text-[13px] font-black text-emerald-400 uppercase tracking-[.4em] italic mb-1 block">Costo Formulado</span>
-                       <span className="text-[9px] font-black text-emerald-700 uppercase tracking-widest leading-none block">Optimized Final Yield</span>
-                    </td>
+           {activeDiets.length === 0 ? (
+             <div className="h-full flex flex-col items-center justify-center grayscale opacity-30">
+                <CalculatorIcon className="w-40 h-40 text-gray-800 mb-8" />
+                <p className="text-3xl font-black uppercase tracking-[0.4em] text-gray-700">Activación de Diálogo Maestra</p>
+             </div>
+           ) : (
+             <table className="border-separate border-spacing-0">
+               <thead>
+                 <tr className="sticky top-0 z-[40]">
+                    <th className="sticky left-0 z-[50] bg-black border-2 border-gray-800 p-8 text-left w-[300px] min-w-[300px]">
+                       <span className="text-[14px] font-black text-gray-600 uppercase tracking-widest italic">Vectores Arquitectónicos</span>
+                    </th>
                     {activeDiets.map(d => {
                       const r = results[d.id];
                       return (
-                        <td key={d.id} className="border-y border-emerald-900 p-4 text-center">
-                          {r?.feasible ? (
-                            <div className="flex flex-col items-center">
-                               <div className="text-[34px] font-black font-mono text-white leading-none tracking-tighter italic">
-                                 <span className="text-emerald-500 text-lg mr-1">$</span>{r.costPerKg.toFixed(2)}
-                               </div>
-                               <div className="mt-3 px-3 py-1 bg-emerald-600 text-white text-[9px] font-black rounded-lg uppercase shadow-lg shadow-emerald-500/20">Optimal Result</div>
-                            </div>
-                          ) : (
-                            <div className="flex flex-col items-center py-4 bg-red-950/20 rounded-3xl mx-2 shadow-inner">
-                               <RefreshIcon className="w-8 h-8 text-red-500 animate-spin-slow mb-3" />
-                               <span className="text-[10px] font-black text-red-500 uppercase tracking-widest">Infeasible Sol.</span>
-                            </div>
-                          )}
-                        </td>
+                        <th key={d.id} className="border-2 border-l-0 border-gray-800 p-6 bg-gray-900 w-[180px] min-w-[180px]">
+                           <div className="flex flex-col items-center gap-4">
+                              <div className="flex items-center gap-3 w-full justify-center">
+                                 {r && <StatusDot ok={r.feasible} />}
+                                 <span className="text-[14px] font-black text-white uppercase italic truncate tracking-tighter">{d.name}</span>
+                                 <button onClick={() => setActiveDietIds(p => p.filter(id => id !== d.id))} className="text-gray-700 hover:text-red-500 transition-colors"><XCircleIcon className="w-6 h-6" /></button>
+                              </div>
+                              <div className="flex items-center gap-2 bg-black/50 px-5 py-2 rounded-2xl border border-gray-800">
+                                 <span className="text-[9px] font-black text-gray-600 uppercase">Kg Batch:</span>
+                                 <input type="number" value={batchSizes[d.id]||1000} onChange={e => setBatchSizes(p => ({...p, [d.id]: Number(e.target.value)}))} className="w-16 bg-transparent text-xs font-black font-mono text-cyan-400 text-center outline-none" />
+                              </div>
+                              <div className="grid grid-cols-3 w-full border-t border-gray-800 mt-4 bg-black/40 divide-x divide-gray-800">
+                                 <div className="py-2 text-[10px] font-black text-gray-600 uppercase text-center italic">Mín</div>
+                                 <div className="py-2 text-[10px] font-black text-gray-600 uppercase text-center italic">Máx</div>
+                                 <div className={`py-2 text-[10px] font-black uppercase text-center ${r?.feasible ? 'text-emerald-500' : 'text-gray-600'}`}>%</div>
+                              </div>
+                           </div>
+                        </th>
                       );
                     })}
+                 </tr>
+               </thead>
+
+               <tbody className="divide-y divide-gray-950 border-x-2 border-gray-800">
+                  {/* INSUMOS SECTION */}
+                  <tr className="bg-indigo-950/20 sticky top-[180px] z-[35]">
+                     <td colSpan={activeDiets.length + 1} className="sticky left-0 z-[35] px-10 py-5 border-y border-gray-800 font-black text-indigo-400 text-xs uppercase tracking-[0.3em] italic bg-gray-950/95">
+                        Insumos — Rango de Inclusión Estricto
+                     </td>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          )}
+                  {rowIng.map(row => (
+                    <tr key={row.id} className="hover:bg-gray-900/50 group h-10">
+                       <td className="sticky left-0 z-[30] bg-black border border-gray-900 px-8 py-2">
+                          <div className="flex items-center justify-between gap-6">
+                             <div className="truncate">
+                                <span className="text-[16px] font-extrabold text-gray-100 uppercase tracking-tighter block leading-none">{row.name}</span>
+                                {row.price !== undefined && <span className="text-[10px] text-gray-600 font-mono font-bold mt-2 block italic tracking-tighter">$ {row.price.toFixed(2)}/kg</span>}
+                             </div>
+                             <button onClick={() => handleRemoveRow(row.id)} className="p-2 text-gray-800 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"><TrashIcon className="w-6 h-6" /></button>
+                          </div>
+                       </td>
+                       {activeDiets.map(d => {
+                         const c = constraints[row.id]?.[d.id];
+                         const f = results[d.id]?.formula[row.id] ?? 0;
+                         const r = results[d.id];
+                         return (
+                           <td key={d.id} className="border border-gray-900 p-0 h-10">
+                              <div className="grid grid-cols-3 divide-x divide-gray-950 h-full items-center">
+                                 <CellInput value={c?.min ?? ''} onChange={v => updateConstraint(row.id, d.id, 'min', v)} min={c?.min} max={c?.max} dirty={c?.dirty} />
+                                 <CellInput value={c && c.max < 100 ? c.max : ''} onChange={v => updateConstraint(row.id, d.id, 'max', v)} min={c?.min} max={c?.max} dirty={c?.dirty} />
+                                 <CellInput value={f} isResult feasible={r ? r.feasible : true} min={c?.min} max={c?.max} />
+                              </div>
+                           </td>
+                         );
+                       })}
+                    </tr>
+                  ))}
+
+                  {/* NUTRIENTES SECTION */}
+                  <tr className="bg-cyan-950/20 sticky top-[180px] z-[35]">
+                     <td colSpan={activeDiets.length + 1} className="sticky left-0 z-[35] px-10 py-5 border-y border-gray-800 font-black text-cyan-400 text-xs uppercase tracking-[0.3em] italic bg-gray-950/95">
+                        Especificación Técnica — Parámetros de Calidad
+                     </td>
+                  </tr>
+                  {rowNut.map(row => (
+                    <tr key={row.id} className="hover:bg-gray-900/50 group h-10">
+                       <td className="sticky left-0 z-[30] bg-black border border-gray-900 px-8 py-2">
+                          <div className="flex items-center justify-between gap-6">
+                             <div className="truncate">
+                                <span className="text-[16px] font-extrabold text-gray-100 uppercase tracking-tighter block leading-none">{row.name}</span>
+                                {row.unit && <span className="text-[10px] text-gray-600 font-mono font-bold mt-2 block uppercase tracking-tighter">{row.unit}</span>}
+                             </div>
+                             <button onClick={() => handleRemoveRow(row.id)} className="p-2 text-gray-800 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"><TrashIcon className="w-6 h-6" /></button>
+                          </div>
+                       </td>
+                       {activeDiets.map(d => {
+                         const c = constraints[row.id]?.[d.id];
+                         const n = results[d.id]?.nutrients[row.id] ?? 0;
+                         const r = results[d.id];
+                         return (
+                           <td key={d.id} className="border border-gray-900 p-0 h-10">
+                              <div className="grid grid-cols-3 divide-x divide-gray-950 h-full items-center">
+                                 <CellInput value={c?.min ?? ''} onChange={v => updateConstraint(row.id, d.id, 'min', v)} min={c?.min} max={c?.max} dirty={c?.dirty} />
+                                 <CellInput value={c && c.max < 999 ? c.max : ''} onChange={v => updateConstraint(row.id, d.id, 'max', v)} min={c?.min} max={c?.max} dirty={c?.dirty} />
+                                 <CellInput value={n} nutResult feasible={r ? r.feasible : true} min={c?.min} max={c?.max} />
+                              </div>
+                           </td>
+                         );
+                       })}
+                    </tr>
+                  ))}
+
+                  {/* COST RESULTS SECTION */}
+                  {hasRun && (
+                    <tr className="bg-emerald-950/50 backdrop-blur-2xl">
+                       <td className="sticky left-0 z-[30] bg-emerald-950 border-2 border-emerald-900 px-10 py-10">
+                          <span className="text-[13px] font-black text-emerald-400 uppercase tracking-[0.4em] italic block">Costo Formulado Final</span>
+                          <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest mt-2 block">Economic Optimization Yield</span>
+                       </td>
+                       {activeDiets.map(d => {
+                         const r = results[d.id];
+                         return (
+                           <td key={d.id} className="border-2 border-emerald-900 p-6 text-center">
+                             {r?.feasible ? (
+                               <div className="flex flex-col items-center">
+                                  <div className="text-[38px] font-black font-mono text-white leading-none tracking-tighter italic shadow-xl">
+                                    <span className="text-emerald-500 text-xl mr-2">$</span>{r.costPerKg.toFixed(2)}
+                                  </div>
+                                  <div className="mt-4 px-4 py-1.5 bg-emerald-600 text-[10px] font-black text-white uppercase rounded-xl shadow-lg shadow-emerald-500/30">Solución Óptima</div>
+                               </div>
+                             ) : (
+                               <div className="flex flex-col items-center py-6 bg-red-950/20 rounded-[2rem] mx-2 border border-red-900/40">
+                                  <RefreshIcon className="w-10 h-10 text-red-500 animate-spin-slow mb-4 opacity-70" />
+                                  <span className="text-[11px] font-black text-red-500 uppercase tracking-widest leading-none">Inconsistente</span>
+                                  <span className="text-[14px] font-mono text-white mt-2 font-bold opacity-60">${r?.costPerKg.toFixed(2)}</span>
+                               </div>
+                             )}
+                           </td>
+                         );
+                       })}
+                    </tr>
+                  )}
+               </tbody>
+             </table>
+           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 };
