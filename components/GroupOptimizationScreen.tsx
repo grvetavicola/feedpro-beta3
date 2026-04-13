@@ -356,7 +356,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                   <div className="p-4 bg-cyan-600/10 rounded-3xl border border-cyan-500/20 shadow-lg shadow-cyan-900/10"><ZapIcon className="w-6 h-6 text-[#00D1FF]" /></div>
                   <h2 className="text-base font-black text-white uppercase tracking-widest italic">Inyectar Vectores</h2>
                </div>
-               <button onClick={() => setShowCatalog(false)} className="text-gray-400 hover:text-white transition-all"><XCircleIcon className="w-8 h-8" /></button>
+               <button onClick={() => setShowCatalog(false)} className="text-white/70 hover:text-white transition-all"><XCircleIcon className="w-8 h-8" /></button>
              </div>
              
              <div className="p-5 bg-black/40 flex gap-4 border-b border-slate-800">
@@ -411,8 +411,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                <ZapIcon className="w-5 h-5" /> SELECTOR GLOBAL
             </button>
             <div className="flex h-9 bg-black/80 rounded-[1.25rem] border border-slate-800 overflow-hidden shadow-2xl">
-               <button onClick={() => setViewMode('limits')} className={`px-6 text-[11px] font-black uppercase transition-all ${viewMode === 'limits' ? 'bg-[#00D1FF] text-white' : 'text-slate-600 hover:text-slate-300'}`}>Límites</button>
-               <button onClick={() => setViewMode('kg')} className={`px-6 text-[11px] font-black uppercase transition-all ${viewMode === 'kg' ? 'bg-[#00D1FF] text-white' : 'text-slate-600 hover:text-slate-300'}`}>Resultados</button>
+               <button onClick={() => setViewMode('limits')} className={`px-6 text-[11px] font-black uppercase transition-all ${viewMode === 'limits' ? 'bg-[#00D1FF] text-white' : 'text-slate-300 hover:text-slate-300'}`}>Límites</button>
+               <button onClick={() => setViewMode('kg')} className={`px-6 text-[11px] font-black uppercase transition-all ${viewMode === 'kg' ? 'bg-[#00D1FF] text-white' : 'text-slate-300 hover:text-slate-300'}`}>Resultados</button>
             </div>
          </div>
 
@@ -441,7 +441,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                        <span className="text-[10px] font-black text-slate-400 uppercase italic truncate max-w-[130px] tracking-widest whitespace-normal break-words">{cat}</span>
                        <div className="flex items-center gap-3">
                          <input type="checkbox" checked={allSel} onClick={(e) => e.stopPropagation()} onChange={() => { const ids = list.map(d => d.id); setActiveDietIds(prev => allSel ? prev.filter(id => !ids.includes(id)) : Array.from(new Set([...prev, ...ids]))); }} className="w-4 h-4 rounded-lg bg-black border-slate-800 text-[#00D1FF] focus:ring-0" />
-                         <ChevronDownIcon className={`w-3.5 h-3.5 text-slate-600 transition-transform ${isExp ? 'rotate-180' : ''}`} />
+                         <ChevronDownIcon className={`w-3.5 h-3.5 text-slate-300 transition-transform ${isExp ? 'rotate-180' : ''}`} />
                        </div>
                     </button>
                     {isExp && (
@@ -468,8 +468,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
            <table className="border-collapse table-fixed w-max">
               <thead>
                 <tr className="sticky top-0 z-[60]">
-                  <th className="sticky left-0 z-[70] bg-[#050505] border-b-2 border-r border-slate-800 p-0 text-left w-[250px] shadow-[20px_0_40px_rgba(0,0,0,0.9)]">
-                     <div className="flex items-center w-full h-full pl-8 pr-4 py-8">
+                  <th className="sticky left-0 z-[70] bg-[#050505] border-b-2 border-r border-slate-800 p-0 w-[250px] min-w-[250px] shadow-[20px_0_40px_rgba(0,0,0,0.9)]">
+                     <div className="flex items-center w-full h-full pl-8 pr-8 py-8 border-r border-slate-700">
                         <span className="text-[16px] font-black text-white uppercase italic tracking-[0.2em] leading-tight font-mono whitespace-normal break-words">MAESTRO DE DATOS</span>
                      </div>
                   </th>
@@ -495,8 +495,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
               
               <tbody className="divide-y divide-slate-800/20">
                 <tr className="bg-[#060606] sticky top-[112px] z-50 backdrop-blur-2xl border-b border-slate-800 h-9">
-                   <td className="sticky left-0 bg-[#060606] z-[55] px-8 border-r border-slate-800 pr-4">
-                      <span className="text-[12px] font-black text-slate-400 uppercase tracking-[0.4em] font-mono italic opacity-90">Sector I: Componentes</span>
+                   <td className="sticky left-0 bg-[#060606] z-[55] pl-8 pr-8 border-r border-slate-700 w-[250px] min-w-[250px]">
+                      <span className="text-[12px] font-black text-slate-300 uppercase tracking-[0.4em] font-mono italic opacity-90">Sector I: Componentes</span>
                    </td>
                    {activeDiets.map(diet => (
                      <td key={`h1-${diet.id}`} className="p-0 border-r border-slate-800 bg-black/40">
@@ -512,13 +512,13 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
 
                 {activeRows.filter(r => r.type === 'ing').map((row, rIdx) => (
                   <tr key={row.id} className="h-11 group hover:bg-[#00D1FF]/[0.02] transition-colors relative">
-                    <td className="sticky left-0 z-40 bg-[#030303] border-r border-slate-800 pl-8 pr-4 py-0 shadow-[10px_0_20px_rgba(0,0,0,0.8)] group-focus-within:bg-[#0c0c0c] transition-colors w-[250px]">
+                    <td className="sticky left-0 z-40 bg-[#030303] border-r border-slate-700 pl-8 pr-8 py-0 shadow-[10px_0_20px_rgba(0,0,0,0.8)] group-focus-within:bg-[#0c0c0c] transition-colors w-[250px] min-w-[250px]">
                        <div className="flex items-center justify-between h-full py-1.5 gap-4">
                          <div className="min-w-0 flex-1 flex flex-col justify-center">
                             <span className="text-[13px] font-black text-white group-hover:text-cyan-400 uppercase tracking-tighter leading-tight whitespace-normal break-words block w-full">
                               {row.name}
                             </span>
-                            <span className="text-[11px] text-slate-400 font-bold uppercase italic font-mono scale-95 origin-left tracking-widest opacity-90 group-hover:opacity-100">
+                            <span className="text-[11px] text-slate-300 font-bold uppercase italic font-mono scale-95 origin-left tracking-widest opacity-90 group-hover:opacity-100">
                               ${row.price?.toFixed(2)}
                             </span>
                          </div>
@@ -546,8 +546,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                 ))}
 
                 <tr className="bg-[#060606] sticky top-[112px] z-50 backdrop-blur-2xl border-b border-slate-800 h-9">
-                   <td className="sticky left-0 bg-[#060606] z-[55] px-8 border-r border-slate-800 pr-4">
-                      <span className="text-[12px] font-black text-slate-400 uppercase tracking-[0.4em] font-mono italic opacity-90">Sector II: Parámetros</span>
+                   <td className="sticky left-0 bg-[#060606] z-[55] pl-8 pr-8 border-r border-slate-700 w-[250px] min-w-[250px]">
+                      <span className="text-[12px] font-black text-slate-300 uppercase tracking-[0.4em] font-mono italic opacity-90">Sector II: Parámetros</span>
                    </td>
                    {activeDiets.map(diet => (
                      <td key={`h2-${diet.id}`} className="p-0 border-r border-slate-800 bg-black/40">
@@ -565,13 +565,13 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                   const baseIdx = activeRows.filter(r => r.type === 'ing').length;
                   return (
                     <tr key={row.id} className="h-11 group hover:bg-[#00D1FF]/[0.02] transition-colors relative">
-                      <td className="sticky left-0 z-40 bg-[#030303] border-r border-slate-800 pl-8 pr-4 py-0 shadow-[10px_0_20px_rgba(0,0,0,0.8)] group-focus-within:bg-[#0c0c0c] transition-colors w-[250px]">
+                      <td className="sticky left-0 z-40 bg-[#030303] border-r border-slate-700 pl-8 pr-8 py-0 shadow-[10px_0_20px_rgba(0,0,0,0.8)] group-focus-within:bg-[#0c0c0c] transition-colors w-[250px] min-w-[250px]">
                          <div className="flex items-center justify-between h-full py-1.5 gap-4">
                            <div className="min-w-0 flex-1 flex flex-col justify-center">
                               <span className="text-[13px] font-black text-white group-hover:text-cyan-400 uppercase tracking-tighter leading-tight whitespace-normal break-words block w-full">
                                 {row.name}
                               </span>
-                              <span className="text-[11px] text-slate-400 font-bold uppercase italic font-mono scale-95 origin-left tracking-[0.3em] opacity-90 group-hover:opacity-100">
+                              <span className="text-[11px] text-slate-300 font-bold uppercase italic font-mono scale-95 origin-left tracking-[0.3em] opacity-90 group-hover:opacity-100">
                                 {row.unit}
                               </span>
                            </div>
@@ -602,7 +602,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
 
               <tfoot className="sticky bottom-0 z-[60] shadow-[0_-25px_60px_rgba(0,0,0,1)] border-t-2 border-slate-800">
                 <tr className="bg-[#050505] h-20">
-                   <td className="p-6 px-8 sticky left-0 z-[70] bg-[#030303] border-r-2 border-slate-800 shadow-2xl pr-4">
+                   <td className="p-6 pl-8 pr-8 sticky left-0 z-[70] bg-[#030303] border-r-2 border-slate-700 shadow-2xl w-[250px] min-w-[250px]">
                       <div className="flex flex-col">
                         <span className="text-[14px] font-black text-[#00D1FF] uppercase tracking-[0.2em] leading-none mb-2 font-mono">Diagnóstico Maestro</span>
                         <div className="h-0.5 w-12 bg-[#00D1FF]/40 rounded-full mb-2" />
