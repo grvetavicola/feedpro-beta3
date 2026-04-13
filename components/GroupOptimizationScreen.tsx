@@ -43,6 +43,7 @@ interface GroupOptimizationScreenProps {
   onRemoveDietFromSelection?: (id: string) => void;
   onEnterFullscreen?: () => void;
   onLeaveFullscreen?: () => void;
+  selectedClientId?: string;
 }
 
 // ─── Components ─────────────────────────────────────────────────────────────
@@ -107,7 +108,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   products = [], ingredients = [], nutrients = [], isDynamicMatrix: initialIsDynamic,
   selectedDietIds = [], onUpdateProduct, setIsDirty,
   savedFormulas, setSavedFormulas, onRemoveDietFromSelection,
-  onEnterFullscreen, onLeaveFullscreen
+  onEnterFullscreen, onLeaveFullscreen, selectedClientId
 }) => {
 
   // 1. HOOKS
@@ -258,6 +259,29 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
       return next;
     });
     setHasRun(false);
+  };
+
+  const handleSaveBulk = () => {
+    if (!results || !setSavedFormulas || !selectedClientId) return;
+    const newFormulas: SavedFormula[] = activeDiets.map(diet => {
+      const r = results[diet.id];
+      if (!r) return null;
+      return {
+        id: `sf${Date.now()}_${diet.id}`,
+        clientId: selectedClientId,
+        name: `${diet.name} - OPT - ${new Date().toLocaleDateString()}`,
+        date: new Date().toISOString(),
+        result: {
+            status: r.feasible ? 'OPTIMAL' : 'INFEASIBLE',
+            totalCost: r.totalCost,
+            items: Object.entries(r.formula).map(([id, p]) => ({ ingredientId: id, weight: (p / 100) * (batchSizes[diet.id] || 1000), percentage: p, cost: 0 })),
+            nutrientAnalysis: Object.entries(r.nutrients).map(([id, v]) => ({ nutrientId: id, value: v, min: 0, max: 0, met: true }))
+        } as any
+      };
+    }).filter(f => f !== null) as SavedFormula[];
+    
+    setSavedFormulas(prev => [...prev, ...newFormulas]);
+    alert(`✓ ${newFormulas.length} Dietas guardadas exitosamente.`);
   };
 
   const handleBulkAdd = () => {
