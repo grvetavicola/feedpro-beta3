@@ -205,6 +205,39 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     setHasRun(false);
   };
 
+  const handleBulkAdd = () => {
+    const selection = Array.from(catalogSelection);
+    if (!selection.length) return;
+
+    const newRows: MatrixRow[] = [...activeRows];
+    const newConstraints = { ...constraints };
+
+    selection.forEach(id => {
+      if (!newRows.find(r => r.id === id)) {
+        const ing = ingredients.find(i => i.id === id);
+        const nut = nutrients.find(n => n.id === id);
+        if (ing) {
+          newRows.push({ id, type: 'ing', name: ing.name.toUpperCase(), price: (ing.price / (1 - (ing.shrinkage || 0) / 100)) + (ing.processingCost || 0) });
+        } else if (nut) {
+          newRows.push({ id, type: 'nut', name: nut.name.toUpperCase(), unit: nut.unit });
+        }
+      }
+
+      if (!newConstraints[id]) newConstraints[id] = {};
+      activeDiets.forEach(d => {
+        if (!newConstraints[id][d.id]) {
+          newConstraints[id][d.id] = { min: 0, max: isDynamic ? 999 : 100, dirty: false, injected: true };
+        }
+      });
+    });
+
+    setActiveRows(newRows);
+    setConstraints(newConstraints);
+    setShowCatalog(false);
+    setCatalogSelection(new Set());
+    setHasRun(false);
+  };
+
   const handleRunAll = useCallback(() => {
     if (!activeDiets.length) return;
     setIsRunning(true);
