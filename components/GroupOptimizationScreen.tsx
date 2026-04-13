@@ -54,7 +54,7 @@ interface GroupOptimizationScreenProps {
 // ─── Sub-Components ─────────────────────────────────────────────────────────────
 
 const StatusIcon = ({ ok }: { ok: boolean }) => (
-  ok ? <CheckIcon className="w-3.5 h-3.5 text-emerald-400" /> : <XCircleIcon className="w-3.5 h-3.5 text-red-500" />
+  ok ? <CheckIcon className="w-3 h-3 text-emerald-400" /> : <XCircleIcon className="w-3 h-3 text-red-500" />
 );
 
 const DiagnosticCell = ({ 
@@ -70,7 +70,8 @@ const DiagnosticCell = ({
   min, 
   max, 
   dirty,
-  shadowPrice
+  shadowPrice,
+  hasRun
 }: {
   row: MatrixRow;
   dietId: string;
@@ -85,17 +86,20 @@ const DiagnosticCell = ({
   max?: number;
   dirty?: boolean;
   shadowPrice?: number;
+  hasRun: boolean;
 }) => {
   const isOutOfBounds = resultValue !== undefined && min !== undefined && max !== undefined && (resultValue < min - 0.01 || resultValue > max + 0.01);
   const isError = min !== undefined && max !== undefined && min > max;
   
   let bgColor = "bg-transparent";
-  if (isError) bgColor = "bg-red-800/40";
-  else if (dirty) bgColor = "bg-yellow-500/10";
-  else if (isResult) {
-    if (!feasible) bgColor = "bg-red-950/40";
-    else if (isOutOfBounds) bgColor = "bg-red-500/20";
-    else bgColor = "bg-emerald-500/5";
+  if (hasRun) {
+    if (isError) bgColor = "bg-red-900/40";
+    else if (dirty) bgColor = "bg-yellow-500/10";
+    else if (isResult) {
+      if (!feasible) bgColor = "bg-red-950/40";
+      else if (isOutOfBounds) bgColor = "bg-red-500/20";
+      else bgColor = "bg-emerald-500/10";
+    }
   }
 
   const displayValue = viewMode === 'kg' && isResult && resultValue !== undefined 
@@ -103,15 +107,15 @@ const DiagnosticCell = ({
     : (typeof value === 'number' ? value.toFixed(1) : value);
 
   return (
-    <div className={`h-full w-full flex flex-col justify-center px-1 border-r border-white/5 last:border-r-0 transition-all ${bgColor}`}>
+    <div className={`h-full w-full flex flex-col justify-center px-1 border-r border-white/5 last:border-r-0 transition-opacity duration-300 ${bgColor}`}>
       {isResult ? (
         <div className="flex flex-col items-center justify-center p-0">
-          <span className={`text-[17px] font-black font-mono leading-none ${!feasible || isOutOfBounds ? 'text-red-500' : 'text-emerald-400'}`}>
+          <span className={`text-[17px] font-black font-mono leading-none ${hasRun && (!feasible || isOutOfBounds) ? 'text-red-500' : hasRun ? 'text-emerald-400' : 'text-gray-400 opacity-40'}`}>
             {displayValue}
-            {viewMode === 'limits' && <span className="text-[10px] ml-0.2 opacity-20">%</span>}
+            {viewMode === 'limits' && <span className="text-[10px] ml-0.2 opacity-10">%</span>}
           </span>
-          {shadowPrice && shadowPrice > 0.001 && (
-            <span className="text-[8px] font-bold text-gray-500 font-mono scale-[0.8] leading-none mb-0.5">sp:{shadowPrice.toFixed(2)}</span>
+          {hasRun && shadowPrice && shadowPrice > 0.001 && (
+            <span className="text-[8px] font-bold text-gray-600 font-mono scale-[0.7] leading-none mb-0.2">sp: {shadowPrice.toFixed(2)}</span>
           )}
         </div>
       ) : (
@@ -119,7 +123,7 @@ const DiagnosticCell = ({
           type="number"
           value={value}
           onChange={(e) => onChange?.(parseFloat(e.target.value) || 0)}
-          className={`w-full bg-transparent text-center text-[17px] font-black font-mono outline-none ${isError ? 'text-red-400' : 'text-white/90 focus:text-cyan-400'} placeholder-gray-800`}
+          className={`w-full bg-transparent text-center text-[17px] font-black font-mono outline-none transition-all ${isError && hasRun ? 'text-red-400' : 'text-white/90 focus:text-cyan-400'} placeholder-gray-900`}
           placeholder="0.0"
         />
       )}
@@ -136,7 +140,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   onEnterFullscreen, onLeaveFullscreen, selectedClientId
 }) => {
 
-  // 1. STATES
+  // 1. STATE
   const [activeDietIds, setActiveDietIds] = useState<string[]>(selectedDietIds);
   const [activeRows, setActiveRows] = useState<MatrixRow[]>([]);
   const [constraints, setConstraints] = useState<Record<string, Record<string, ConstraintSet>>>({});
@@ -154,7 +158,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   const [catalogSelection, setCatalogSelection] = useState<Set<string>>(new Set());
   const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>({});
 
-  // 2. DERIVED
+  // 2. DERIVED DATA
   const activeDiets = useMemo(() => products.filter(p => activeDietIds.includes(p.id)), [products, activeDietIds]);
   const dietsByCategory = useMemo(() => {
     const map: Record<string, Product[]> = {};
@@ -166,7 +170,9 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     return map;
   }, [products]);
 
-  // 3. HANDLERS
+  const totalLoadedKg = useMemo(() => activeDietIds.reduce((sum, id) => sum + (batchSizes[id] || 0), 0), [activeDietIds, batchSizes]);
+
+  // 3. LOGIC HANDLERS
   const handleRemoveRow = (id: string) => {
     setActiveRows(p => p.filter(r => r.id !== id));
     setConstraints(p => { const n = { ...p }; delete n[id]; return n; });
@@ -202,7 +208,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   const handleRunAll = useCallback(() => {
     if (!activeDiets.length) return;
     setIsRunning(true);
-    const newResults: Record<string, DietResult> = {};
+    const newRes: Record<string, DietResult> = {};
     activeDiets.forEach(diet => {
       const matrixProduct: Product = {
         ...diet,
@@ -219,22 +225,17 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
       res.items.forEach(item => { formulaMap[item.ingredientId] = item.percentage; if (item.shadowPrice) shadowMap[item.ingredientId] = item.shadowPrice; });
       const nutMap: Record<string, number> = {};
       res.nutrientAnalysis.forEach(na => { nutMap[na.nutrientId] = na.value; if (na.shadowPrice) shadowMap[na.nutrientId] = na.shadowPrice; });
-      newResults[diet.id] = {
+      newRes[diet.id] = {
         feasible: res.status === 'OPTIMAL',
         costPerKg: res.totalCost / (batchSizes[diet.id] || 1000),
         prevCostPerKg: results[diet.id]?.costPerKg,
         formula: formulaMap, nutrients: nutMap, shadowPrices: shadowMap, totalCost: res.totalCost
       };
     });
-    setResults(newResults);
+    setResults(newRes);
     setIsRunning(false);
     setHasRun(true);
     setIsDirty?.(true);
-    setConstraints(prev => {
-      const next = { ...prev };
-      Object.keys(next).forEach(r => Object.keys(next[r]).forEach(d => { if (next[r][d]) next[r][d].dirty = false; }));
-      return next;
-    });
   }, [activeDiets, activeRows, constraints, batchSizes, ingredients, nutrients, isDynamic, results, setIsDirty]);
 
   // 4. EFFECTS
@@ -288,21 +289,21 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
 
   // 5. RENDER
   return (
-    <div className="flex-1 flex flex-col w-full h-full bg-[#050505] text-white overflow-hidden select-none font-sans antialiased">
+    <div className="flex-1 flex flex-col w-full h-full bg-[#030303] text-white overflow-hidden select-none font-sans">
       
       {/* Selector Global Modal */}
       {showCatalog && (
-        <div className="fixed inset-0 bg-black/98 backdrop-blur-3xl z-[200] flex items-center justify-center p-8 animate-fade-in">
-           <div className="bg-[#0a0a0a] border border-gray-800 rounded-[2.5rem] w-full max-w-5xl h-[80vh] flex flex-col shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 bg-black/95 backdrop-blur-3xl z-[200] flex items-center justify-center p-8 animate-fade-in">
+           <div className="bg-[#0a0a0a] border border-gray-800 rounded-[3rem] w-full max-w-5xl h-[80vh] flex flex-col shadow-2xl overflow-hidden">
              <div className="p-8 border-b border-gray-800 flex items-center justify-between">
                <div className="flex items-center gap-4">
                   <div className="p-3 bg-cyan-600/20 rounded-2xl"><ZapIcon className="w-8 h-8 text-cyan-400" /></div>
                   <div>
                     <h2 className="text-3xl font-black text-cyan-400 uppercase tracking-tighter italic">SELECTOR GLOBAL</h2>
-                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Gestión Masiva de Vectores Técnicos</p>
+                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Inyección Masiva de Vectores Técnicos</p>
                   </div>
                </div>
-               <button onClick={() => setShowCatalog(false)} className="p-3 hover:bg-red-600 rounded-full text-white transition-all active:scale-95"><XCircleIcon className="w-8 h-8" /></button>
+               <button onClick={() => setShowCatalog(false)} className="p-3 hover:bg-red-600 rounded-full text-white transition-all"><XCircleIcon className="w-8 h-8" /></button>
              </div>
              <div className="p-4 bg-black/40 border-b border-gray-800 relative">
                <SearchIcon className="absolute left-10 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-600" />
@@ -310,7 +311,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
              </div>
              <div className="flex-1 overflow-y-auto p-10 grid grid-cols-2 gap-10 custom-scrollbar">
                 <div className="space-y-3">
-                   <h3 className="text-cyan-500 font-black text-[9px] uppercase border-b border-cyan-900/50 pb-2 tracking-widest italic">Insumos de Fábrica</h3>
+                   <h3 className="text-cyan-500 font-black text-[9px] uppercase border-b border-cyan-900/50 pb-2 tracking-widest italic">Insumos Disponibles</h3>
                    {ingredients.filter(i => i.name.toLowerCase().includes(catalogSearch.toLowerCase())).map(i => (
                      <label key={i.id} className={`flex items-center gap-4 p-4 rounded-2xl transition-all cursor-pointer border ${catalogSelection.has(i.id) ? 'bg-cyan-600 border-cyan-400' : 'bg-gray-900/40 border-gray-800 hover:border-cyan-500/30'}`}>
                         <input type="checkbox" checked={catalogSelection.has(i.id)} onChange={() => { const s = new Set(catalogSelection); if (s.has(i.id)) s.delete(i.id); else s.add(i.id); setCatalogSelection(s); }} className="hidden" />
@@ -320,7 +321,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                    ))}
                 </div>
                 <div className="space-y-3">
-                   <h3 className="text-emerald-500 font-black text-[9px] uppercase border-b border-emerald-900/50 pb-2 tracking-widest italic">Balance Perfil</h3>
+                   <h3 className="text-emerald-500 font-black text-[9px] uppercase border-b border-emerald-900/50 pb-2 tracking-widest italic">Parámetros de Balance</h3>
                    {nutrients.filter(n => n.name.toLowerCase().includes(catalogSearch.toLowerCase())).map(n => (
                      <label key={n.id} className={`flex items-center gap-4 p-4 rounded-2xl transition-all cursor-pointer border ${catalogSelection.has(n.id) ? 'bg-emerald-600 border-emerald-400' : 'bg-gray-900/40 border-gray-800 hover:border-emerald-500/30'}`}>
                         <input type="checkbox" checked={catalogSelection.has(n.id)} onChange={() => { const s = new Set(catalogSelection); if (s.has(n.id)) s.delete(n.id); else s.add(n.id); setCatalogSelection(s); }} className="hidden" />
@@ -331,71 +332,76 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                 </div>
              </div>
              <div className="p-8 bg-black border-t border-gray-800 flex items-center justify-between">
-                <span className="text-[10px] font-black text-gray-600 italic tracking-[0.2em]">{catalogSelection.size} VECTORES TÉCNICOS PREPARADOS</span>
-                <button onClick={handleBulkAdd} className="px-14 py-4 bg-cyan-600 hover:bg-cyan-500 text-white font-black uppercase rounded-2xl shadow-xl transition-all active:scale-95 tracking-widest text-sm">INYECTAR SELECCIÓN</button>
+                <span className="text-[10px] font-black text-gray-600 italic tracking-[0.2em]">{catalogSelection.size} VECTORES SELECCIONADOS</span>
+                <button onClick={handleBulkAdd} className="px-14 py-4 bg-cyan-600 hover:bg-cyan-500 text-white font-black uppercase rounded-2xl shadow-xl transition-all active:scale-95 tracking-widest text-sm">INYECTAR EN MATRIZ</button>
              </div>
            </div>
         </div>
       )}
 
-      {/* Navigation Header */}
-      <nav className="flex-none bg-[#0a0a0a] border-b border-gray-800 h-20 flex flex-col shadow-2xl z-[100]">
-        <div className="flex-1 px-8 flex items-center justify-between">
-           <div className="flex items-center gap-4">
-             <button onClick={() => onLeaveFullscreen?.()} className="group flex items-center gap-3 px-5 h-11 bg-cyan-600/10 hover:bg-cyan-600 text-cyan-400 hover:text-white rounded-xl border border-cyan-500/20 transition-all font-black uppercase text-[10px] tracking-widest active:scale-95">
-                <ArrowLeftIcon className="w-5 h-5 transition-transform group-hover:-translate-x-1" /> VOLVER
-             </button>
-             <button onClick={() => {}} className="px-6 h-11 bg-gray-900 hover:bg-emerald-600 text-white font-black uppercase text-[10px] rounded-xl border border-gray-800 transition-all flex items-center gap-2 shadow-lg active:scale-95">
-                <CheckIcon className="w-4 h-4" /> GUARDAR MATRIZ
-             </button>
-           </div>
+      {/* Unified Single-Row Header */}
+      <nav className="flex-none bg-[#050505] border-b border-gray-800 h-16 flex items-center px-6 gap-6 shadow-2xl z-[100]">
+         <div className="flex items-center gap-3 shrink-0">
+            <button onClick={() => onLeaveFullscreen?.()} className="p-2 bg-cyan-600/10 hover:bg-cyan-600 text-cyan-400 hover:text-white rounded-lg transition-all active:scale-95" title="Volver">
+               <ArrowLeftIcon className="w-5 h-5" />
+            </button>
+            <button onClick={() => {}} className="px-3 h-9 bg-gray-900 hover:bg-emerald-600 text-white font-black uppercase text-[10px] rounded-lg border border-gray-800 transition-all active:scale-95 flex items-center gap-1.5">
+               <CheckIcon className="w-3.5 h-3.5" /> GUARDAR
+            </button>
+         </div>
 
-           <div className="flex items-center gap-10">
-              <div className="flex flex-col items-end"><span className="text-[10px] text-gray-600 font-black uppercase tracking-widest leading-none mb-1">DIETAS</span><span className="text-3xl font-black text-cyan-400 font-mono leading-none">{activeDiets.length}</span></div>
-              <div className="w-px h-10 bg-gray-800" />
-              <button onClick={handleRunAll} disabled={isRunning} className="px-12 h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase rounded-2xl shadow-2xl flex items-center gap-4 transition-all scale-105 active:scale-95 tracking-widest text-sm">
-                 {isRunning ? <RefreshIcon className="w-6 h-6 animate-spin" /> : <CalculatorIcon className="w-6 h-6" />} OPTIMIZAR (F4)
-              </button>
-           </div>
-        </div>
-        <div className="h-6 px-8 flex items-center justify-between bg-black/40 border-t border-gray-900/50">
-           <div className="flex items-center gap-6">
-              <button onClick={() => setShowCatalog(true)} className="flex items-center gap-2 text-cyan-500 hover:text-cyan-400 text-[10px] font-black uppercase italic tracking-tighter transition-all"><ZapIcon className="w-3.5 h-3.5" /> SELECTOR GLOBAL</button>
-              <div className="flex h-4 bg-black rounded-full border border-gray-800 overflow-hidden">
-                <button onClick={() => setViewMode('limits')} className={`px-4 text-[9px] font-black uppercase transition-all ${viewMode === 'limits' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}>LÍMITES %</button>
-                <button onClick={() => setViewMode('kg')} className={`px-4 text-[9px] font-black uppercase transition-all ${viewMode === 'kg' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}>KILOS</button>
-              </div>
-           </div>
-           <div className="text-[9px] text-gray-700 font-bold uppercase italic tracking-[0.2em] opacity-80">STAFF PANEL • SOLVER DE PRECISIÓN • FEEDPRO 360</div>
-        </div>
+         <div className="w-px h-8 bg-gray-800 shrink-0" />
+
+         <div className="flex items-center gap-4 shrink-0">
+            <button onClick={() => setShowCatalog(true)} className="flex items-center gap-2 text-cyan-500 hover:text-cyan-400 text-[10px] font-black uppercase tracking-widest transition-all">
+               <ZapIcon className="w-4 h-4" /> SELECTOR GLOBAL
+            </button>
+            <div className="flex h-7 bg-black rounded-lg border border-gray-800 overflow-hidden ml-2">
+               <button onClick={() => setViewMode('limits')} className={`px-4 text-[9px] font-black uppercase transition-all ${viewMode === 'limits' ? 'bg-cyan-600 text-white shadow-inner' : 'text-gray-600 hover:text-gray-300'}`}>LÍMITES %</button>
+               <button onClick={() => setViewMode('kg')} className={`px-4 text-[9px] font-black uppercase transition-all ${viewMode === 'kg' ? 'bg-cyan-600 text-white shadow-inner' : 'text-gray-600 hover:text-gray-300'}`}>RESULTADOS KG</button>
+            </div>
+         </div>
+
+         <div className="w-px h-8 bg-gray-800 shrink-0" />
+
+         <div className="flex-1 flex items-center justify-center gap-6">
+            <div className="bg-black/40 px-6 py-1.5 rounded-xl border border-gray-800 flex items-center gap-3">
+               <div className="flex items-baseline gap-1.5"><span className="text-[10px] text-gray-600 font-black uppercase tracking-widest">DIETAS:</span><span className="text-xl font-black text-indigo-400 font-mono leading-none">{activeDiets.length}</span></div>
+               <div className="w-px h-4 bg-gray-800" />
+               <div className="flex items-baseline gap-1.5"><span className="text-[10px] text-gray-600 font-black uppercase tracking-widest">TOTAL KG:</span><span className="text-xl font-black text-cyan-400 font-mono leading-none">{totalLoadedKg.toLocaleString()}</span></div>
+            </div>
+         </div>
+
+         <button onClick={handleRunAll} disabled={isRunning} className="px-10 h-11 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center gap-3 transition-all scale-105 active:scale-95 tracking-widest text-sm shrink-0">
+            {isRunning ? <RefreshIcon className="w-5 h-5 animate-spin" /> : <CalculatorIcon className="w-5 h-5" />} OPTIMIZAR (F4)
+         </button>
       </nav>
 
-      {/* Workspace */}
       <main className="flex-1 flex overflow-hidden relative">
         
         {/* Retractable Sidebar */}
-        <aside className={`shrink-0 bg-[#080808] border-r border-gray-900 transition-all duration-300 flex flex-col overflow-hidden shadow-2xl z-50 ${isSidebarCollapsed ? 'w-0' : 'w-64'}`}>
-           <div className="p-5 shrink-0 border-b border-gray-900 bg-black/20">
-              <span className="text-[10px] font-black text-cyan-600 uppercase tracking-widest border-l-2 border-cyan-600 pl-4 italic">Panel de Control</span>
+        <aside className={`shrink-0 bg-[#050505] border-r border-gray-900 transition-all duration-300 ease-in-out flex flex-col overflow-hidden shadow-2xl z-50 ${isSidebarCollapsed ? 'w-0' : 'w-64'}`}>
+           <div className="p-4 shrink-0 border-b border-gray-900 bg-gray-900/5">
+              <span className="text-[10px] font-black text-cyan-600 uppercase tracking-widest border-l-2 border-cyan-600 pl-4 italic">Filtro de Dietas</span>
            </div>
-           <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-4">
+           <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-3">
               {Object.entries(dietsByCategory).map(([cat, list]) => {
                 const isExp = expandedCats[cat] ?? true;
                 const allSel = list.length > 0 && list.every(d => activeDietIds.includes(d.id));
                 return (
-                  <div key={cat} className="rounded-2xl overflow-hidden border border-gray-900 bg-gray-900/10 hover:bg-gray-900/20 transition-all">
-                    <button onClick={() => setExpandedCats(p => ({...p, [cat]: !isExp}))} className="w-full flex items-center justify-between p-4 bg-gray-900/40">
-                       <span className="text-[10px] font-black text-gray-500 uppercase italic truncate max-w-[120px]">{cat}</span>
+                  <div key={cat} className="rounded-xl overflow-hidden border border-gray-900/40 bg-gray-900/10">
+                    <button onClick={() => setExpandedCats(p => ({...p, [cat]: !isExp}))} className="w-full flex items-center justify-between p-3 bg-white/[0.02]">
+                       <span className="text-[9px] font-black text-gray-500 uppercase italic truncate max-w-[140px]">{cat}</span>
                        <div className="flex items-center gap-2">
-                         <input type="checkbox" checked={allSel} onClick={(e) => e.stopPropagation()} onChange={() => { const ids = list.map(d => d.id); setActiveDietIds(prev => allSel ? prev.filter(id => !ids.includes(id)) : Array.from(new Set([...prev, ...ids]))); }} className="w-4 h-4 rounded-md border-gray-800 bg-black text-cyan-600" />
-                         <ChevronDownIcon className={`w-3.5 h-3.5 text-gray-700 transition-transform ${isExp ? 'rotate-180' : ''}`} />
+                         <input type="checkbox" checked={allSel} onClick={(e) => e.stopPropagation()} onChange={() => { const ids = list.map(d => d.id); setActiveDietIds(prev => allSel ? prev.filter(id => !ids.includes(id)) : Array.from(new Set([...prev, ...ids]))); }} className="w-3.5 h-3.5 rounded border-gray-800 bg-black text-cyan-600" />
+                         <ChevronDownIcon className={`w-3 h-3 text-gray-800 transition-transform ${isExp ? 'rotate-180' : ''}`} />
                        </div>
                     </button>
                     {isExp && (
-                      <div className="p-1 space-y-1 bg-black/10">
+                      <div className="p-1 space-y-0.5 bg-black/10">
                         {list.map(d => (
                           <button key={d.id} onClick={() => setActiveDietIds(p => p.includes(d.id) ? p.filter(id => id !== d.id) : [...p, d.id])} 
-                            className={`w-full text-left px-5 py-3 rounded-xl text-[12px] font-black uppercase transition-all truncate tracking-tight ${activeDietIds.includes(d.id) ? 'bg-cyan-600 text-white shadow-xl scale-[1.02]' : 'text-gray-600 hover:bg-gray-800 hover:text-gray-300'}`}>
+                            className={`w-full text-left px-4 py-2.5 rounded-lg text-[11px] font-black uppercase transition-all truncate tracking-tight ${activeDietIds.includes(d.id) ? 'bg-slate-800/80 text-white shadow-lg border border-white/5' : 'text-gray-600 hover:bg-gray-800/40 hover:text-gray-300'}`}>
                              {d.name}
                           </button>
                         ))}
@@ -407,45 +413,50 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
            </div>
         </aside>
 
-        {/* Sidebar Toggle */}
-        <button onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} className={`absolute bottom-6 z-[60] p-3 bg-gray-900 hover:bg-cyan-600 text-white rounded-full shadow-2xl transition-all border border-gray-800 active:scale-95 ${isSidebarCollapsed ? 'left-6' : 'left-[15rem]'}`}>
-           {isSidebarCollapsed ? <ChevronRightIcon className="w-6 h-6" /> : <ChevronLeftIcon className="w-6 h-6" />}
+        {/* Sidebar Collapse Toggle */}
+        <button onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} className={`absolute bottom-6 z-[60] p-2.5 bg-gray-900 hover:bg-cyan-600 text-white rounded-full shadow-2xl transition-all border border-gray-800 active:scale-90 ${isSidebarCollapsed ? 'left-6' : 'left-[15.2rem]'}`}>
+           {isSidebarCollapsed ? <ChevronRightIcon className="w-5 h-5" /> : <ChevronLeftIcon className="w-5 h-5" />}
         </button>
 
-        {/* Matrix Canvas */}
-        <div className="flex-1 overflow-auto bg-[#020202] custom-scrollbar">
-           <table className="border-separate border-spacing-0 w-full table-fixed min-w-[1400px]">
+        {/* Matrix Implementation */}
+        <div className="flex-1 overflow-auto bg-[#010101] custom-scrollbar">
+           <table className="border-separate border-spacing-0 w-full table-fixed min-w-[1500px]">
               <thead>
                 <tr className="sticky top-0 z-[60]">
-                  <th className="sticky left-0 z-[70] bg-[#050505] border-b border-r border-gray-800 p-6 text-left w-80 shadow-[10px_0_20px_rgba(0,0,0,0.8)]">
-                     <span className="text-[10px] font-black text-gray-600 uppercase italic tracking-[0.4em] leading-none">Matriz de Formulación</span>
+                  <th className="sticky left-0 z-[70] bg-[#030303] border-b border-r border-gray-900 p-6 pl-10 text-left w-80 shadow-[15px_0_30px_rgba(0,0,0,0.9)]">
+                     <span className="text-[10px] font-black text-gray-700 uppercase italic tracking-[0.5em] leading-none">Vectores Técnicos</span>
                   </th>
                   {activeDiets.map(diet => (
-                    <th key={diet.id} className="bg-[#0a0a0a] border-b border-r border-gray-900 p-3 w-[200px]">
-                       <div className="flex items-center justify-between gap-3 p-1.5 bg-black/60 rounded-xl border border-gray-800/40">
-                         <StatusIcon ok={results[diet.id]?.feasible ?? true} />
-                         <span className="text-[13px] font-black text-gray-300 uppercase truncate text-center flex-1 tracking-tighter italic">{diet.name}</span>
-                         <button onClick={() => setActiveDietIds(p => p.filter(id => id !== diet.id))} className="text-gray-800 hover:text-red-500 transition-colors"><TrashIcon className="w-4 h-4" /></button>
+                    <th key={diet.id} className="bg-[#080808] border-b border-r border-gray-900 p-0 w-[240px]">
+                       <div className="flex flex-col h-full border-b border-white/[0.02]">
+                          <div className="flex items-center justify-between gap-3 p-3 bg-black/60">
+                            <StatusIcon ok={results[diet.id]?.feasible ?? true} />
+                            <span className="text-[13px] font-black text-gray-300 uppercase truncate text-center flex-1 tracking-tighter italic">{diet.name}</span>
+                            <button onClick={() => setActiveDietIds(p => p.filter(id => id !== diet.id))} className="text-gray-800 hover:text-red-500 active:scale-90"><TrashIcon className="w-3.5 h-3.5" /></button>
+                          </div>
+                          <div className="flex items-center justify-between px-3 py-1.5 bg-black/30 border-t border-white/5">
+                             <div className="flex items-center gap-1.5"><span className="text-[8px] font-black text-gray-600">BATCH:</span><input type="number" value={batchSizes[diet.id] || 1000} onChange={e => { const v = parseInt(e.target.value) || 0; setBatchSizes(prev => ({...prev, [diet.id]: v})); setHasRun(false); }} className="w-12 bg-gray-900/50 text-[10px] font-black text-cyan-500 font-mono rounded outline-none text-center h-4 border border-white/5 focus:border-cyan-500/30" /></div>
+                             <div className="flex gap-2 text-[8px] font-black text-gray-700 uppercase tracking-widest italic opacity-50 px-1"><span>MIN</span><span>MAX</span><span>{viewMode === 'limits' ? 'OK%' : 'KG'}</span></div>
+                          </div>
                        </div>
                     </th>
                   ))}
                 </tr>
               </thead>
               
-              <tbody className="divide-y divide-gray-900/50">
-                {/* Sector: Ingredients */}
-                <tr className="bg-[#080808] sticky top-[73px] z-50 backdrop-blur-md">
-                   <td colSpan={activeDiets.length + 1} className="px-8 py-2 border-b border-gray-800 text-[9px] font-black text-cyan-500 uppercase tracking-[0.4em] font-mono sticky left-0 leading-tight italic">Vectores de Insumos Principales</td>
+              <tbody className="divide-y divide-gray-900/40">
+                <tr className="bg-[#050505] sticky top-[76px] z-50 backdrop-blur-md">
+                   <td colSpan={activeDiets.length + 1} className="px-10 py-1.5 border-b border-gray-900 text-[9px] font-black text-indigo-500 uppercase tracking-[0.4em] font-mono sticky left-0 leading-tight italic">SECTOR I: COMPONENTES DE FÓRMULA</td>
                 </tr>
                 {activeRows.filter(r => r.type === 'ing').map(row => (
-                  <tr key={row.id} className="h-11 group transition-colors hover:bg-white/[0.01]">
-                    <td className="sticky left-0 z-40 bg-[#050505] border-r border-gray-800 px-8 py-0 shadow-2xl">
+                  <tr key={row.id} className="h-10 group transition-all hover:bg-white/[0.01]">
+                    <td className="sticky left-0 z-40 bg-[#030303] border-r border-gray-900 px-10 py-0 shadow-2xl">
                        <div className="flex items-center justify-between h-full py-1">
                          <div className="flex flex-col gap-0 select-text overflow-hidden">
-                            <span className="text-[13px] font-black text-white/90 uppercase tracking-tight truncate leading-none">{row.name}</span>
-                            <span className="text-[11px] text-gray-700 font-bold uppercase tracking-widest mt-0.5 leading-none">Base: ${row.price?.toFixed(2)}</span>
+                            <span className="text-[12px] font-black text-white/90 uppercase tracking-tight truncate leading-none">{row.name}</span>
+                            <span className="text-[10px] text-gray-700 font-bold uppercase tracking-widest mt-0.5 leading-none italic opacity-80">Ref: ${row.price?.toFixed(2)}</span>
                          </div>
-                         <button onClick={() => handleRemoveRow(row.id)} className="text-gray-800 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1.5 bg-red-600/10 rounded-lg"><TrashIcon className="w-4 h-4" /></button>
+                         <button onClick={() => handleRemoveRow(row.id)} className="text-gray-900 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1.5 bg-red-600/10 rounded-lg"><TrashIcon className="w-3.5 h-3.5" /></button>
                        </div>
                     </td>
                     {activeDiets.map(diet => {
@@ -454,10 +465,10 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       const val = res?.formula[row.id] ?? 0;
                       return (
                         <td key={diet.id} className="p-0 border-r border-gray-900/30 h-full">
-                           <div className="grid grid-cols-3 h-11">
-                              <DiagnosticCell row={row} dietId={diet.id} value={c?.min ?? ''} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} dirty={c?.dirty} />
-                              <DiagnosticCell row={row} dietId={diet.id} value={c && c.max < 100 ? c.max : ''} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} dirty={c?.dirty} />
-                              <DiagnosticCell row={row} dietId={diet.id} value={val} isResult resultValue={val} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={res?.feasible ?? true} min={c?.min} max={c?.max} shadowPrice={res?.shadowPrices[row.id]} />
+                           <div className="grid grid-cols-3 h-10 divide-x divide-white/[0.02]">
+                              <DiagnosticCell row={row} dietId={diet.id} value={c?.min ?? ''} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} dirty={c?.dirty} hasRun={hasRun} />
+                              <DiagnosticCell row={row} dietId={diet.id} value={c && c.max < 100 ? c.max : ''} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} dirty={c?.dirty} hasRun={hasRun} />
+                              <DiagnosticCell row={row} dietId={diet.id} value={val} isResult resultValue={val} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={res?.feasible ?? true} min={c?.min} max={c?.max} shadowPrice={res?.shadowPrices[row.id]} hasRun={hasRun} />
                            </div>
                         </td>
                       );
@@ -465,19 +476,18 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                   </tr>
                 ))}
 
-                {/* Sector: Nutrients */}
-                <tr className="bg-[#080808] sticky top-[73px] z-50 backdrop-blur-md">
-                   <td colSpan={activeDiets.length + 1} className="px-8 py-2 border-b border-gray-800 text-[9px] font-black text-emerald-500 uppercase tracking-[0.4em] font-mono sticky left-0 leading-tight italic">Balance Nutricional Proyectado</td>
+                <tr className="bg-[#050505] sticky top-[76px] z-50 backdrop-blur-md">
+                   <td colSpan={activeDiets.length + 1} className="px-10 py-1.5 border-b border-gray-900 text-[9px] font-black text-emerald-500 uppercase tracking-[0.4em] font-mono sticky left-0 leading-tight italic">SECTOR II: BALANCE TÉCNICO</td>
                 </tr>
                 {activeRows.filter(r => r.type === 'nut').map(row => (
-                  <tr key={row.id} className="h-11 group transition-colors hover:bg-white/[0.01]">
-                    <td className="sticky left-0 z-40 bg-[#050505] border-r border-gray-800 px-8 py-0 shadow-2xl">
+                  <tr key={row.id} className="h-10 group transition-all hover:bg-white/[0.01]">
+                    <td className="sticky left-0 z-40 bg-[#030303] border-r border-gray-900 px-10 py-0 shadow-2xl">
                        <div className="flex items-center justify-between h-full py-1">
                          <div className="flex flex-col gap-0 select-text overflow-hidden">
-                            <span className="text-[13px] font-black text-white/90 uppercase tracking-tight truncate leading-none">{row.name}</span>
-                            <span className="text-[11px] text-gray-700 font-bold uppercase tracking-widest mt-0.5 leading-none">{row.unit}</span>
+                            <span className="text-[12px] font-black text-white/90 uppercase tracking-tight truncate leading-none">{row.name}</span>
+                            <span className="text-[10px] text-gray-700 font-bold uppercase tracking-widest mt-0.5 leading-none italic opacity-80">Unidad: {row.unit}</span>
                          </div>
-                         <button onClick={() => handleRemoveRow(row.id)} className="text-gray-800 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1.5 bg-red-600/10 rounded-lg"><TrashIcon className="w-4 h-4" /></button>
+                         <button onClick={() => handleRemoveRow(row.id)} className="text-gray-900 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1.5 bg-red-600/10 rounded-lg"><TrashIcon className="w-3.5 h-3.5" /></button>
                        </div>
                     </td>
                     {activeDiets.map(diet => {
@@ -486,10 +496,10 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       const val = res?.nutrients[row.id] ?? 0;
                       return (
                         <td key={diet.id} className="p-0 border-r border-gray-900/30 h-full">
-                           <div className="grid grid-cols-3 h-11">
-                              <DiagnosticCell row={row} dietId={diet.id} value={c?.min ?? ''} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} dirty={c?.dirty} />
-                              <DiagnosticCell row={row} dietId={diet.id} value={c && c.max < 999 ? c.max : ''} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} dirty={c?.dirty} />
-                              <DiagnosticCell row={row} dietId={diet.id} value={val} isResult resultValue={val} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={res?.feasible ?? true} min={c?.min} max={c?.max} shadowPrice={res?.shadowPrices[row.id]} />
+                           <div className="grid grid-cols-3 h-10 divide-x divide-white/[0.02]">
+                              <DiagnosticCell row={row} dietId={diet.id} value={c?.min ?? ''} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} dirty={c?.dirty} hasRun={hasRun} />
+                              <DiagnosticCell row={row} dietId={diet.id} value={c && c.max < 999 ? c.max : ''} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} dirty={c?.dirty} hasRun={hasRun} />
+                              <DiagnosticCell row={row} dietId={diet.id} value={val} isResult resultValue={val} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={res?.feasible ?? true} min={c?.min} max={c?.max} shadowPrice={res?.shadowPrices[row.id]} hasRun={hasRun} />
                            </div>
                         </td>
                       );
@@ -498,32 +508,36 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                 ))}
               </tbody>
 
-              {/* Technical Footer Strip */}
               <tfoot>
-                <tr className="sticky bottom-0 z-[60] bg-[#0a0a0a] border-t border-gray-800 shadow-[0_-15px_30px_rgba(0,0,0,0.8)]">
-                   <td className="p-3 px-8 sticky left-0 z-[70] bg-[#050505] border-r border-gray-800">
+                <tr className="sticky bottom-0 z-[60] bg-[#050505] border-t-2 border-gray-900 shadow-[0_-15px_30px_rgba(0,0,0,0.9)]">
+                   <td className="p-4 px-10 sticky left-0 z-[70] bg-[#030303] border-r border-gray-900 shadow-xl">
                       <div className="flex flex-col">
-                        <span className="text-[11px] font-black text-cyan-500 uppercase tracking-widest leading-none mb-0.5">Diagnóstico Staff</span>
-                        <span className="text-[8px] text-gray-600 font-bold uppercase tracking-widest leading-none opacity-40">Resumen de costos óptimos</span>
+                        <span className="text-[11px] font-black text-cyan-500 uppercase tracking-widest leading-none mb-1 shadow-cyan-500/10">DIAGNÓSTICO FINAL</span>
+                        <span className="text-[8px] text-gray-700 font-bold uppercase tracking-widest leading-none opacity-40">Resumen de costos óptimos por kg</span>
                       </div>
                    </td>
                    {activeDiets.map(diet => {
                      const r = results[diet.id];
                      const diff = r && r.prevCostPerKg ? r.costPerKg - r.prevCostPerKg : 0;
                      return (
-                       <td key={diet.id} className="border-r border-gray-800 p-2 bg-black/80 backdrop-blur-xl">
-                         {r ? (
-                           <div className="flex items-center justify-center gap-3">
-                              <span className={`text-[20px] font-black font-mono leading-none tracking-tighter ${r.feasible ? 'text-white' : 'text-red-500 animate-pulse'}`}>
-                                ${r.costPerKg.toFixed(2)}
-                              </span>
-                              {hasRun && diff !== 0 && (
-                                <span className={`text-[10px] font-black flex items-center gap-0.5 ${diff > 0 ? 'text-red-400' : 'text-emerald-400'} px-1 rounded bg-black/40`}>
-                                  {diff > 0 ? '↑' : '↓'} {Math.abs(diff).toFixed(3)}
+                       <td key={diet.id} className="border-r border-gray-900/40 p-2 bg-black/80 backdrop-blur-xl">
+                         {r && hasRun ? (
+                           <div className="flex flex-col items-center justify-center gap-1">
+                              <div className="flex items-center gap-3">
+                                <span className={`text-[20px] font-black font-mono leading-none tracking-tighter ${r.feasible ? 'text-white' : 'text-red-500 animate-pulse'}`}>
+                                  ${r.costPerKg.toFixed(2)}
                                 </span>
-                              )}
+                                {diff !== 0 && (
+                                  <span className={`text-[10px] font-black flex items-center gap-0.5 ${diff > 0 ? 'text-red-400' : 'text-emerald-400'} px-1 rounded bg-black/50 border border-white/5`}>
+                                    {diff > 0 ? '↑' : '↓'} {Math.abs(diff).toFixed(3)}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-4 text-[9px] font-black text-gray-600 uppercase tracking-widest italic opacity-60">
+                                 <span>{viewMode === 'kg' ? `TOTAL: ${(Object.values(r.formula).reduce((s,v)=>s+v,0) * (batchSizes[diet.id]||1000)/100).toFixed(2)} KG` : 'COSTO/UNIT'}</span>
+                              </div>
                            </div>
-                         ) : <div className="text-[10px] text-gray-800 font-black uppercase text-center italic opacity-20">SIN CÁLCULO</div>}
+                         ) : <div className="text-[10px] text-gray-800 font-black uppercase text-center italic py-2 tracking-widest opacity-20">SIN OPTIMIZACIÓN</div>}
                        </td>
                      );
                    })}
