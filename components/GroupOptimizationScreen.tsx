@@ -192,7 +192,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
 
   const goHome = () => {
     onLeaveFullscreen?.();
-    onNavigate?.('DASHBOARD'); 
+    onNavigate?.('DASHBOARD'); // Navegación nativa al Panel de Control
   };
 
   // 2. DATA DERIVADA
@@ -343,7 +343,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     const L = (e: KeyboardEvent) => { if (e.key === 'F4') { e.preventDefault(); handleRunAll(); } };
     window.addEventListener('keydown', L);
     onEnterFullscreen?.();
-    return () => { window.removeEventListener('keydown', L); onLeaveFullscreen?.(); };
+    return () => { window.removeEventListener('keydown', L); onEnterFullscreen?.(); };
   }, [handleRunAll, onEnterFullscreen, onLeaveFullscreen]);
 
   // 5. RENDERIZADO (ADN Dashboard Premium)
@@ -421,8 +421,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
          </div>
 
          <div className="flex-1 flex items-center justify-end gap-16">
-            <div className="flex flex-col items-center"><span className="text-[12px] font-black text-[#00D1FF] font-mono leading-none tracking-tighter">{activeDiets.length}</span><span className="text-[9px] text-slate-300 font-bold uppercase tracking-widest mt-1">DIETAS</span></div>
-            <div className="flex flex-col items-center"><span className="text-[12px] font-black text-indigo-400 font-mono leading-none tracking-tighter">{totalLoadedKg.toLocaleString()}</span><span className="text-[9px] text-slate-300 font-bold uppercase tracking-widest mt-1">KILOS TOTAL</span></div>
+            <div className="flex flex-col items-center"><span className="text-[12px] font-black text-[#00D1FF] font-mono leading-none tracking-tighter">{activeDiets.length}</span><span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">DIETAS</span></div>
+            <div className="flex flex-col items-center"><span className="text-[12px] font-black text-indigo-400 font-mono leading-none tracking-tighter">{totalLoadedKg.toLocaleString()}</span><span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">KILOS TOTAL</span></div>
             <button onClick={handleRunAll} disabled={isRunning} className="px-12 h-11 bg-emerald-700 hover:bg-emerald-600 text-white font-black uppercase rounded-[1.5rem] shadow-[0_15px_40px_rgba(16,185,129,0.2)] flex items-center gap-5 transition-all active:scale-95 tracking-[0.25em] text-[11px] border border-emerald-500/30">
                {isRunning ? <RefreshIcon className="w-6 h-6 animate-spin" /> : <CalculatorIcon className="w-6 h-6" />} OPTIMIZAR (F4)
             </button>
@@ -443,17 +443,17 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                 return (
                   <div key={cat} className="rounded-3xl overflow-hidden border border-slate-800/50 bg-[#0f172a]/20 shadow-2xl">
                     <button onClick={() => setExpandedCats(p => ({...p, [cat]: !isExp}))} className="w-full flex items-center justify-between p-4 hover:bg-white/[0.03] transition-colors">
-                       <span className="text-[10px] font-black text-slate-300 uppercase italic truncate max-w-[130px] tracking-widest whitespace-normal break-words">{cat}</span>
+                       <span className="text-[10px] font-black text-slate-400 uppercase italic truncate max-w-[130px] tracking-widest whitespace-normal break-words">{cat}</span>
                        <div className="flex items-center gap-3">
                          <input type="checkbox" checked={allSel} onClick={(e) => e.stopPropagation()} onChange={() => { const ids = list.map(d => d.id); setActiveDietIds(prev => allSel ? prev.filter(id => !ids.includes(id)) : Array.from(new Set([...prev, ...ids]))); }} className="w-4 h-4 rounded-lg bg-black border-slate-800 text-[#00D1FF] focus:ring-0" />
-                         <ChevronDownIcon className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isExp ? 'rotate-180' : ''}`} />
+                         <ChevronDownIcon className={`w-3.5 h-3.5 text-slate-600 transition-transform ${isExp ? 'rotate-180' : ''}`} />
                        </div>
                     </button>
                     {isExp && (
                       <div className="p-1.5 space-y-1.5 bg-[#0f172a]/30">
                         {list.map(d => (
                           <button key={d.id} onClick={() => setActiveDietIds(p => p.includes(d.id) ? p.filter(id => id !== d.id) : [...p, d.id])} 
-                            className={`w-full text-left px-5 py-4 rounded-2xl text-[12px] font-black uppercase transition-all tracking-tight whitespace-normal break-words ${activeDietIds.includes(d.id) ? 'bg-[#0f172a] text-white shadow-2xl border border-[#00D1FF]/30' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}>
+                            className={`w-full text-left px-5 py-4 rounded-2xl text-[12px] font-black uppercase transition-all tracking-tight whitespace-normal break-words ${activeDietIds.includes(d.id) ? 'bg-[#0f172a] text-white shadow-2xl border border-[#00D1FF]/30' : 'text-slate-500 hover:bg-white/5 hover:text-slate-400'}`}>
                              {d.name}
                           </button>
                         ))}
@@ -482,12 +482,12 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                   {activeDiets.map(diet => (
                     <th key={diet.id} className="bg-[#080808] border-b-2 border-r border-slate-800 p-0 w-[180px] transition-all">
                        <div className="flex flex-col h-full bg-[#0f172a]/20">
-                          <div className="flex items-center justify-between gap-4 p-4 min-h-[80px]">
+                          <div className="flex items-center justify-between p-4 min-h-[80px]">
+                            {/* Papelera posicionada a la derecha del nombre. Se eliminó el círculo rojo. */}
+                            <span className="text-[16px] font-black text-white uppercase text-center flex-1 tracking-tight italic font-mono whitespace-normal break-words leading-tight pr-2">{diet.name}</span>
                             <button onClick={() => setActiveDietIds(p => p.filter(id => id !== diet.id))} className="text-red-500 opacity-40 hover:opacity-100 transition-all p-2 hover:bg-red-950/20 rounded-2xl shrink-0">
                                <TrashIcon className="w-4 h-4" />
                             </button>
-                            <span className="text-[16px] font-black text-white uppercase text-center flex-1 tracking-tight italic font-mono whitespace-normal break-words leading-tight">{diet.name}</span>
-                            <div className={`w-3 h-3 rounded-full shrink-0 ${results[diet.id]?.feasible ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]' : 'bg-rose-900/20 border border-rose-500/20'}`} />
                           </div>
                           <div className="flex items-center justify-center py-2.5 bg-black/40 border-t border-slate-800/30 gap-2">
                              <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest scale-90">LT:</span>
@@ -504,7 +504,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                 {/* SECTOR I: COMPONENTES */}
                 <tr className="bg-[#060606] sticky top-[112px] z-50 backdrop-blur-2xl border-b border-slate-800 h-9">
                    <td className="sticky left-0 bg-[#060606] z-[55] px-8 border-r border-slate-800 pr-10">
-                      <span className="text-[12px] font-black text-slate-300 uppercase tracking-[0.4em] font-mono italic opacity-90">Sector I: Componentes</span>
+                      <span className="text-[12px] font-black text-slate-400 uppercase tracking-[0.4em] font-mono italic opacity-90">Sector I: Componentes</span>
                    </td>
                    {activeDiets.map(diet => (
                      <td key={`h1-${diet.id}`} className="p-0 border-r border-slate-800 bg-black/40">
@@ -523,12 +523,11 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                     <td className="sticky left-0 z-40 bg-[#030303] border-r border-slate-800 pl-8 pr-10 py-0 shadow-[10px_0_20px_rgba(0,0,0,0.8)] group-focus-within:bg-[#0c0c0c] transition-colors">
                        <div className="flex items-center justify-between h-full py-1.5 gap-4">
                          <div className="min-w-0 flex-1 flex flex-col justify-center">
-                            {/* CORRECCIÓN DE FLUJO: Texto sólido, multi-línea sín fragmentación forzada */}
-                            <span className="text-[14px] font-black text-white group-hover:text-cyan-400 uppercase tracking-tight leading-tight whitespace-normal break-words block">
+                            {/* SOLUCIÓN AL FLUJO DE TEXTO: block w-full para evitar fragmentación artificial */}
+                            <span className="text-[14px] font-black text-white group-hover:text-cyan-400 uppercase tracking-tight leading-tight whitespace-normal break-words block w-full">
                               {row.name}
                             </span>
-                            {/* CONTRASTE ALTO: text-slate-300 */}
-                            <span className="text-[11px] text-slate-300 font-bold uppercase italic font-mono scale-95 origin-left tracking-widest opacity-90 group-hover:opacity-100">
+                            <span className="text-[11px] text-slate-400 font-bold uppercase italic font-mono scale-95 origin-left tracking-widest opacity-90 group-hover:opacity-100">
                               ${row.price?.toFixed(2)}
                             </span>
                          </div>
@@ -558,7 +557,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                 {/* SECTOR II: REQUERIMIENTOS */}
                 <tr className="bg-[#060606] sticky top-[112px] z-50 backdrop-blur-2xl border-b border-slate-800 h-9">
                    <td className="sticky left-0 bg-[#060606] z-[55] px-8 border-r border-slate-800 pr-10">
-                      <span className="text-[12px] font-black text-slate-300 uppercase tracking-[0.4em] font-mono italic opacity-90">Sector II: Parámetros</span>
+                      <span className="text-[12px] font-black text-slate-400 uppercase tracking-[0.4em] font-mono italic opacity-90">Sector II: Parámetros</span>
                    </td>
                    {activeDiets.map(diet => (
                      <td key={`h2-${diet.id}`} className="p-0 border-r border-slate-800 bg-black/40">
@@ -579,12 +578,11 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       <td className="sticky left-0 z-40 bg-[#030303] border-r border-slate-800 pl-8 pr-10 py-0 shadow-[10px_0_20px_rgba(0,0,0,0.8)] group-focus-within:bg-[#0c0c0c] transition-colors">
                          <div className="flex items-center justify-between h-full py-1.5 gap-4">
                            <div className="min-w-0 flex-1 flex flex-col justify-center">
-                              {/* CORRECCIÓN DE FLUJO: Texto sólido, multi-línea */}
-                              <span className="text-[14px] font-black text-white group-hover:text-cyan-400 uppercase tracking-tight leading-tight whitespace-normal break-words block">
+                              {/* SOLUCIÓN AL FLUJO DE TEXTO */}
+                              <span className="text-[14px] font-black text-white group-hover:text-cyan-400 uppercase tracking-tight leading-tight whitespace-normal break-words block w-full">
                                 {row.name}
                               </span>
-                              {/* CONTRASTE ALTO: text-slate-300 */}
-                              <span className="text-[11px] text-slate-300 font-bold uppercase italic font-mono scale-95 origin-left tracking-[0.3em] opacity-90 group-hover:opacity-100">
+                              <span className="text-[11px] text-slate-400 font-bold uppercase italic font-mono scale-95 origin-left tracking-[0.3em] opacity-90 group-hover:opacity-100">
                                 {row.unit}
                               </span>
                            </div>
