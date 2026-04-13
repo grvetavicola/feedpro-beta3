@@ -90,7 +90,6 @@ const DiagnosticCell = ({
   const isOutOfBounds = resultValue !== undefined && min !== null && min !== undefined && max !== null && max !== undefined && (resultValue < min - 0.01 || resultValue > max + 0.01);
   const isError = min !== null && min !== undefined && max !== null && max !== undefined && min > max;
   
-  // ESTÁNDAR VET-IA: Colores Soft-Glass
   let bgColor = "bg-transparent";
   let borderColor = "border-transparent";
   let textColor = isResult ? "text-[#00D1FF]" : "text-white";
@@ -117,7 +116,6 @@ const DiagnosticCell = ({
     }
   }
 
-  // PUREZA DE DATOS: SOLO NÚMEROS (NO % NI UNIDADES)
   const displayValue = viewMode === 'kg' && isResult && resultValue !== undefined 
     ? ((resultValue / 100) * (batchSize || 1000)).toFixed(2) 
     : (typeof value === 'number' ? value.toFixed(1) : (value ?? ''));
@@ -172,7 +170,6 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   onEnterFullscreen, onLeaveFullscreen, selectedClientId, onNavigate
 }) => {
 
-  // 1. REGLA DE SALIDA: DECLARA TODOS LOS HOOKS AL INICIO
   const [activeDietIds, setActiveDietIds] = useState<string[]>(selectedDietIds);
   const [activeRows, setActiveRows] = useState<MatrixRow[]>([]);
   const [constraints, setConstraints] = useState<Record<string, Record<string, ConstraintSet>>>({});
@@ -192,10 +189,14 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
 
   const goHome = () => {
     onLeaveFullscreen?.();
-    onNavigate?.('DASHBOARD'); // Navegación nativa al Panel de Control
+    if (onNavigate) {
+      onNavigate('DASHBOARD');
+    } else {
+      // Fallback si no está el prop (pero debería estar)
+      window.dispatchEvent(new CustomEvent('feedpro:goto_dashboard'));
+    }
   };
 
-  // 2. DATA DERIVADA
   const activeDiets = useMemo(() => products.filter(p => activeDietIds.includes(p.id)), [products, activeDietIds]);
   const dietsByCategory = useMemo(() => {
     const map: Record<string, Product[]> = {};
@@ -209,7 +210,6 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
 
   const totalLoadedKg = useMemo(() => activeDietIds.reduce((sum, id) => sum + (batchSizes[id] || 0), 0), [activeDietIds, batchSizes]);
 
-  // 3. LOGIC HANDLERS
   const handleRemoveRow = (id: string) => {
     setActiveRows(p => p.filter(r => r.id !== id));
     setConstraints(p => { const next = { ...p }; delete next[id]; return next; });
@@ -287,7 +287,6 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     setIsDirty?.(false);
   };
 
-  // 4. LÓGICA DE AUDITORÍA Y REACTIVIDAD
   useEffect(() => { if (selectedDietIds) setActiveDietIds(selectedDietIds); }, [selectedDietIds]);
   useEffect(() => { setBatchSizes(prev => {
       const next = { ...prev };
@@ -346,11 +345,9 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     return () => { window.removeEventListener('keydown', L); onEnterFullscreen?.(); };
   }, [handleRunAll, onEnterFullscreen, onLeaveFullscreen]);
 
-  // 5. RENDERIZADO (ADN Dashboard Premium)
   return (
     <div className="flex-1 flex flex-col w-full h-full bg-[#030303] text-white overflow-hidden select-none font-sans antialiased">
       
-      {/* Selector Global Vet-IA ADN */}
       {showCatalog && (
         <div className="fixed inset-0 bg-black/98 backdrop-blur-3xl z-[200] flex items-center justify-center p-4">
            <div className="bg-[#0e0e0e] border border-slate-800 rounded-[2rem] w-full max-w-2xl shadow-2xl flex flex-col overflow-hidden max-h-[85vh]">
@@ -397,7 +394,6 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
         </div>
       )}
 
-      {/* Header Unificado Premium (Fila Única) */}
       <nav className="flex-none bg-[#0a0a0a] border-b border-slate-800 h-16 flex items-center px-8 gap-10 z-[100] shadow-2xl relative">
          <div className="flex items-center gap-4 shrink-0">
             <button onClick={goHome} className="p-2.5 text-[#00D1FF] hover:bg-[#00D1FF]/10 rounded-2xl transition-all active:scale-90 bg-black/40 border border-slate-800 cursor-pointer">
@@ -431,7 +427,6 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
 
       <main className="flex-1 flex overflow-hidden relative">
         
-        {/* Retractable Sidebar ADN */}
         <aside className={`shrink-0 bg-[#080808] border-r border-slate-800 transition-all duration-300 flex flex-col overflow-hidden z-50 ${isSidebarCollapsed ? 'w-0' : 'w-64'}`}>
            <div className="p-5 shrink-0 border-b border-slate-800 bg-black/40">
               <span className="text-[11px] font-black text-[#00D1FF] uppercase tracking-[0.3em] border-l-3 border-[#00D1FF] pl-4 italic opacity-90 font-mono">Entorno Clínico</span>
@@ -465,25 +460,23 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
            </div>
         </aside>
 
-        {/* Sidebar Collapse Toggle */}
         <button onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} className={`absolute bottom-10 z-[60] p-3 bg-slate-900/90 hover:bg-[#00D1FF] hover:text-white text-slate-400 rounded-full shadow-2xl transition-all border border-slate-800 active:scale-95 ${isSidebarCollapsed ? 'left-10' : 'left-[15.2rem]'}`}>
            {isSidebarCollapsed ? <ChevronRightIcon className="w-6 h-6" /> : <ChevronLeftIcon className="w-6 h-6" />}
         </button>
 
-        {/* Matrix Canvas (GEOMETRÍA RÍGIDA VET-IA) */}
         <div className="flex-1 overflow-auto bg-[#020202] custom-scrollbar shadow-inner">
-           <table className="border-collapse table-fixed">
+           <table className="border-collapse table-fixed w-max">
               <thead>
                 <tr className="sticky top-0 z-[60]">
-                  {/* Etiquetas Laterales: 250px Fijo (Whitspace Normal + PR Generoso) */}
-                  <th className="sticky left-0 z-[70] bg-[#050505] border-b-2 border-r border-slate-800 p-6 pl-8 pr-10 text-left w-[250px] shadow-[20px_0_40px_rgba(0,0,0,0.9)]">
-                     <span className="text-[16px] font-black text-white uppercase italic tracking-[0.2em] leading-tight font-mono whitespace-normal break-words">MAESTRO DE DATOS</span>
+                  <th className="sticky left-0 z-[70] bg-[#050505] border-b-2 border-r border-slate-800 p-0 text-left w-[250px] shadow-[20px_0_40px_rgba(0,0,0,0.9)]">
+                     <div className="flex items-center w-full h-full pl-8 pr-4 py-8">
+                        <span className="text-[16px] font-black text-white uppercase italic tracking-[0.2em] leading-tight font-mono whitespace-normal break-words">MAESTRO DE DATOS</span>
+                     </div>
                   </th>
                   {activeDiets.map(diet => (
                     <th key={diet.id} className="bg-[#080808] border-b-2 border-r border-slate-800 p-0 w-[180px] transition-all">
                        <div className="flex flex-col h-full bg-[#0f172a]/20">
                           <div className="flex items-center justify-between p-4 min-h-[80px]">
-                            {/* Papelera posicionada a la derecha del nombre. Se eliminó el círculo rojo. */}
                             <span className="text-[16px] font-black text-white uppercase text-center flex-1 tracking-tight italic font-mono whitespace-normal break-words leading-tight pr-2">{diet.name}</span>
                             <button onClick={() => setActiveDietIds(p => p.filter(id => id !== diet.id))} className="text-red-500 opacity-40 hover:opacity-100 transition-all p-2 hover:bg-red-950/20 rounded-2xl shrink-0">
                                <TrashIcon className="w-4 h-4" />
@@ -496,14 +489,13 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                        </div>
                     </th>
                   ))}
-                  <th className="bg-transparent w-full"></th>
+                  <th className="bg-transparent w-40"></th>
                 </tr>
               </thead>
               
               <tbody className="divide-y divide-slate-800/20">
-                {/* SECTOR I: COMPONENTES */}
                 <tr className="bg-[#060606] sticky top-[112px] z-50 backdrop-blur-2xl border-b border-slate-800 h-9">
-                   <td className="sticky left-0 bg-[#060606] z-[55] px-8 border-r border-slate-800 pr-10">
+                   <td className="sticky left-0 bg-[#060606] z-[55] px-8 border-r border-slate-800 pr-4">
                       <span className="text-[12px] font-black text-slate-400 uppercase tracking-[0.4em] font-mono italic opacity-90">Sector I: Componentes</span>
                    </td>
                    {activeDiets.map(diet => (
@@ -515,16 +507,15 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                         </div>
                      </td>
                    ))}
-                   <td className="bg-transparent w-full"></td>
+                   <td className="bg-transparent"></td>
                 </tr>
 
                 {activeRows.filter(r => r.type === 'ing').map((row, rIdx) => (
                   <tr key={row.id} className="h-11 group hover:bg-[#00D1FF]/[0.02] transition-colors relative">
-                    <td className="sticky left-0 z-40 bg-[#030303] border-r border-slate-800 pl-8 pr-10 py-0 shadow-[10px_0_20px_rgba(0,0,0,0.8)] group-focus-within:bg-[#0c0c0c] transition-colors">
+                    <td className="sticky left-0 z-40 bg-[#030303] border-r border-slate-800 pl-8 pr-4 py-0 shadow-[10px_0_20px_rgba(0,0,0,0.8)] group-focus-within:bg-[#0c0c0c] transition-colors w-[250px]">
                        <div className="flex items-center justify-between h-full py-1.5 gap-4">
                          <div className="min-w-0 flex-1 flex flex-col justify-center">
-                            {/* SOLUCIÓN AL FLUJO DE TEXTO: block w-full para evitar fragmentación artificial */}
-                            <span className="text-[14px] font-black text-white group-hover:text-cyan-400 uppercase tracking-tight leading-tight whitespace-normal break-words block w-full">
+                            <span className="text-[13px] font-black text-white group-hover:text-cyan-400 uppercase tracking-tighter leading-tight whitespace-normal break-words block w-full">
                               {row.name}
                             </span>
                             <span className="text-[11px] text-slate-400 font-bold uppercase italic font-mono scale-95 origin-left tracking-widest opacity-90 group-hover:opacity-100">
@@ -550,13 +541,12 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                         </td>
                       );
                     })}
-                    <td className="bg-transparent w-full"></td>
+                    <td className="bg-transparent"></td>
                   </tr>
                 ))}
 
-                {/* SECTOR II: REQUERIMIENTOS */}
                 <tr className="bg-[#060606] sticky top-[112px] z-50 backdrop-blur-2xl border-b border-slate-800 h-9">
-                   <td className="sticky left-0 bg-[#060606] z-[55] px-8 border-r border-slate-800 pr-10">
+                   <td className="sticky left-0 bg-[#060606] z-[55] px-8 border-r border-slate-800 pr-4">
                       <span className="text-[12px] font-black text-slate-400 uppercase tracking-[0.4em] font-mono italic opacity-90">Sector II: Parámetros</span>
                    </td>
                    {activeDiets.map(diet => (
@@ -568,18 +558,17 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                         </div>
                      </td>
                    ))}
-                   <td className="bg-transparent w-full"></td>
+                   <td className="bg-transparent"></td>
                 </tr>
 
                 {activeRows.filter(r => r.type === 'nut').map((row, rIdx) => {
                   const baseIdx = activeRows.filter(r => r.type === 'ing').length;
                   return (
                     <tr key={row.id} className="h-11 group hover:bg-[#00D1FF]/[0.02] transition-colors relative">
-                      <td className="sticky left-0 z-40 bg-[#030303] border-r border-slate-800 pl-8 pr-10 py-0 shadow-[10px_0_20px_rgba(0,0,0,0.8)] group-focus-within:bg-[#0c0c0c] transition-colors">
+                      <td className="sticky left-0 z-40 bg-[#030303] border-r border-slate-800 pl-8 pr-4 py-0 shadow-[10px_0_20px_rgba(0,0,0,0.8)] group-focus-within:bg-[#0c0c0c] transition-colors w-[250px]">
                          <div className="flex items-center justify-between h-full py-1.5 gap-4">
                            <div className="min-w-0 flex-1 flex flex-col justify-center">
-                              {/* SOLUCIÓN AL FLUJO DE TEXTO */}
-                              <span className="text-[14px] font-black text-white group-hover:text-cyan-400 uppercase tracking-tight leading-tight whitespace-normal break-words block w-full">
+                              <span className="text-[13px] font-black text-white group-hover:text-cyan-400 uppercase tracking-tighter leading-tight whitespace-normal break-words block w-full">
                                 {row.name}
                               </span>
                               <span className="text-[11px] text-slate-400 font-bold uppercase italic font-mono scale-95 origin-left tracking-[0.3em] opacity-90 group-hover:opacity-100">
@@ -605,7 +594,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                           </td>
                         );
                       })}
-                      <td className="bg-transparent w-full"></td>
+                      <td className="bg-transparent"></td>
                     </tr>
                   );
                 })}
@@ -613,7 +602,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
 
               <tfoot className="sticky bottom-0 z-[60] shadow-[0_-25px_60px_rgba(0,0,0,1)] border-t-2 border-slate-800">
                 <tr className="bg-[#050505] h-20">
-                   <td className="p-6 px-8 sticky left-0 z-[70] bg-[#030303] border-r-2 border-slate-800 shadow-2xl pr-10">
+                   <td className="p-6 px-8 sticky left-0 z-[70] bg-[#030303] border-r-2 border-slate-800 shadow-2xl pr-4">
                       <div className="flex flex-col">
                         <span className="text-[14px] font-black text-[#00D1FF] uppercase tracking-[0.2em] leading-none mb-2 font-mono">Diagnóstico Maestro</span>
                         <div className="h-0.5 w-12 bg-[#00D1FF]/40 rounded-full mb-2" />
@@ -653,7 +642,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                        </td>
                      );
                    })}
-                   <td className="bg-transparent w-full"></td>
+                   <td className="bg-transparent"></td>
                 </tr>
               </tfoot>
            </table>
