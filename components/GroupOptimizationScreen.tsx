@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Product, Ingredient, Nutrient, SavedFormula } from '../types';
 import { solveFeedFormulation } from '../services/solver';
 import { 
@@ -90,7 +91,7 @@ const DiagnosticCell = ({
   const isOutOfBounds = resultValue !== undefined && min !== null && min !== undefined && max !== null && max !== undefined && (resultValue < min - 0.01 || resultValue > max + 0.01);
   const isError = min !== null && min !== undefined && max !== null && max !== undefined && min > max;
   
-  // 1. ESTÉTICA DE DATOS Y CELDAS (Dashboard Premium)
+  // 1. ESTÉTICA DE DATOS Y CELDAS (Pureza Dashboard)
   let bgColor = "bg-transparent";
   let borderColor = "border-transparent";
   let textColor = isResult ? "text-[#00D1FF]" : "text-white";
@@ -117,7 +118,7 @@ const DiagnosticCell = ({
     }
   }
 
-  // PUREZA DE DATOS: DATO SIN EL SIGNO %
+  // PUREZA TOTAL: ELIMINA ESTRICTAMENTE EL SIGNO % Y UNIDADES
   const displayValue = viewMode === 'kg' && isResult && resultValue !== undefined 
     ? ((resultValue / 100) * (batchSize || 1000)).toFixed(2) 
     : (typeof value === 'number' ? value.toFixed(1) : (value ?? ''));
@@ -172,17 +173,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   onEnterFullscreen, onLeaveFullscreen, selectedClientId, onNavigate
 }) => {
 
-  // 1. REGLA DE SALIDA: DECLARA TODOS LOS HOOKS AL INICIO
-  const navigate = useCallback((to: any) => {
-    if (to === -1) {
-      onLeaveFullscreen?.();
-      if (onNavigate) onNavigate('DASHBOARD');
-      else window.history.back();
-    } else if (onNavigate) {
-      onNavigate(to);
-    }
-  }, [onNavigate, onLeaveFullscreen]);
-
+  // 1. REGLA DE ORO: DECLARA TODOS LOS HOOKS AL INICIO
+  const navigate = useNavigate();
   const [activeDietIds, setActiveDietIds] = useState<string[]>(selectedDietIds);
   const [activeRows, setActiveRows] = useState<MatrixRow[]>([]);
   const [constraints, setConstraints] = useState<Record<string, Record<string, ConstraintSet>>>({});
@@ -217,7 +209,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   // 3. LOGIC HANDLERS
   const handleRemoveRow = (id: string) => {
     setActiveRows(p => p.filter(r => r.id !== id));
-    setConstraints(p => { const n = { ...p }; delete n[id]; return n; });
+    setConstraints(p => { const next = { ...p }; delete next[id]; return next; });
   };
 
   const updateConstraint = (rowId: string, dietId: string, field: 'min' | 'max', val: number | null) => {
@@ -292,7 +284,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     setIsDirty?.(false);
   };
 
-  // 4. LÓGICA DE PERSISTENCIA (ESTADO INICIAL VACÍO)
+  // 4. MEMORIA Y LÓGICA (ESTADO INICIAL VACÍO)
   useEffect(() => { if (selectedDietIds) setActiveDietIds(selectedDietIds); }, [selectedDietIds]);
   useEffect(() => { setBatchSizes(prev => {
       const next = { ...prev };
@@ -305,6 +297,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     setConstraints(prev => {
       const next = { ...prev };
       activeDiets.forEach(diet => {
+        // LÓGICA: CARGA SOLO SI EXISTE HISTORIAL
         const hasHistory = savedFormulas.some(f => f.productId === diet.id);
         (diet.ingredientConstraints || []).forEach(ic => {
           if (!next[ic.ingredientId]) next[ic.ingredientId] = {};
@@ -355,7 +348,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   return (
     <div className="flex-1 flex flex-col w-full h-full bg-[#030303] text-white overflow-hidden select-none font-sans antialiased">
       
-      {/* Selector Global Dashboard Style */}
+      {/* Selector Global Dashboard ADN */}
       {showCatalog && (
         <div className="fixed inset-0 bg-black/98 backdrop-blur-3xl z-[200] flex items-center justify-center p-4">
            <div className="bg-[#0e0e0e] border border-white/5 rounded-[2rem] w-full max-w-2xl shadow-2xl flex flex-col overflow-hidden max-h-[85vh]">
@@ -373,25 +366,25 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
              </div>
 
              <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-black/10">
-                <div className="grid grid-cols-2 gap-10">
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
                    <div className="space-y-4">
                       <h3 className="text-[10px] font-black text-[#00D1FF] uppercase border-b border-[#00D1FF]/10 pb-2 tracking-[0.3em] opacity-50">Principios Insumos</h3>
                       <div className="grid grid-cols-1 gap-1.5 focus-within:opacity-100">
                         {ingredients.filter(i => i.name.toLowerCase().includes(catalogSearch.toLowerCase())).map(i => (
                           <label key={i.id} className={`flex items-center gap-4 p-2.5 rounded-2xl cursor-pointer border transition-all ${catalogSelection.has(i.id) ? 'bg-[#00D1FF]/10 border-[#00D1FF]/30 shadow-[0_0_15px_rgba(0,209,255,0.05)]' : 'border-transparent hover:bg-white/[0.03]'}`}>
-                             <input type="checkbox" checked={catalogSelection.has(i.id)} onChange={() => { const s = new Set(catalogSelection); if (s.has(i.id)) s.delete(i.id); else s.add(i.id); setCatalogSelection(s); }} className="w-4.5 h-4.5 rounded-lg border-gray-800 bg-black text-[#00D1FF] focus:ring-0" />
-                             <span className={`text-[13px] font-bold uppercase truncate ${catalogSelection.has(i.id) ? 'text-white' : 'text-gray-600'}`}>{i.name}</span>
+                             <input type="checkbox" checked={catalogSelection.has(i.id)} onChange={() => { const s = new Set(catalogSelection); if (s.has(i.id)) s.delete(i.id); else s.add(i.id); setCatalogSelection(s); }} className="w-4 h-4 rounded-lg border-gray-800 bg-black text-[#00D1FF] focus:ring-0" />
+                             <span className={`text-[12px] font-bold uppercase truncate ${catalogSelection.has(i.id) ? 'text-white' : 'text-gray-600'}`}>{i.name}</span>
                           </label>
                         ))}
                       </div>
                    </div>
-                   <div className="space-y-4">
+                   <div className="space-y-4 col-span-1 lg:col-span-2">
                       <h3 className="text-[10px] font-black text-emerald-400 uppercase border-b border-emerald-400/10 pb-2 tracking-[0.3em] opacity-50">Parámetros Técnicos</h3>
-                      <div className="grid grid-cols-1 gap-1.5">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-1.5">
                         {nutrients.filter(n => n.name.toLowerCase().includes(catalogSearch.toLowerCase())).map(n => (
                           <label key={n.id} className={`flex items-center gap-4 p-2.5 rounded-2xl cursor-pointer border transition-all ${catalogSelection.has(n.id) ? 'bg-emerald-400/10 border-emerald-400/30 shadow-[0_0_15px_rgba(16,185,129,0.05)]' : 'border-transparent hover:bg-white/[0.03]'}`}>
-                             <input type="checkbox" checked={catalogSelection.has(n.id)} onChange={() => { const s = new Set(catalogSelection); if (s.has(n.id)) s.delete(n.id); else s.add(n.id); setCatalogSelection(s); }} className="w-4.5 h-4.5 rounded-lg border-gray-800 bg-black text-emerald-400 focus:ring-0" />
-                             <span className={`text-[13px] font-bold uppercase truncate ${catalogSelection.has(n.id) ? 'text-white' : 'text-gray-600'}`}>{n.name}</span>
+                             <input type="checkbox" checked={catalogSelection.has(n.id)} onChange={() => { const s = new Set(catalogSelection); if (s.has(n.id)) s.delete(n.id); else s.add(n.id); setCatalogSelection(s); }} className="w-4 h-4 rounded-lg border-gray-800 bg-black text-emerald-400 focus:ring-0" />
+                             <span className={`text-[12px] font-bold uppercase truncate ${catalogSelection.has(n.id) ? 'text-white' : 'text-gray-600'}`}>{n.name}</span>
                           </label>
                         ))}
                       </div>
@@ -402,10 +395,10 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
         </div>
       )}
 
-      {/* Header Unificado (ADN Dashboard) */}
+      {/* Header Unificado Premium (Fila Única Técnica) */}
       <nav className="flex-none bg-[#0a0a0a] border-b border-white/5 h-16 flex items-center px-8 gap-10 z-[100] shadow-2xl relative">
          <div className="flex items-center gap-4 shrink-0">
-            {/* Botón Volver Discreto */}
+            {/* Botón Volver Reconectado */}
             <button onClick={() => navigate(-1)} className="p-2.5 text-[#00D1FF] hover:bg-[#00D1FF]/10 rounded-2xl transition-all active:scale-90 bg-black/40 border border-white/5">
                <ArrowLeftIcon className="w-6 h-6" />
             </button>
@@ -438,7 +431,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
 
       <main className="flex-1 flex overflow-hidden relative">
         
-        {/* Retractable Sidebar DashboardADN */}
+        {/* Retractable Sidebar ADN */}
         <aside className={`shrink-0 bg-[#080808] border-r border-white/5 transition-all duration-300 flex flex-col overflow-hidden z-50 ${isSidebarCollapsed ? 'w-0' : 'w-64'}`}>
            <div className="p-5 shrink-0 border-b border-white/5 bg-black/40">
               <span className="text-[11px] font-black text-[#00D1FF] uppercase tracking-[0.3em] border-l-3 border-[#00D1FF] pl-4 italic opacity-90">Entorno Clínico</span>
@@ -490,8 +483,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                     <th key={diet.id} className="bg-[#080808] border-b-2 border-r border-white/5 p-0 w-[220px] transition-all">
                        <div className="flex flex-col h-full bg-black/20">
                           <div className="flex items-center justify-between gap-4 p-5">
-                            {/* Única Papelera Roja Refinada */}
-                            <button onClick={() => setActiveDietIds(p => p.filter(id => id !== diet.id))} className="text-red-600/30 hover:text-red-600 transition-all p-2 hover:bg-red-950/20 rounded-2xl">
+                            {/* Papelera Roja Refinada (40% Op -> 100% Hover) */}
+                            <button onClick={() => setActiveDietIds(p => p.filter(id => id !== diet.id))} className="text-red-500 opacity-40 hover:opacity-100 transition-all p-2 hover:bg-red-950/20 rounded-2xl">
                                <TrashIcon className="w-4 h-4" />
                             </button>
                             <span className="text-[16px] font-black text-white uppercase truncate text-center flex-1 tracking-tight italic font-mono">{diet.name}</span>
@@ -519,7 +512,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                         <div className="grid grid-cols-3 h-10 divide-x divide-white/[0.05]">
                            <div className="flex items-center justify-center text-[12px] font-black text-[#38bdf8] uppercase tracking-widest">MIN</div>
                            <div className="flex items-center justify-center text-[12px] font-black text-[#38bdf8] uppercase tracking-widest">MAX</div>
-                           <div className="flex items-center justify-center text-[12px] font-black text-[#38bdf8] uppercase tracking-widest whitespace-nowrap px-1">ACT</div>
+                           <div className="flex items-center justify-center text-[12px] font-black text-[#38bdf8] uppercase tracking-widest">ACT</div>
                         </div>
                      </td>
                    ))}
@@ -534,7 +527,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                             <span className="text-[14px] font-black text-gray-300 group-hover:text-white uppercase tracking-tight truncate leading-none mb-1 mr-4">{row.name}</span>
                             <span className="text-[11px] text-gray-800 font-bold uppercase italic font-mono scale-95 origin-left tracking-widest opacity-80 group-hover:opacity-100">${row.price?.toFixed(2)}</span>
                          </div>
-                         <button onClick={() => handleRemoveRow(row.id)} className="text-red-900/20 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all p-2 hover:bg-red-600/10 rounded-xl">
+                         <button onClick={() => handleRemoveRow(row.id)} className="text-red-500 opacity-40 hover:opacity-100 transition-all p-2 hover:bg-red-600/10 rounded-xl">
                             <TrashIcon className="w-3.5 h-3.5" />
                          </button>
                        </div>
@@ -584,7 +577,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                               <span className="text-[14px] font-black text-gray-300 group-hover:text-white uppercase tracking-tight truncate leading-none mb-1 mr-4">{row.name}</span>
                               <span className="text-[11px] text-gray-800 font-bold uppercase italic font-mono scale-95 origin-left tracking-[0.3em] opacity-80 group-hover:opacity-100">{row.unit}</span>
                            </div>
-                           <button onClick={() => handleRemoveRow(row.id)} className="text-red-900/20 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all p-2 hover:bg-red-600/10 rounded-xl">
+                           <button onClick={() => handleRemoveRow(row.id)} className="text-red-500 opacity-40 hover:opacity-100 transition-all p-2 hover:bg-red-600/10 rounded-xl">
                             <TrashIcon className="w-3.5 h-3.5" />
                          </button>
                          </div>
