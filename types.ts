@@ -118,8 +118,9 @@ export interface FormulationResult {
 export interface SavedFormula {
   id: string;
   clientId: string;
+  productId?: string;
   name: string;
-  date: string;
+  date: number;
   result: FormulationResult;
 }
 

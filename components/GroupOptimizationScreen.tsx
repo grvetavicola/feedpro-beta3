@@ -221,7 +221,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   };
 
   const updateConstraint = (rowId: string, dietId: string, field: 'min' | 'max', val: number | null) => {
-    setOfConstraints(prev => ({
+    setConstraints(prev => ({
       ...prev, [rowId]: { ...(prev[rowId] || {}), [dietId]: {
         min: prev[rowId]?.[dietId]?.min ?? null,
         max: prev[rowId]?.[dietId]?.max ?? null,
@@ -231,9 +231,6 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     }));
     setHasRun(false);
   };
-  
-  // Solución para setOfConstraints (error tipográfico anterior)
-  const setOfConstraints = setConstraints;
 
   const handleBulkAdd = () => {
     const selection = Array.from(catalogSelection);
@@ -495,7 +492,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                           <div className="flex items-center justify-between gap-4 p-5">
                             {/* Única Papelera Roja Refinada */}
                             <button onClick={() => setActiveDietIds(p => p.filter(id => id !== diet.id))} className="text-red-600/30 hover:text-red-600 transition-all p-2 hover:bg-red-950/20 rounded-2xl">
-                               <TrashIcon size={16} />
+                               <TrashIcon className="w-4 h-4" />
                             </button>
                             <span className="text-[16px] font-black text-white uppercase truncate text-center flex-1 tracking-tight italic font-mono">{diet.name}</span>
                             <div className={`w-3 h-3 rounded-full ${results[diet.id]?.feasible ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]' : 'bg-rose-900/20 border border-rose-500/20'}`} />
@@ -538,7 +535,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                             <span className="text-[11px] text-gray-800 font-bold uppercase italic font-mono scale-95 origin-left tracking-widest opacity-80 group-hover:opacity-100">${row.price?.toFixed(2)}</span>
                          </div>
                          <button onClick={() => handleRemoveRow(row.id)} className="text-red-900/20 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all p-2 hover:bg-red-600/10 rounded-xl">
-                            <TrashIcon size={14} />
+                            <TrashIcon className="w-3.5 h-3.5" />
                          </button>
                        </div>
                     </td>
@@ -588,7 +585,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                               <span className="text-[11px] text-gray-800 font-bold uppercase italic font-mono scale-95 origin-left tracking-[0.3em] opacity-80 group-hover:opacity-100">{row.unit}</span>
                            </div>
                            <button onClick={() => handleRemoveRow(row.id)} className="text-red-900/20 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all p-2 hover:bg-red-600/10 rounded-xl">
-                            <TrashIcon size={14} />
+                            <TrashIcon className="w-3.5 h-3.5" />
                          </button>
                          </div>
                       </td>
