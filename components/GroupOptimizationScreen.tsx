@@ -141,7 +141,8 @@ const DiagnosticCell = ({
             data-row-index={rowIndex}
             data-cell-index={cellIndex}
             data-diet-id={dietId}
-            onFocus={(e) => e.target.select()}
+            onFocus={(e) => (e.target as HTMLInputElement).select()}
+            onClick={(e) => (e.target as HTMLInputElement).select()}
             onKeyDown={handleKeyDown}
             onChange={(e) => onChange?.(parseFloat(e.target.value) || 0)}
             className={`w-full h-full bg-transparent text-center text-[17px] font-black font-mono outline-none transition-all ${isError && hasRun ? 'text-red-400' : 'text-white/90 focus:text-cyan-400'} placeholder-gray-900`}
@@ -475,7 +476,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                             <button onClick={() => setActiveDietIds(p => p.filter(id => id !== diet.id))} className="text-gray-800 hover:text-red-500 active:scale-90"><TrashIcon className="w-3.5 h-3.5" /></button>
                           </div>
                           <div className="flex items-center justify-between px-3 py-1.5 bg-black/30 border-t border-white/5">
-                             <div className="flex items-center gap-1.5"><span className="text-[8px] font-black text-gray-600">BATCH:</span><input type="number" value={batchSizes[diet.id] || 1000} onChange={e => { const v = parseInt(e.target.value) || 0; setBatchSizes(prev => ({...prev, [diet.id]: v})); setHasRun(false); }} className="w-14 bg-gray-900/50 text-[10px] font-black text-cyan-500 font-mono rounded outline-none text-center h-4 border border-white/5 focus:border-cyan-500/30" /></div>
+                             <div className="flex items-center gap-1.5"><span className="text-[8px] font-black text-gray-600">BATCH:</span><input type="number" value={batchSizes[diet.id] || 1000} onFocus={e => (e.target as HTMLInputElement).select()} onClick={e => (e.target as HTMLInputElement).select()} onChange={e => { const v = parseInt(e.target.value) || 0; setBatchSizes(prev => ({...prev, [diet.id]: v})); setHasRun(false); }} className="w-14 bg-gray-900/50 text-[10px] font-black text-cyan-500 font-mono rounded outline-none text-center h-4 border border-white/5 focus:border-cyan-500/30" /></div>
                              <div className="flex gap-2 text-[8px] font-black text-gray-700 uppercase tracking-widest italic opacity-50 px-1"><span>MIN</span><span>MAX</span><span>{viewMode === 'limits' ? 'OK%' : 'KG'}</span></div>
                           </div>
                        </div>
