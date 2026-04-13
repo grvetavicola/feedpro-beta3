@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Product, Ingredient, Nutrient, SavedFormula } from '../types';
 import { solveFeedFormulation } from '../services/solver';
 import { 
@@ -173,9 +172,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   onEnterFullscreen, onLeaveFullscreen, selectedClientId, onNavigate
 }) => {
 
-  // 1. REGLA DE SALIDA: DECLARA TODOS LOS HOOKS Y NAVIGATE AL INICIO
-  const navigate = useNavigate();
-
+  // 1. REGLA DE SALIDA: DECLARA TODOS LOS HOOKS AL INICIO
   const [activeDietIds, setActiveDietIds] = useState<string[]>(selectedDietIds);
   const [activeRows, setActiveRows] = useState<MatrixRow[]>([]);
   const [constraints, setConstraints] = useState<Record<string, Record<string, ConstraintSet>>>({});
@@ -195,7 +192,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
 
   const goBack = () => {
     onLeaveFullscreen?.();
-    navigate('/');
+    onNavigate?.('DASHBOARD');
   };
 
   // 2. DATA DERIVADA
