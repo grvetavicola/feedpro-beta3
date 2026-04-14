@@ -181,14 +181,11 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   
   const getDietTheme = (cat: string) => {
     const c = cat.toUpperCase();
-    // Prioridad por nombre exacto para coincidir con Sidebar
     if (c.includes('COLOR')) return { bg: 'bg-[#1a1b4b]', border: 'border-indigo-500/30', accent: 'text-indigo-400', glow: 'shadow-[0_0_15px_rgba(99,102,241,0.1)]' };
     if (c.includes('BLANCA')) {
-       // Si hay una variante (ej. Reproductora) usar Esmeralda, de lo contrario Cyan
        if (c.includes('REPRODUCTORA')) return { bg: 'bg-[#061c15]', border: 'border-emerald-500/30', accent: 'text-emerald-400', glow: 'shadow-[0_0_15px_rgba(16,185,129,0.1)]' };
        return { bg: 'bg-[#0f172a]', border: 'border-cyan-500/30', accent: 'text-[#00D1FF]', glow: 'shadow-[0_0_15px_rgba(0,209,255,0.1)]' };
     }
-    // Default Emerald
     return { bg: 'bg-[#061c15]', border: 'border-emerald-500/30', accent: 'text-emerald-400', glow: 'shadow-[0_0_15px_rgba(16,185,129,0.1)]' };
   };
 
@@ -203,11 +200,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
 
   const goHome = () => {
     onLeaveFullscreen?.();
-    if (onNavigate) {
-      onNavigate('DASHBOARD');
-    } else {
-      window.dispatchEvent(new CustomEvent('feedpro:goto_dashboard'));
-    }
+    if (onNavigate) onNavigate('DASHBOARD');
+    else window.dispatchEvent(new CustomEvent('feedpro:goto_dashboard'));
   };
 
   const activeDiets = useMemo(() => products.filter(p => activeDietIds.includes(p.id)), [products, activeDietIds]);
@@ -465,7 +459,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                          <span className={`text-[10px] font-black uppercase italic truncate max-w-[130px] tracking-widest whitespace-normal break-words ${theme.accent}`}>{cat}</span>
                        </div>
                        <div className="flex items-center gap-3">
-                     </button>
+                         <input type="checkbox" checked={allSel} onClick={(e) => e.stopPropagation()} onChange={() => { const ids = list.map(d => d.id); setActiveDietIds(prev => allSel ? prev.filter(id => !ids.includes(id)) : Array.from(new Set([...prev, ...ids]))); }} className={`w-4 h-4 rounded-lg bg-black border-slate-800 ${theme.accent.replace('text-', 'text-')} focus:ring-0`} />
                          <ChevronDownIcon className={`w-3.5 h-3.5 text-slate-300 transition-transform ${isExp ? 'rotate-180' : ''}`} />
                        </div>
                     </button>
