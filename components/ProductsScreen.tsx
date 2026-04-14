@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Product, Ingredient, Nutrient, ProductConstraint, Relationship, IngredientConstraint, NutritionalBase } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
-import { SparklesIcon, SaveIcon, DuplicateIcon, UploadIcon, SearchIcon, XCircleIcon, TrashIcon, FlaskIcon, PlusIcon, ChevronDownIcon, ChevronRightIcon, ChevronDoubleRightIcon, RatiosIcon } from './icons';
+import { SparklesIcon, SaveIcon, DuplicateIcon, UploadIcon, SearchIcon, XCircleIcon, TrashIcon, FlaskIcon, PlusIcon, ChevronDownIcon, ChevronRightIcon, ChevronDoubleRightIcon, RatiosIcon, ExclamationIcon, NutrientsIcon, IngredientsIcon } from './icons';
 import { parseRequirementsWithGemini } from '../services/geminiService';
 
 interface ProductsScreenProps {
@@ -820,6 +820,113 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                                 className="text-sm text-gray-400 hover:text-white font-bold px-4 py-2 hover:bg-gray-700 rounded-lg transition-all"
                             >
                                 CERRAR
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Homologation Resolver Modal */}
+            {isHomologating && pendingExcelData && (
+                <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+                    <div className="bg-gray-800 border-2 border-yellow-500/50 rounded-2xl shadow-[0_0_60px_rgba(234,179,8,0.2)] w-full max-w-4xl flex flex-col max-h-[90vh] animate-in fade-in zoom-in duration-300">
+                        <div className="p-6 border-b border-gray-700 flex justify-between items-center bg-yellow-500/10">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-yellow-500/20 rounded-xl">
+                                    <ExclamationIcon className="w-8 h-8 text-yellow-500" />
+                                </div>
+                                <div>
+                                    <h3 className="text-2xl font-black text-white uppercase tracking-tight">Resolutor de Homologación</h3>
+                                    <p className="text-yellow-500/70 text-xs font-bold uppercase tracking-widest mt-1">Se detectaron términos no reconocidos en el archivo Excel</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setIsHomologating(false)} className="text-gray-400 hover:text-white p-2 hover:bg-gray-700/50 rounded-full transition-all">
+                                <XCircleIcon className="w-8 h-8" />
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+                            {/* Nutrients Section */}
+                            {unmappedNutrients.length > 0 && (
+                                <section className="space-y-4">
+                                    <h4 className="text-sm font-black text-cyan-400 uppercase tracking-widest flex items-center gap-2">
+                                        <NutrientsIcon className="w-6 h-6" /> Nutrientes ({unmappedNutrients.length})
+                                    </h4>
+                                    <div className="grid grid-cols-1 gap-3 bg-gray-900/50 p-4 rounded-xl border border-gray-700/50">
+                                        {unmappedNutrients.map(name => (
+                                            <div key={name} className="flex flex-col md:flex-row items-center gap-4 bg-gray-800/80 p-3 rounded-lg border border-gray-700">
+                                                <div className="flex-1 flex items-center gap-3 min-w-0">
+                                                    <span className="text-xs font-black text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded truncate uppercase">{name}</span>
+                                                    <ChevronRightIcon className="w-4 h-4 text-gray-600 shrink-0" />
+                                                </div>
+                                                <select 
+                                                    value={homologationMappings[name] || ''}
+                                                    onChange={e => setHomologationMappings(prev => ({ ...prev, [name]: e.target.value }))}
+                                                    className="w-full md:w-64 bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none font-bold"
+                                                >
+                                                    <option value="">-- Seleccionar Nutriente --</option>
+                                                    <option value="IGNORE">⚠️ IGNORAR FILA</option>
+                                                    {nutrients.map(n => (
+                                                        <option key={n.id} value={n.id}>{n.name} ({n.unit})</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
+
+                            {/* Ingredients Section */}
+                            {unmappedIngredients.length > 0 && (
+                                <section className="space-y-4">
+                                    <h4 className="text-sm font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                                        <IngredientsIcon className="w-6 h-6" /> Insumos ({unmappedIngredients.length})
+                                    </h4>
+                                    <div className="grid grid-cols-1 gap-3 bg-gray-900/50 p-4 rounded-xl border border-gray-700/50">
+                                        {unmappedIngredients.map(name => (
+                                            <div key={name} className="flex flex-col md:flex-row items-center gap-4 bg-gray-800/80 p-3 rounded-lg border border-gray-700">
+                                                <div className="flex-1 flex items-center gap-3 min-w-0">
+                                                    <span className="text-xs font-black text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded truncate uppercase">{name}</span>
+                                                    <ChevronRightIcon className="w-4 h-4 text-gray-600 shrink-0" />
+                                                </div>
+                                                <div className="flex gap-2 w-full md:w-auto">
+                                                    <select 
+                                                        value={homologationMappings[name] || ''}
+                                                        onChange={e => setHomologationMappings(prev => ({ ...prev, [name]: e.target.value }))}
+                                                        className="flex-1 md:w-64 bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none font-bold"
+                                                    >
+                                                        <option value="">-- Seleccionar Insumo --</option>
+                                                        <option value="CREATE_NEW">➕ CREAR COMO NUEVO</option>
+                                                        <option value="IGNORE">⚠️ IGNORAR FILA</option>
+                                                        {ingredients.map(i => (
+                                                            <option key={i.id} value={i.id}>{i.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
+                        </div>
+
+                        <div className="p-6 border-t border-gray-700 bg-gray-900/50 flex justify-between items-center">
+                            <button 
+                                onClick={() => setIsHomologating(false)}
+                                className="text-xs font-black text-gray-500 hover:text-white uppercase tracking-widest"
+                            >
+                                Cancelar Importación
+                            </button>
+                            <button 
+                                onClick={() => {
+                                    const allMapped = [...unmappedNutrients, ...unmappedIngredients].every(name => homologationMappings[name]);
+                                    if (!allMapped) {
+                                        if (!window.confirm("Hay términos sin mapear. Se ignorarán las filas no resueltas. ¿Continuar?")) return;
+                                    }
+                                    executeFinalImport(pendingExcelData.dietNames, pendingExcelData.nutrientRows, pendingExcelData.ingredientRows, homologationMappings);
+                                }}
+                                className="bg-yellow-600 hover:bg-yellow-500 text-white font-black px-10 py-3 rounded-xl shadow-lg shadow-yellow-900/20 transform hover:scale-105 active:scale-95 transition-all uppercase tracking-tighter"
+                            >
+                                Finalizar Sincronización
                             </button>
                         </div>
                     </div>
