@@ -70,6 +70,80 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
         reader.readAsText(file);
     };
 
+    const excelInputRef = React.useRef<HTMLInputElement>(null);
+
+    const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !(window as any).XLSX) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const bstr = event.target?.result;
+                const XLSX = (window as any).XLSX;
+                const wb = XLSX.read(bstr, { type: 'binary' });
+                const ws = wb.Sheets[wb.SheetNames[0]];
+                const data = XLSX.utils.sheet_to_json(ws, { header: 1 }) as any[][];
+                if (data.length < 2) return;
+
+                let headerIdx = 0;
+                for(let i=0; i<Math.min(data.length, 10); i++) {
+                    if (data[i] && data[i].some(c => typeof c === 'string' && (c.toLowerCase().includes('nombre') || c.toLowerCase().includes('name')))) {
+                        headerIdx = i;
+                        break;
+                    }
+                }
+
+                const headers = data[headerIdx];
+                const rows = data.slice(headerIdx + 1);
+                const nutrientMap: Record<number, string> = {}; 
+                let nameCol = -1, codeCol = -1, priceCol = -1, stockCol = -1, catCol = -1;
+
+                headers.forEach((h, idx) => {
+                    if (!h) return;
+                    const s = h.toString().toLowerCase().trim();
+                    if (s.includes('nombre') || s.includes('ingrediente')) nameCol = idx;
+                    else if (s.includes('código') || s.includes('code')) codeCol = idx;
+                    else if (s.includes('precio') || s.includes('price') || s.includes('costo')) priceCol = idx;
+                    else if (s.includes('stock')) stockCol = idx;
+                    else if (s.includes('categoría') || s.includes('category')) catCol = idx;
+                    else {
+                        const n = nutrients.find(nt => nt.code.toString() === s || nt.name.toLowerCase().trim() === s);
+                        if (n) nutrientMap[idx] = n.id;
+                    }
+                });
+
+                const newIngs: Ingredient[] = rows.map((row, rIdx) => {
+                    if (!row[nameCol]) return null;
+                    const nts: Record<string, number> = {};
+                    Object.keys(nutrientMap).forEach(k => {
+                        const idx = parseInt(k);
+                        nts[nutrientMap[idx]] = parseFloat(row[idx]) || 0;
+                    });
+                    return {
+                        id: `i-xl-${Date.now()}-${rIdx}`,
+                        code: parseInt(row[codeCol]) || (2000 + rIdx),
+                        name: row[nameCol].toString(),
+                        category: row[catCol]?.toString() || 'Macro',
+                        price: parseFloat(row[priceCol]) || 0,
+                        stock: parseFloat(row[stockCol]) || 100000,
+                        nutrients: nts
+                    };
+                }).filter(Boolean) as Ingredient[];
+
+                if (newIngs.length > 0) {
+                    if (confirm(`Detectados ${newIngs.length} insumos. ¿Deseas COMBINAR con actuales? (Sino se reemplazarán)`)) {
+                        setIngredients([...ingredients, ...newIngs]);
+                    } else {
+                        setIngredients(newIngs);
+                    }
+                    alert("Importación Exitosa.");
+                }
+            } catch (err) { alert("Error al procesar Excel."); }
+        };
+        reader.readAsBinaryString(file);
+    };
+
     const handleSave = () => {
         setIsSaving(true);
         // Simulate persistence
@@ -202,20 +276,36 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                         <p className="text-[10px] text-indigo-300 font-bold uppercase tracking-widest leading-relaxed">
                             Respalda y restaura toda la base de datos (Insumos, Nutrientes y Dietas) en formato seguro JSON.
                         </p>
-                        <div className="flex gap-3">
+                                                <div className="flex gap-3">
                             <button 
                                 onClick={handleExportMatrix}
-                                className="flex-1 bg-indigo-900 hover:bg-indigo-800 text-white font-black uppercase text-[11px] py-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all border border-indigo-500/30"
+                                className="flex-1 bg-indigo-900/40 hover:bg-indigo-800/50 text-white font-black uppercase text-[10px] py-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all border border-indigo-500/30 group"
                             >
-                                <SaveIcon className="w-5 h-5"/>
-                                Exportar Matriz
+                                <SaveIcon className="w-5 h-5 text-indigo-400 group-hover:scale-110 transition-transform"/>
+                                Respaldar JSON
                             </button>
                             <button 
-                                onClick={() => fileInputRef.current?.click()}
-                                className="flex-1 bg-gray-800 hover:bg-gray-700 text-indigo-200 font-black uppercase text-[11px] py-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all border border-gray-600"
+                                onClick={() => excelInputRef.current?.click()}
+                                className="flex-1 bg-emerald-950/40 hover:bg-emerald-800/40 text-emerald-200 font-black uppercase text-[10px] py-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all border border-emerald-500/30 group"
                             >
-                                <div className="rotate-180"><SaveIcon className="w-5 h-5"/></div>
-                                Importar Matriz
+                                <img src="/icons/excel.png" className="w-5 h-5 object-contain group-hover:scale-110 transition-transform" alt="Excel" />
+                                Importar Excel
+                            </button>
+                            <input 
+                                type="file" 
+                                accept=".xlsx, .xls, .csv" 
+                                className="hidden" 
+                                ref={excelInputRef} 
+                                onChange={handleImportExcel} 
+                            />
+                        </div>
+                        <div className="pt-2">
+                             <button 
+                                onClick={() => fileInputRef.current?.click()}
+                                className="w-full bg-gray-800/50 hover:bg-gray-700 text-gray-400 font-bold uppercase text-[9px] py-2 rounded-xl flex items-center justify-center gap-2 transition-all border border-gray-700"
+                            >
+                                <div className="rotate-180"><SaveIcon className="w-3 h-3"/></div>
+                                Restaurar desde JSON (Backup)
                             </button>
                             <input 
                                 type="file" 
