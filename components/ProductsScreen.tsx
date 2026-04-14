@@ -157,15 +157,40 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
     const [selectedProductId, setSelectedProductId] = useState<string | null>(products[0]?.id || null);
     const [newProductName, setNewProductName] = useState('');
     const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set([products[0]?.category || t('common.uncategorized')]));
-    const [showBasesModal, setShowBasesModal] = useState(false);
-    const excelBasesInputRef = useRef<HTMLInputElement>(null);
-
     // Homologation State
     const [isHomologating, setIsHomologating] = useState(false);
     const [unmappedNutrients, setUnmappedNutrients] = useState<string[]>([]);
     const [unmappedIngredients, setUnmappedIngredients] = useState<string[]>([]);
     const [homologationMappings, setHomologationMappings] = useState<Record<string, string>>({});
     const [pendingExcelData, setPendingExcelData] = useState<{ dietNames: string[], nutrientRows: any[], ingredientRows: any[] } | null>(null);
+
+    const getBestMatch = (source: string, candidates: {id: string, name: string}[], threshold = 0.3) => {
+        const normSource = source.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+        let bestId: string | undefined;
+        let bestScore = 0;
+
+        candidates.forEach(c => {
+            const normTarget = c.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            let score = 0;
+            if (normSource === normTarget) score = 1;
+            else if (normSource.includes(normTarget) || normTarget.includes(normSource)) score = 0.8;
+            else {
+                const w1 = normSource.split(/\s+/);
+                const w2 = normTarget.split(/\s+/);
+                const intersection = w1.filter(w => w.length > 2 && w2.includes(w));
+                score = (intersection.length * 2) / (w1.length + w2.length);
+            }
+            if (score > bestScore) {
+                bestScore = score;
+                bestId = c.id;
+            }
+        });
+
+        return bestScore >= threshold ? bestId : undefined;
+    };
+
+    const [showBasesModal, setShowBasesModal] = useState(false);
+    const excelBasesInputRef = useRef<HTMLInputElement>(null);
     
     const currentProduct = useMemo(() => products.find(p => p.id === selectedProductId), [products, selectedProductId]);
 
