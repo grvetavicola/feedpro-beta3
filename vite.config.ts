@@ -26,13 +26,10 @@ export default defineConfig(({ mode }) => {
           output: {
             manualChunks(id) {
               if (id.includes('node_modules')) {
-                if (id.includes('react') || id.includes('react-dom')) {
-                  return 'vendor-react';
-                }
                 if (id.includes('jspdf') || id.includes('javascript-lp-solver') || id.includes('ag-grid')) {
                   return 'vendor-heavy';
                 }
-                return 'vendor-base';
+                return 'vendor';
               }
             }
           }
