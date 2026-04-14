@@ -256,12 +256,22 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     activeDiets.forEach(diet => {
       const matrixProduct: Product = {
         ...diet,
-        ingredientConstraints: activeRows.filter(r => r.type === 'ing' && constraints[r.id]?.[diet.id]).map(r => ({ 
-          ingredientId: r.id, min: constraints[r.id][diet.id].min ?? 0, max: constraints[r.id][diet.id].max ?? 100 
-        })),
-        constraints: activeRows.filter(r => r.type === 'nut' && constraints[r.id]?.[diet.id]).map(r => ({ 
-          nutrientId: r.id, min: constraints[r.id][diet.id].min ?? 0, max: constraints[r.id][diet.id].max ?? 999 
-        }))
+        ingredientConstraints: activeRows.filter(r => r.type === 'ing').map(r => {
+          const c = (constraints[r.id]?.[diet.id] || {}) as any;
+          return { 
+            ingredientId: r.id, 
+            min: c.min ?? 0, 
+            max: c.max ?? 100 
+          };
+        }),
+        constraints: activeRows.filter(r => r.type === 'nut').map(r => {
+          const c = (constraints[r.id]?.[diet.id] || {}) as any;
+          return { 
+            nutrientId: r.id, 
+            min: c.min ?? 0, 
+            max: c.max ?? 999 
+          };
+        })
       };
       const res = solveFeedFormulation(matrixProduct, ingredients, nutrients, batchSizes[diet.id] || 1000, isDynamic);
       const formulaMap: Record<string, number> = {};

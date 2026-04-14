@@ -45,8 +45,10 @@ export const solveFeedFormulation = (
         };
     });
 
-    // 5. Build Variables (Ingredients)
-    ingredients.forEach(ing => {
+    // 5. Build Variables (Ingredients ONLY from active selection)
+    const activeIngIds = new Set(product.ingredientConstraints.map(c => c.ingredientId));
+    
+    ingredients.filter(ing => activeIngIds.has(ing.id)).forEach(ing => {
         const effectivePrice = (ing.price / (1 - (ing.shrinkage || 0) / 100)) + (ing.processingCost || 0);
         const variable: any = {
             cost: effectivePrice,
@@ -54,17 +56,17 @@ export const solveFeedFormulation = (
             [`ing_limit_${ing.id}`]: 1
         };
 
-        // Add nutrient contributions (scaled by 100 to match constraints)
         const activeNutrients = (isDynamicMatrix && Object.keys(ing.dynamicNutrients || {}).length > 0) ? (ing.dynamicNutrients as Record<string, number>) : ing.nutrients;
+        
         Object.entries(activeNutrients).forEach(([nutId, value]) => {
-            variable[`nut_${nutId}`] = value; 
+            if (model.constraints[`nut_${nutId}`]) {
+                variable[`nut_${nutId}`] = value; 
+            }
         });
 
-        // Add Relationship contributions (Coefficients)
         product.relationships.forEach(rel => {
             const valA = activeNutrients[rel.nutrientAId] || 0;
             const valB = activeNutrients[rel.nutrientBId] || 0;
-
             if (rel.min > 0) variable[`rel_${rel.id}_min`] = valA - (rel.min * valB);
             if (rel.max < 999) variable[`rel_${rel.id}_max`] = valA - (rel.max * valB);
         });
