@@ -57,7 +57,7 @@ export const ConsolidatedExportTable: React.FC<Props> = ({
           onClick={copyToExcel}
           className="flex items-center gap-3 bg-[#00D1FF] hover:bg-[#00b8e6] text-black px-8 py-4 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 shadow-[0_0_30px_rgba(0,209,255,0.2)] group"
         >
-          <ClipboardDocumentCheckIcon className="w-6 h-6 group-hover:scale-110 transition-transform" />
+          <DuplicateIcon className="w-6 h-6 group-hover:scale-110 transition-transform" />
           Copiar a Excel
         </button>
       </div>
