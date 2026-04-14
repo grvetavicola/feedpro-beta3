@@ -569,7 +569,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       return (
                         <React.Fragment key={`h1-${diet.id}`}>
                           <td className="w-4 bg-[#030303] border-none" />
-                          <td className={`p-0 border-b border-slate-800/60 ${theme.bg}`}>
+                          <td className={`p-0 border-b border-slate-800/60 ${theme.cellBg}`}>
                              <div className="grid grid-cols-3 h-14 divide-x divide-slate-800/20">
                                 <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest ${theme.accent}`}>MIN</div>
                                 <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest ${theme.accent}`}>MAX</div>
@@ -632,7 +632,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       return (
                         <React.Fragment key={`h2-${diet.id}`}>
                           <td className="w-4 bg-[#030303] border-none" />
-                          <td className={`p-0 border-b border-slate-800/60 ${theme.bg}`}>
+                          <td className={`p-0 border-b border-slate-800/60 ${theme.cellBg}`}>
                              <div className="grid grid-cols-3 h-14 divide-x divide-slate-800/20">
                                 <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest ${theme.accent}`}>MIN</div>
                                 <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest ${theme.accent}`}>MAX</div>
