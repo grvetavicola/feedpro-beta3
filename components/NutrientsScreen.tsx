@@ -9,8 +9,14 @@ interface NutrientsScreenProps {
 }
 
 export const NutrientsScreen: React.FC<NutrientsScreenProps> = ({ nutrients, setNutrients }) => {
-  const { t } = useTranslations();
   const [searchTerm, setSearchTerm] = useState('');
+  const [newNutrient, setNewNutrient] = useState({ name: '', unit: '', group: '', code: '' });
+
+  const getNextCode = () => {
+    if (nutrients.length === 0) return 1;
+    const maxCode = Math.max(...nutrients.map(n => n.code || 0));
+    return maxCode + 1;
+  };
 
   const handleAddNutrient = (e: React.FormEvent) => {
     e.preventDefault();

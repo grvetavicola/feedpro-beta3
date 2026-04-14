@@ -43,6 +43,9 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({
 }) => {
     const { t } = useTranslations();
     const [searchTerm, setSearchTerm] = useState('');
+    const [editingIngredient, setEditingIngredient] = useState<Ingredient | null>(null);
+    const [viewMode, setViewMode] = useState<'list' | 'matrix'>('list');
+    const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
     
     // Import States Removed (Transferred to SettingsScreen)
     const getNextCode = () => {
