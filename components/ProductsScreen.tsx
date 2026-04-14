@@ -900,29 +900,68 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                             {/* Nutrients Section */}
                             {unmappedNutrients.length > 0 && (
                                 <section className="space-y-4">
-                                    <h4 className="text-sm font-black text-cyan-400 uppercase tracking-widest flex items-center gap-2">
-                                        <NutrientsIcon className="w-6 h-6" /> Nutrientes ({unmappedNutrients.length})
-                                    </h4>
+                                    <div className="flex justify-between items-center">
+                                       <h4 className="text-sm font-black text-cyan-400 uppercase tracking-widest flex items-center gap-2">
+                                           <NutrientsIcon className="w-6 h-6" /> Nutrientes ({unmappedNutrients.length})
+                                       </h4>
+                                       <div className="flex gap-2">
+                                           <button 
+                                               onClick={() => {
+                                                   const newMaps = { ...homologationMappings };
+                                                   unmappedNutrients.forEach(name => {
+                                                       const suggestionId = getBestMatch(name, nutrients);
+                                                       if (suggestionId) newMaps[name] = suggestionId;
+                                                   });
+                                                   setHomologationMappings(newMaps);
+                                               }}
+                                               className="text-[9px] bg-cyan-950/40 text-cyan-400 border border-cyan-500/20 px-2 py-1 rounded hover:bg-cyan-900/50 uppercase font-black"
+                                           >
+                                               Mapear Sugeridos
+                                           </button>
+                                           <button 
+                                               onClick={() => {
+                                                   const newMaps = { ...homologationMappings };
+                                                   unmappedNutrients.forEach(name => newMaps[name] = 'IGNORE');
+                                                   setHomologationMappings(newMaps);
+                                               }}
+                                               className="text-[9px] bg-red-950/40 text-red-500 border border-red-500/20 px-2 py-1 rounded hover:bg-red-900/50 uppercase font-black"
+                                           >
+                                               Omitir Todos
+                                           </button>
+                                       </div>
+                                    </div>
                                     <div className="grid grid-cols-1 gap-3 bg-gray-900/50 p-4 rounded-xl border border-gray-700/50">
-                                        {unmappedNutrients.map(name => (
-                                            <div key={name} className="flex flex-col md:flex-row items-center gap-4 bg-gray-800/80 p-3 rounded-lg border border-gray-700">
-                                                <div className="flex-1 flex items-center gap-3 min-w-0">
-                                                    <span className="text-xs font-black text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded truncate uppercase">{name}</span>
-                                                    <ChevronRightIcon className="w-4 h-4 text-gray-600 shrink-0" />
+                                        {unmappedNutrients.map(name => {
+                                            const suggestionId = getBestMatch(name, nutrients);
+                                            const suggestedNut = nutrients.find(n => n.id === suggestionId);
+                                            return (
+                                                <div key={name} className="flex flex-col md:flex-row items-center gap-4 bg-gray-800/80 p-3 rounded-lg border border-gray-700">
+                                                    <div className="flex-1 flex items-center gap-3 min-w-0">
+                                                        <span className="text-xs font-black text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded truncate uppercase">{name}</span>
+                                                        <ChevronRightIcon className="w-4 h-4 text-gray-600 shrink-0" />
+                                                        {suggestedNut && (
+                                                            <button 
+                                                               onClick={() => setHomologationMappings(prev => ({ ...prev, [name]: suggestionId }))}
+                                                               className="text-[10px] text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded bg-cyan-500/5 hover:bg-cyan-500/10 flex items-center gap-1 shrink-0 italic"
+                                                            >
+                                                               Sugerido: {suggestedNut.name}
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                    <select 
+                                                        value={homologationMappings[name] || ''}
+                                                        onChange={e => setHomologationMappings(prev => ({ ...prev, [name]: e.target.value }))}
+                                                        className="w-full md:w-64 bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none font-bold"
+                                                    >
+                                                        <option value="">-- Seleccionar Nutriente --</option>
+                                                        <option value="IGNORE">⚠️ IGNORAR FILA</option>
+                                                        {nutrients.map(n => (
+                                                            <option key={n.id} value={n.id}>{n.name} ({n.unit})</option>
+                                                        ))}
+                                                    </select>
                                                 </div>
-                                                <select 
-                                                    value={homologationMappings[name] || ''}
-                                                    onChange={e => setHomologationMappings(prev => ({ ...prev, [name]: e.target.value }))}
-                                                    className="w-full md:w-64 bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none font-bold"
-                                                >
-                                                    <option value="">-- Seleccionar Nutriente --</option>
-                                                    <option value="IGNORE">⚠️ IGNORAR FILA</option>
-                                                    {nutrients.map(n => (
-                                                        <option key={n.id} value={n.id}>{n.name} ({n.unit})</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </section>
                             )}
@@ -930,32 +969,68 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                             {/* Ingredients Section */}
                             {unmappedIngredients.length > 0 && (
                                 <section className="space-y-4">
-                                    <h4 className="text-sm font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
-                                        <IngredientsIcon className="w-6 h-6" /> Insumos ({unmappedIngredients.length})
-                                    </h4>
+                                    <div className="flex justify-between items-center">
+                                       <h4 className="text-sm font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                                           <IngredientsIcon className="w-6 h-6" /> Insumos ({unmappedIngredients.length})
+                                       </h4>
+                                       <div className="flex gap-2">
+                                           <button 
+                                               onClick={() => {
+                                                   const newMaps = { ...homologationMappings };
+                                                   unmappedIngredients.forEach(name => newMaps[name] = 'CREATE_NEW');
+                                                   setHomologationMappings(newMaps);
+                                               }}
+                                               className="text-[9px] bg-emerald-950/40 text-emerald-400 border border-emerald-500/20 px-2 py-1 rounded hover:bg-emerald-900/50 uppercase font-black"
+                                           >
+                                               Crear Todos (Nuevos)
+                                           </button>
+                                           <button 
+                                               onClick={() => {
+                                                   const newMaps = { ...homologationMappings };
+                                                   unmappedIngredients.forEach(name => newMaps[name] = 'IGNORE');
+                                                   setHomologationMappings(newMaps);
+                                               }}
+                                               className="text-[9px] bg-red-950/40 text-red-500 border border-red-500/20 px-2 py-1 rounded hover:bg-red-900/50 uppercase font-black"
+                                           >
+                                               Omitir Todos
+                                           </button>
+                                       </div>
+                                    </div>
                                     <div className="grid grid-cols-1 gap-3 bg-gray-900/50 p-4 rounded-xl border border-gray-700/50">
-                                        {unmappedIngredients.map(name => (
-                                            <div key={name} className="flex flex-col md:flex-row items-center gap-4 bg-gray-800/80 p-3 rounded-lg border border-gray-700">
-                                                <div className="flex-1 flex items-center gap-3 min-w-0">
-                                                    <span className="text-xs font-black text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded truncate uppercase">{name}</span>
-                                                    <ChevronRightIcon className="w-4 h-4 text-gray-600 shrink-0" />
+                                        {unmappedIngredients.map(name => {
+                                            const suggestionId = getBestMatch(name, ingredients);
+                                            const suggestedIng = ingredients.find(i => i.id === suggestionId);
+                                            return (
+                                                <div key={name} className="flex flex-col md:flex-row items-center gap-4 bg-gray-800/80 p-3 rounded-lg border border-gray-700">
+                                                    <div className="flex-1 flex items-center gap-3 min-w-0">
+                                                        <span className="text-xs font-black text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded truncate uppercase">{name}</span>
+                                                        <ChevronRightIcon className="w-4 h-4 text-gray-600 shrink-0" />
+                                                        {suggestedIng && (
+                                                            <button 
+                                                               onClick={() => setHomologationMappings(prev => ({ ...prev, [name]: suggestionId }))}
+                                                               className="text-[10px] text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded bg-emerald-500/5 hover:bg-emerald-500/10 flex items-center gap-1 shrink-0 italic"
+                                                            >
+                                                               Sugerido: {suggestedIng.name}
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex gap-2 w-full md:w-auto">
+                                                        <select 
+                                                            value={homologationMappings[name] || ''}
+                                                            onChange={e => setHomologationMappings(prev => ({ ...prev, [name]: e.target.value }))}
+                                                            className="flex-1 md:w-64 bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none font-bold"
+                                                        >
+                                                            <option value="">-- Seleccionar Insumo --</option>
+                                                            <option value="CREATE_NEW">➕ CREAR COMO NUEVO</option>
+                                                            <option value="IGNORE">⚠️ IGNORAR FILA</option>
+                                                            {ingredients.map(i => (
+                                                                <option key={i.id} value={i.id}>{i.name}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
                                                 </div>
-                                                <div className="flex gap-2 w-full md:w-auto">
-                                                    <select 
-                                                        value={homologationMappings[name] || ''}
-                                                        onChange={e => setHomologationMappings(prev => ({ ...prev, [name]: e.target.value }))}
-                                                        className="flex-1 md:w-64 bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 outline-none font-bold"
-                                                    >
-                                                        <option value="">-- Seleccionar Insumo --</option>
-                                                        <option value="CREATE_NEW">➕ CREAR COMO NUEVO</option>
-                                                        <option value="IGNORE">⚠️ IGNORAR FILA</option>
-                                                        {ingredients.map(i => (
-                                                            <option key={i.id} value={i.id}>{i.name}</option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </section>
                             )}
