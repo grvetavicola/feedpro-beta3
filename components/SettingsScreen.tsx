@@ -111,7 +111,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                 headers.forEach((h, idx) => {
                     if (!h) return;
                     const s = h.toString().toLowerCase().trim();
-                    if (s.includes('nombre') || s.includes('ingrediente')) nameCol = idx;
+                    if (s.includes('nombre') || s.includes('ingrediente') || s.includes('ingredient') || s.includes('name')) nameCol = idx;
                     else if (s.includes('código') || s.includes('code')) codeCol = idx;
                     else if (s.includes('precio') || s.includes('price') || s.includes('costo')) priceCol = idx;
                     else if (s.includes('stock')) stockCol = idx;
