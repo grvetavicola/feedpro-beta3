@@ -48,7 +48,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
     };
 
     const fileInputRef = React.useRef<HTMLInputElement>(null);
-
+    const excelInputRef = React.useRef<HTMLInputElement>(null);
     const handleImportMatrix = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -70,7 +70,41 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
         reader.readAsText(file);
     };
 
-    const excelInputRef = React.useRef<HTMLInputElement>(null);
+    const NUTRIENT_SYNONYMS: Record<string, number> = {
+        'proteína bruta': 500010, 'pb': 500010, 'proteina bruta': 500010,
+        'proteína cruda': 500015, 'proteina cruda': 500015, 'cp': 500015,
+        'materia seca': 100015, 'ms': 100015, 'dry matter': 100015,
+        'humedad': 100010, 'humidity': 100010,
+        'grasa (ee)': 300100, 'e. etereo': 300100, 'ee': 300100,
+        'ácido linoleico': 300200, 'a linoleico (n-6)': 300200, 'linoleico': 300200,
+        'fibra bruta': 400100, 'fibra cruda': 400100, 'fc': 400100,
+        'calcio': 541010, 'ca': 541010,
+        'fósforo total': 541020, 'fosforo total': 541020, 'p total': 541020,
+        'fósforo disponible': 541050, 'fosforo disponible a': 541050, 'p disp': 541050, 'pd': 541050,
+        'potasio k': 551040, 'potasio': 551040, 'k': 551040,
+        'sodio na': 551020, 'sodio': 551020, 'na': 551020,
+        'cloro cl': 551030, 'cloro': 551030, 'cl': 551030,
+        'mongin': 531080, 'dpb': 531080,
+        'energía met. ap.': 200020, 'e metabolizable a': 200020, 'em': 200020, 'me': 200020,
+        'lisina total lis': 510010, 'lys total %': 510010, 'lysine': 510010,
+        'lisina disponible lda': 521010, 'lys dig a %': 521010, 'lys d': 521010,
+        'metionina total': 510040, 'met total %': 510040, 'met': 510040,
+        'metionina disponible': 521030, 'met dig a %': 521030, 'met d': 521030,
+        'metionina + cistina total': 510060, 'm+c total %': 510060, 'm+c': 510060,
+        'm+c disponible': 521050, 'm+c dig a %': 521050, 'm+c d': 521050,
+        'triptófano total': 510070, 'trip total %': 510070, 'trp': 510070,
+        'triptófano disponible': 521060, 'trip dig a %': 521060, 'trp d': 521060,
+        'treonina total': 510030, 'tre total %': 510030, 'thr': 510030,
+        'treonina disponible': 521020, 'tre dig a %': 521020, 'thr d': 521020,
+        'arginina total': 510140, 'arg total %': 510140, 'arg': 510140,
+        'arginina disponible': 521130, 'arg dig a %': 521130, 'arg d': 521130,
+        'isoleucina total': 510080, 'iso total %': 510080, 'ile': 510080,
+        'isoleucina disponible': 521070, 'iso dig a %': 521070, 'ile d': 521070,
+        'valina total': 510090, 'val total %': 510090, 'val': 510090,
+        'valina disponible': 521080, 'val dig a %': 521080, 'val d': 521080,
+        'xantofila': 531030, 'xan': 531030,
+        'colina col': 561030, 'colina (mg/kg)': 561030, 'colina': 561030
+    };
 
     const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -86,10 +120,11 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                 const data = XLSX.utils.sheet_to_json(ws, { header: 1 }) as any[][];
                 if (data.length < 2) return;
 
+                // 1. Detección Inteligente de Fila de Encabezados (Soporte para Doble Encabezado)
                 let headerIdx = -1;
-                for(let i=0; i<Math.min(data.length, 15); i++) {
+                for (let i = 0; i < Math.min(data.length, 15); i++) {
                     if (data[i] && data[i].some(c => {
-                        const s = String(c).toLowerCase();
+                        const s = String(c).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
                         return s.includes('nombre') || s.includes('name') || s.includes('ingredient') || s.includes('insumo');
                     })) {
                         headerIdx = i;
@@ -102,35 +137,79 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                     return;
                 }
 
-                const headers = data[headerIdx];
-                const rows = data.slice(headerIdx + 1);
-                const nutrientMap: Record<number, string> = {}; 
+                // Unir encabezados de la fila actual y la siguiente (si existe) para soportar tablas complejas
+                const row1 = data[headerIdx] || [];
+                const row2 = data[headerIdx + 1] || [];
+                const headers = row1.map((val, idx) => {
+                    const v1 = String(val || '').trim();
+                    const v2 = String(row2[idx] || '').trim();
+                    return (v1 + " " + v2).trim(); // Combinamos ambos para máxima cobertura
+                });
+
+                const rows = data.slice(headerIdx + 1); // Empezamos a procesar desde justo después del primer encabezado
+                // Si la fila 2 era parte del encabezado, la primera fila de datos reales podría estar vacía o ser la que acabamos de usar en headers
+                // Así que filtramos filas que parezcan encabezados repetidos
+                const dataRows = rows.filter(r => r.some(c => c !== null && c !== '') && !r.some(c => String(c).toLowerCase().includes('proteina')));
+
+                const nutrientMap: Record<number, string> = {};
                 let nameCol = -1, codeCol = -1, priceCol = -1, stockCol = -1, catCol = -1;
 
                 headers.forEach((h, idx) => {
                     if (!h) return;
-                    const s = h.toString().toLowerCase().trim();
-                    if (s.includes('nombre') || s.includes('ingrediente') || s.includes('ingredient') || s.includes('name')) nameCol = idx;
-                    else if (s.includes('código') || s.includes('code')) codeCol = idx;
-                    else if (s.includes('precio') || s.includes('price') || s.includes('costo')) priceCol = idx;
-                    else if (s.includes('stock')) stockCol = idx;
-                    else if (s.includes('categoría') || s.includes('category')) catCol = idx;
+                    const rawS = h.toString().toLowerCase().trim();
+                    const s = rawS.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                                .replace(/\(.*\)/g, "") // Quitar unidades entre paréntesis ej: (%)
+                                .replace(/%/g, "")      // Quitar símbolos de %
+                                .trim();
+                    
+                    if (s.includes('nombre') || s.includes('ingrediente') || s.includes('ingredient') || s.includes('name')) {
+                        if (nameCol === -1) nameCol = idx;
+                    }
+                    else if (s === 'codigo' || s === 'code' || s === 'id' || s.includes('codigo')) {
+                        if (codeCol === -1) codeCol = idx;
+                    }
+                    else if (s.includes('precio') || s.includes('price') || s.includes('costo')) {
+                        if (priceCol === -1) priceCol = idx;
+                    }
+                    else if (s.includes('stock')) {
+                        if (stockCol === -1) stockCol = idx;
+                    }
+                    else if (s.includes('categoria') || s.includes('category')) {
+                        if (catCol === -1) catCol = idx;
+                    }
                     else {
-                        const n = nutrients.find(nt => nt.code.toString() === s || nt.name.toLowerCase().trim() === s);
+                        // 1. Busqueda por Código exacto (limpiando s)
+                        let n = nutrients.find(nt => nt.code.toString() === s);
+                        
+                        // 2. Busqueda por Nombre exacto (normalizado)
+                        if (!n) n = nutrients.find(nt => nt.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim() === s);
+                        
+                        // 3. Busqueda por Sinónimos (comparación parcial)
+                        if (!n) {
+                            const foundSynonymKey = Object.keys(NUTRIENT_SYNONYMS).find(key => s.includes(key) || key.includes(s));
+                            if (foundSynonymKey) {
+                                const targetCode = NUTRIENT_SYNONYMS[foundSynonymKey];
+                                n = nutrients.find(nt => nt.code === targetCode);
+                            }
+                        }
+
                         if (n) nutrientMap[idx] = n.id;
                     }
                 });
 
-                const newIngs: Ingredient[] = rows.map((row, rIdx) => {
-                    if (!row[nameCol]) return null;
+                const newIngs: Ingredient[] = dataRows.map((row, rIdx) => {
+                    if (!row[nameCol] || String(row[nameCol]).toLowerCase().includes('nombre')) return null;
                     const nts: Record<string, number> = {};
                     Object.keys(nutrientMap).forEach(k => {
                         const idx = parseInt(k);
-                        nts[nutrientMap[idx]] = parseFloat(row[idx]) || 0;
+                        let val = row[idx];
+                        if (typeof val === 'string') val = val.replace(',', '.').replace(/\s/g, '');
+                        const numVal = parseFloat(val);
+                        if (!isNaN(numVal)) nts[nutrientMap[idx]] = numVal;
                     });
                     return {
                         id: `i-xl-${Date.now()}-${rIdx}`,
-                        code: parseInt(row[codeCol]) || (2000 + rIdx),
+                        code: parseInt(row[codeCol]) || (100000 + Math.floor(Math.random() * 900000)),
                         name: row[nameCol].toString(),
                         category: row[catCol]?.toString() || 'Macro',
                         price: parseFloat(row[priceCol]) || 0,
@@ -140,14 +219,17 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                 }).filter(Boolean) as Ingredient[];
 
                 if (newIngs.length > 0) {
-                    if (window.confirm(`Detectados ${newIngs.length} insumos. ¿Deseas COMBINAR con actuales? (Sino se reemplazarán)`)) {
+                    if (window.confirm(`Detectados ${newIngs.length} insumos. ¿Deseas COMBINAR con actuales? (Cancelar para REEMPLAZAR)`)) {
                         setIngredients([...ingredients, ...newIngs]);
                     } else {
                         setIngredients(newIngs);
                     }
                     alert("Importación Exitosa.");
                 }
-            } catch (err) { alert("Error al procesar Excel."); }
+            } catch (err) { 
+                console.error(err);
+                alert("Error al procesar Excel. Verifique el formato."); 
+            }
         };
         reader.readAsBinaryString(file);
     };
