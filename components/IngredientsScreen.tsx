@@ -17,6 +17,9 @@ interface IngredientsScreenProps {
   nutrients: Nutrient[];
   setNutrients?: React.Dispatch<React.SetStateAction<Nutrient[]>>;
   setIsDirty?: (dirty: boolean) => void;
+  onUpdateIngredientPrice?: (prices: Record<string, number>) => void;
+  workspaces?: Record<string, ClientWorkspace>;
+  activeClientId?: string;
 }
 
 interface ParsedIngredient {
@@ -33,10 +36,14 @@ interface ParsedNewNutrient {
 
 // Shared components moved to EditIngredientModal.tsx
 
-export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredients, setIngredients, nutrients, setNutrients, setIsDirty }) => {
+export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ 
+    ingredients, setIngredients, nutrients, setNutrients, setIsDirty,
+    onUpdateIngredientPrice, workspaces = {}, activeClientId
+}) => {
     const { t } = useTranslations();
     const [editingIngredient, setEditingIngredient] = useState<Ingredient | null>(null);
     const [viewMode, setViewMode] = useState<'list' | 'matrix'>('list');
+    const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
     
     // Import States Removed (Transferred to SettingsScreen)
     const getNextCode = () => {
@@ -111,6 +118,14 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredient
                             {t('common.matrix')}
                         </button>
                     </div>
+
+                    <button 
+                      onClick={() => setIsPriceModalOpen(true)}
+                      className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-1.5 px-4 rounded-lg flex items-center gap-2 text-[13px] border border-indigo-400/30 transition-all shadow-lg active:scale-95"
+                    >
+                        <SparklesIcon className="w-4 h-4" /> CAMBIAR PRECIOS MASIVO
+                    </button>
+
                     <button onClick={handleAddNew} className="bg-cyan-600 hover:bg-cyan-500 text-white font-semibold py-1 px-3 rounded flex items-center gap-2 text-[13px]">
                         <PlusIcon className="w-3 h-3" /> {t('ingredients.addButton')}
                     </button>
@@ -243,6 +258,16 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({ ingredient
                     onClose={() => setEditingIngredient(null)} 
                 />
             )}
+
+            <BulkPriceEditorModal 
+                isOpen={isPriceModalOpen}
+                onClose={() => setIsPriceModalOpen(false)}
+                ingredients={ingredients}
+                currentOverrides={activeClientId ? workspaces[activeClientId]?.ingredientOverrides : {}}
+                onSavePrices={(prices) => {
+                    if (onUpdateIngredientPrice) onUpdateIngredientPrice(prices);
+                }}
+            />
 
         </div>
     );
