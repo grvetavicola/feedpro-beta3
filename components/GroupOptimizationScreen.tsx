@@ -524,7 +524,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
            <table className="border-collapse table-fixed w-max">
                <thead>
                  <tr className="sticky top-0 z-[60]">
-                   <th className="sticky left-0 z-[70] bg-[#0c0c0c] border-b border-r border-slate-800/60 p-0 w-[250px] min-w-[250px] shadow-[20px_0_40px_rgba(0,0,0,0.9)]">
+                   <th className="p-6 sticky left-0 z-30 bg-[#080808] border-r-2 border-slate-700/80 border-b-2 shadow-2xl w-[250px] min-w-[250px]">
                       <div className="flex items-center w-full h-full pl-8 pr-8 py-8 border-t border-blue-500/30">
                          <span className="text-[16px] font-black text-white uppercase italic tracking-[0.2em] leading-tight font-mono whitespace-normal break-words">MAESTRO DE DATOS</span>
                       </div>
@@ -534,7 +534,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       return (
                         <React.Fragment key={diet.id}>
                           <th className="w-4 min-w-[16px] bg-[#030303] border-none" />
-                          <th className={`p-0 text-center relative border-b border-slate-800/60 w-[180px] min-w-[180px] rounded-t-3xl border-t-2`} style={{ borderTopColor: theme.borderT, boxShadow: theme.glow, backgroundColor: theme.cellSubtle }}>
+                          <th className={`p-0 text-center relative border-b-2 border-slate-700/80 w-[180px] min-w-[180px] rounded-t-3xl border-t-2`} style={{ borderTopColor: theme.borderT, boxShadow: theme.glow, backgroundColor: theme.cellSubtle }}>
                              <div className="flex flex-col items-center justify-center h-28 relative">
                                 <div className="absolute top-4 right-4 flex gap-1">
                                   <button onClick={() => setActiveDietIds(p => p.filter(id => id !== diet.id))} className="p-2 hover:bg-white/10 rounded-xl transition-colors group">
@@ -563,7 +563,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                
                <tbody className="divide-y divide-slate-800/20">
                  <tr className="bg-[#030303] sticky top-[112px] z-50 border-b border-slate-800">
-                    <td className="p-0 sticky left-0 z-[55] w-[250px] min-w-[250px]">
+                    <td className="sticky left-0 z-30 bg-[#080808] border-r-2 border-slate-700/80 pl-8 pr-8 py-0 shadow-[10px_0_20px_rgba(0,0,0,0.8)] group-focus-within:bg-[#0c0c0c] transition-colors w-[250px] min-w-[250px]">
                        <div className="bg-[#050505] h-14 flex items-center pl-8 border-r border-slate-700">
                           <span className="text-[12px] font-black text-[#00D1FF] uppercase tracking-[0.4em] font-mono italic opacity-90">Sector I: Componentes</span>
                        </div>
@@ -573,7 +573,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       return (
                         <React.Fragment key={`h1-${diet.id}`}>
                           <td className="w-4 bg-[#030303] border-none" />
-                          <td className={`p-0 border-b border-slate-800/60`} style={{ backgroundColor: theme.cellSubtle }}>
+                          <td className={`p-0 border-b border-slate-700/50`} style={{ backgroundColor: theme.cellSubtle }}>
                              <div className="grid grid-cols-3 h-14 divide-x divide-slate-800/20">
                                 <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest`} style={{ color: theme.accent }}>MIN</div>
                                 <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest`} style={{ color: theme.accent }}>MAX</div>
@@ -588,7 +588,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
 
                  {activeRows.filter(r => r.type === 'ing').map((row, rIdx) => (
                    <tr key={row.id} className="h-11 group hover:bg-[#00D1FF]/[0.02] transition-colors relative">
-                     <td className="sticky left-0 z-40 bg-[#030303] border-t border-blue-500/30 border-r-2 border-slate-700 pl-8 pr-8 py-0 shadow-[10px_0_20px_rgba(0,0,0,0.8)] group-focus-within:bg-[#0c0c0c] transition-colors w-[250px] min-w-[250px]">
+                     <td className="p-0 sticky left-0 z-30 bg-[#080808] border-r-2 border-slate-700/80 border-b border-slate-700/50 w-[250px] min-w-[250px]">
                         <div className="flex items-center justify-between h-full py-1.5 gap-4">
                           <div className="min-w-0 flex-1 flex flex-col justify-center">
                              <span className="text-[13px] font-black text-white group-hover:text-cyan-400 uppercase tracking-tighter leading-tight whitespace-normal break-words block w-full">
@@ -626,7 +626,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                  ))}
 
                  <tr className="bg-[#030303] sticky top-[112px] z-50 border-b border-slate-800">
-                    <td className="p-0 sticky left-0 z-[55] w-[250px] min-w-[250px]">
+                    <td className="p-0 sticky left-0 z-30 bg-[#080808] border-r-2 border-slate-700/80 border-b border-slate-700/50 w-[250px] min-w-[250px]">
                        <div className="bg-[#050505] h-14 flex items-center pl-8 border-r border-slate-700">
                           <span className="text-[12px] font-black text-[#00D1FF] uppercase tracking-[0.4em] font-mono italic opacity-90">Sector II: Parámetros</span>
                        </div>
@@ -636,7 +636,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       return (
                         <React.Fragment key={`h2-${diet.id}`}>
                           <td className="w-4 bg-[#030303] border-none" />
-                          <td className={`p-0 border-b border-slate-800/60`} style={{ backgroundColor: theme.cellSubtle }}>
+                          <td className={`p-0 border-t-2 border-b border-slate-700/80 bg-[#0a0a0a]`} style={{ backgroundColor: theme.cellSubtle }}>
                              <div className="grid grid-cols-3 h-14 divide-x divide-slate-800/20">
                                 <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest`} style={{ color: theme.accent }}>MIN</div>
                                 <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest`} style={{ color: theme.accent }}>MAX</div>
@@ -653,7 +653,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                    const baseIdx = activeRows.filter(r => r.type === 'ing').length;
                    return (
                      <tr key={row.id} className="h-11 group hover:bg-[#00D1FF]/[0.02] transition-colors relative">
-                       <td className="sticky left-0 z-40 bg-[#030303] border-t border-blue-500/30 border-r-2 border-slate-700 pl-8 pr-8 py-0 shadow-[10px_0_20px_rgba(0,0,0,0.8)] group-focus-within:bg-[#0c0c0c] transition-colors w-[250px] min-w-[250px]">
+                       <td className="p-0 sticky left-0 z-30 bg-[#0a0a0a] border-r-2 border-slate-700/80 border-t-2 border-b border-slate-700/80 w-[250px] min-w-[250px]">
                           <div className="flex items-center justify-between h-full py-1.5 gap-4">
                             <div className="min-w-0 flex-1 flex flex-col justify-center">
                                <span className="text-[13px] font-black text-white group-hover:text-cyan-400 uppercase tracking-tighter leading-tight whitespace-normal break-words block w-full">
@@ -694,7 +694,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
 
                <tfoot className="sticky bottom-0 z-[60] shadow-2xl border-t-2 border-slate-800">
                  <tr className="bg-[#050505] h-20">
-                    <td className="p-6 pl-8 pr-8 sticky left-0 z-[70] bg-[#060606] border-t border-blue-500/30 border-r-2 border-slate-700 shadow-2xl w-[250px] min-w-[250px]">
+                    <td className="p-0 sticky left-0 z-30 bg-[#0a0a0a] border-r-2 border-slate-700/80 border-t-2 border-b border-slate-700/80 w-[250px] min-w-[250px]">
                        <div className="flex flex-col">
                          <span className="text-[14px] font-black text-[#00D1FF] uppercase tracking-[0.2em] leading-none mb-2 font-mono">Diagnóstico Maestro</span>
                          <div className="h-0.5 w-12 bg-[#00D1FF]/40 rounded-full mb-2" />
