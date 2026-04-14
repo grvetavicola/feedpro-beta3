@@ -140,16 +140,25 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                 // Unir encabezados de la fila actual y la siguiente (si existe) para soportar tablas complejas
                 const row1 = data[headerIdx] || [];
                 const row2 = data[headerIdx + 1] || [];
-                const headers = row1.map((val, idx) => {
-                    const v1 = String(val || '').trim();
-                    const v2 = String(row2[idx] || '').trim();
-                    return (v1 + " " + v2).trim(); // Combinamos ambos para máxima cobertura
-                });
+                const maxCols = Math.max(row1.length, row2.length);
+                const headers: string[] = [];
+                for (let j = 0; j < maxCols; j++) {
+                    const v1 = String(row1[j] || '').trim();
+                    const v2 = String(row2[j] || '').trim();
+                    headers.push((v1 + " " + v2).trim());
+                }
 
                 const rows = data.slice(headerIdx + 1); // Empezamos a procesar desde justo después del primer encabezado
                 // Si la fila 2 era parte del encabezado, la primera fila de datos reales podría estar vacía o ser la que acabamos de usar en headers
-                // Así que filtramos filas que parezcan encabezados repetidos
-                const dataRows = rows.filter(r => r.some(c => c !== null && c !== '') && !r.some(c => String(c).toLowerCase().includes('proteina')));
+                // Así que filtramos filas que parezcan encabezados repetidos (ej: que contengan "proteina" o "precio" en lugar de valores numericos)
+                const dataRows = rows.filter(r => {
+                    const hasData = r.some(c => c !== null && c !== '');
+                    const isHeaderRepetition = r.some(c => {
+                        const s = String(c).toLowerCase();
+                        return (s.includes('proteina') || s.includes('precio') || s.includes('nombre')) && isNaN(parseFloat(String(c)));
+                    });
+                    return hasData && !isHeaderRepetition;
+                });
 
                 const nutrientMap: Record<number, string> = {};
                 let nameCol = -1, codeCol = -1, priceCol = -1, stockCol = -1, catCol = -1;
