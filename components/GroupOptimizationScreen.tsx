@@ -50,6 +50,8 @@ interface GroupOptimizationScreenProps {
   onLeaveFullscreen?: () => void;
   selectedClientId?: string;
   onNavigate?: (view: any) => void;
+  onUpdateIngredientPrice?: (prices: Record<string, number>) => void;
+  workspaces?: Record<string, ClientWorkspace>;
 }
 
 // ─── Sub-Components ─────────────────────────────────────────────────────────────
@@ -167,7 +169,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   products = [], ingredients = [], nutrients = [], isDynamicMatrix: initialIsDynamic,
   selectedDietIds = [], onUpdateProduct, setIsDirty,
   savedFormulas = [], setSavedFormulas, onRemoveDietFromSelection,
-  onEnterFullscreen, onLeaveFullscreen, selectedClientId, onNavigate
+  onEnterFullscreen, onLeaveFullscreen, selectedClientId, onNavigate,
+  onUpdateIngredientPrice, workspaces = {}
 }) => {
 
   const [activeDietIds, setActiveDietIds] = useState<string[]>(selectedDietIds);
@@ -175,6 +178,12 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   const [constraints, setConstraints] = useState<Record<string, Record<string, ConstraintSet>>>({});
   const [batchSizes, setBatchSizes] = useState<Record<string, number>>({});
   const [results, setResults] = useState<Record<string, DietResult>>({});
+  const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
+
+  const activeIngredientIds = useMemo(() => 
+    activeRows.filter(r => r.type === 'ing').map(r => r.id),
+    [activeRows]
+  );
   
   const [isDynamic, setIsDynamic] = useState(initialIsDynamic);
   const [viewMode, setViewMode] = useState<'limits' | 'kg'>('limits');
@@ -417,6 +426,12 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
          <div className="flex items-center gap-4 shrink-0">
             <button onClick={goHome} className="p-2.5 text-[#00D1FF] hover:bg-[#00D1FF]/10 rounded-2xl transition-all active:scale-90 bg-black/40 border border-slate-800 cursor-pointer">
                <ArrowLeftIcon className="w-6 h-6" />
+            </button>
+            <button 
+              onClick={() => setIsPriceModalOpen(true)}
+              className="px-6 h-10 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-400 font-black uppercase text-[10px] rounded-2xl border border-indigo-500/30 transition-all flex items-center gap-3 tracking-[0.25em] shadow-[0_0_20px_rgba(99,102,241,0.05)] active:scale-95"
+            >
+               <ZapIcon className="w-4.5 h-4.5" /> PRECIOS
             </button>
             <button onClick={handleSaveMatrix} className="px-6 h-10 bg-[#0f172a] hover:bg-[#1e293b] text-white font-black uppercase text-[10px] rounded-2xl border border-[#00D1FF]/40 transition-all flex items-center gap-3 tracking-[0.25em] shadow-[0_0_20px_rgba(0,209,255,0.05)] active:scale-95">
                <CheckIcon className="w-4.5 h-4.5 text-[#00D1FF]" /> GUARDAR
@@ -695,6 +710,18 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
            </table>
         </div>
       </main>
+      
+      <BulkPriceEditorModal 
+        isOpen={isPriceModalOpen}
+        onClose={() => setIsPriceModalOpen(false)}
+        ingredients={ingredients}
+        activeIngredientIds={activeIngredientIds}
+        currentOverrides={selectedClientId ? workspaces[selectedClientId]?.ingredientOverrides : {}}
+        onSavePrices={(prices) => {
+          if (onUpdateIngredientPrice) onUpdateIngredientPrice(prices);
+          setHasRun(false); // Reset matrix to require recalculation
+        }}
+      />
     </div>
   );
 };
