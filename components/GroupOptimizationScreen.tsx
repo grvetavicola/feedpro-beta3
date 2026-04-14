@@ -564,7 +564,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                <tbody className="divide-y divide-slate-800/20">
                  <tr className="bg-[#030303] sticky top-[112px] z-50 border-b border-slate-800">
                     <td className="sticky left-0 z-30 bg-[#080808] border-r-2 border-slate-700/80 pl-8 pr-8 py-0 shadow-[10px_0_20px_rgba(0,0,0,0.8)] group-focus-within:bg-[#0c0c0c] transition-colors w-[250px] min-w-[250px]">
-                       <div className="bg-[#050505] h-14 flex items-center pl-8 border-r border-slate-700">
+                       <div className="h-14 flex items-center pl-8 border-r border-slate-700">
                           <span className="text-[12px] font-black text-[#00D1FF] uppercase tracking-[0.4em] font-mono italic opacity-90">Sector I: Componentes</span>
                        </div>
                     </td>
@@ -627,7 +627,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
 
                  <tr className="bg-[#030303] sticky top-[112px] z-50 border-b border-slate-800">
                     <td className="p-0 sticky left-0 z-30 bg-[#080808] border-r-2 border-slate-700/80 border-b border-slate-700/50 w-[250px] min-w-[250px]">
-                       <div className="bg-[#050505] h-14 flex items-center pl-8 border-r border-slate-700">
+                       <div className="h-14 flex items-center pl-8 border-r border-slate-700">
                           <span className="text-[12px] font-black text-[#00D1FF] uppercase tracking-[0.4em] font-mono italic opacity-90">Sector II: Parámetros</span>
                        </div>
                     </td>
