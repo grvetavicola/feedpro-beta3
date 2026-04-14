@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Product, Ingredient, Nutrient, FormulationResult, Client, SavedFormula } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
-import { SparklesIcon, CalculatorIcon, PrintIcon, SaveIcon, FolderIcon, TrashIcon, ExclamationIcon, ClockIcon, SearchIcon, ChevronDownIcon, EyeIcon, DuplicateIcon, MenuIcon } from './icons';
+import { SparklesIcon, SaveIcon, DuplicateIcon, UploadIcon, SearchIcon, XCircleIcon, TrashIcon, FlaskIcon, PlusIcon, ChevronDownIcon, ChevronRightIcon, RatiosIcon } from './icons';
 import { solveFeedFormulation } from '../services/solver';
 import { OptimizationResults } from './OptimizationResults';
 import { EditIngredientModal } from './EditIngredientModal';
@@ -57,9 +57,21 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
           setShowResultsModal(true);
       }
   }, [forceResult]);
-  const [availableIngredientIds, setAvailableIngredientIds] = useState<Set<string>>(new Set()); // LÓGICA INVERSA: Empezar con 0 seleccionados
+  const [availableIngredientIds, setAvailableIngredientIds] = useState<Set<string>>(new Set());
 
   const currentProductData = useMemo(() => products.find(p => p.id === selectedProductId), [products, selectedProductId]);
+
+  // Auto-activación de insumos basados en la base / restricciones del producto
+  useEffect(() => {
+    if (currentProductData) {
+        const ids = new Set<string>();
+        // Activar insumos que tengan restricciones
+        currentProductData.ingredientConstraints?.forEach(ic => ids.add(ic.ingredientId));
+        if (ids.size > 0) {
+            setAvailableIngredientIds(ids);
+        }
+    }
+  }, [currentProductData?.id]);
 
   const handleOptimizeSingle = () => {
     if (!currentProductData) return;

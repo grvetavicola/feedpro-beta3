@@ -231,6 +231,25 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
         alert(`✓ ${t('products.baseSavedSuccess') || 'Base guardada exitosamente'}: ${baseName}`);
     };
 
+    const NUTRIENT_SYNONYMS: Record<string, string[]> = {
+        'n100010': ['HUMEDAD', 'HUM', 'H'],
+        'n100015': ['MATERIA SECA', 'MS', 'DRY MATTER', 'DM'],
+        'n500010': ['PROTEINA BRUTA', 'PB', 'CRUDE PROTEIN', 'CP BRUTA'],
+        'n500015': ['PROTEINA CRUDA', 'PC', 'CP', 'PROTEINA'],
+        'n200020': ['EM AVES', 'EMA', 'ME', 'ENERGIA METABOLIZABLE', 'ENERGIA MET.'],
+        'n541010': ['CALCIO', 'CA'],
+        'n541020': ['FOSFORO TOTAL', 'PT', 'PHOS TOTAL'],
+        'n541050': ['FOSFORO DISP', 'PD', 'PHOS DISP', 'AVP', 'P DISP'],
+        'n510010': ['LYS TOTAL', 'LISINA TOTAL', 'LYST'],
+        'n521010': ['LYS DIG', 'LISINA DIG', 'LYSD'],
+        'n300100': ['GRASA', 'EE', 'FAT', 'EXTRACTO ETEREO'],
+        'n400100': ['FIBRA BRUTA', 'FB', 'CRUDE FIBER', 'CF'],
+        'n551020': ['SODIO', 'NA'],
+        'n551030': ['CLORO', 'CL'],
+        'n510060': ['M+C TOTAL', 'MET+CIST TOTAL', 'MET+CYS'],
+        'n510040': ['MET TOTAL', 'M T']
+    };
+
     const handleImportBasesExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file || !(window as any).XLSX || !setBases) return;
@@ -294,12 +313,24 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                         const val = parseFloat(String(nr.values[dietIdx]).replace(',', '.'));
                         if (isNaN(val) || val === 0) return;
                         
-                        // Homologación de Nutriente
-                        const normName = nr.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-                        let targetNut = nutrients.find(n => n.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim() === normName);
+                        // Homologación de Nutriente con Sinónimos
+                        const normName = nr.name.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
                         
-                        // Si no hay match exacto, buscar por palabra clave (ej: "Proteina")
-                        if (!targetNut) targetNut = nutrients.find(n => normName.includes(n.name.toLowerCase()) || n.name.toLowerCase().includes(normName));
+                        let targetNut = nutrients.find(n => {
+                            const nName = n.name.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+                            if (nName === normName) return true;
+                            // Check synonyms
+                            const synonyms = NUTRIENT_SYNONYMS[n.id] || [];
+                            return synonyms.some(s => s === normName || normName.includes(s));
+                        });
+                        
+                        // Si no hay match exacto/sinónimo, búsqueda parcial como fallback
+                        if (!targetNut) {
+                            targetNut = nutrients.find(n => {
+                                const nName = n.name.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+                                return normName.includes(nName) || nName.includes(normName);
+                            });
+                        }
                         
                         if (targetNut) {
                             constraints.push({ nutrientId: targetNut.id, min: val, max: 999 });
