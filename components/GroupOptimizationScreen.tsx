@@ -531,7 +531,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       return (
                         <React.Fragment key={diet.id}>
                           <th className="w-4 min-w-[16px] bg-[#030303] border-none" />
-                          <th className={`p-0 text-center relative ${theme.bg} border-b border-slate-800/60 w-[180px] min-w-[180px] rounded-t-3xl ${theme.glow} border-t-2 ${theme.borderT}`}>
+                          <th className={`p-0 text-center relative bg-[#080808] border-b border-slate-800/60 w-[180px] min-w-[180px] rounded-t-3xl ${theme.glow} border-t-2 ${theme.borderT}`}>
                              <div className="flex flex-col items-center justify-center h-28 relative">
                                 <div className="absolute top-4 right-4 flex gap-1">
                                   <button onClick={() => setActiveDietIds(p => p.filter(id => id !== diet.id))} className="p-2 hover:bg-white/10 rounded-xl transition-colors group">
@@ -672,7 +672,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                          return (
                            <React.Fragment key={diet.id}>
                              <td className="w-4 bg-[#030303] border-none" />
-                             <td className={`p-0 border-b border-slate-800/10 ${theme.bg} h-11`}>
+                             <td className={`p-0 border-b border-slate-800/10 ${theme.cellBg} h-11`}>
                                 <div className="grid grid-cols-3 h-full divide-x divide-white/[0.03]">
                                    <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={baseIdx + rIdx} />
                                    <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={baseIdx + rIdx} />
@@ -703,7 +703,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       return (
                         <React.Fragment key={`diag-${diet.id}`}>
                            <td className="w-4 bg-[#030303] border-none" />
-                           <td className={`p-6 ${theme.bg} border-b border-slate-800/60 align-top rounded-b-3xl ${theme.glow}`}>
+                           <td className={`p-6 bg-[#080808] border-b border-slate-800/60 align-top rounded-b-3xl ${theme.glow} border-b-2 ${theme.borderT.replace('border-t-', 'border-b-')}`}>
                              {res && hasRun ? (
                                <div className="space-y-3">
                                  <div className={`text-[28px] font-black font-mono leading-none tracking-tighter ${res.feasible ? 'text-white' : 'text-rose-500'}`}>
