@@ -448,7 +448,12 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
       </nav>
 
       <main className="flex-1 flex overflow-hidden relative">
-        <aside className={`shrink-0 bg-[#080808] border-r border-slate-800 transition-all duration-300 flex flex-col overflow-hidden z-50 ${isSidebarCollapsed ? 'w-0' :               {Object.entries(dietsByCategory).map(([cat, list]) => {
+        <aside className={`shrink-0 bg-[#080808] border-r border-slate-800 transition-all duration-300 flex flex-col overflow-hidden z-50 ${isSidebarCollapsed ? 'w-0' : 'w-64'}`}>
+           <div className="p-5 shrink-0 border-b border-slate-800 bg-black/40">
+              <span className="text-[11px] font-black text-[#00D1FF] uppercase tracking-[0.3em] border-l-3 border-[#00D1FF] pl-4 italic opacity-90 font-mono">Entorno Clínico</span>
+           </div>
+           <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3 bg-black/20">
+              {Object.entries(dietsByCategory).map(([cat, list]) => {
                  const isExp = expandedCats[cat] ?? true;
                  const allSel = list.length > 0 && list.every(d => activeDietIds.includes(d.id));
                  const theme = getDietTheme(cat);
