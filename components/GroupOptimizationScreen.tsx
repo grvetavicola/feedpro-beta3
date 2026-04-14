@@ -607,7 +607,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                        return (
                          <React.Fragment key={`diagnostic-${diet.id}`}>
                            <td className="w-4 bg-[#030303] border-none" />
-                           <td className={`p-0 border-b border-slate-800/10 ${theme.bg} h-11`}>
+                           <td className={`p-0 border-b border-slate-800/10 ${theme.cellBg} h-11`}>
                               <div className="grid grid-cols-3 h-full divide-x divide-white/[0.03]">
                                  <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={rIdx} />
                                  <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={rIdx} />
