@@ -10,13 +10,7 @@ interface NutrientsScreenProps {
 
 export const NutrientsScreen: React.FC<NutrientsScreenProps> = ({ nutrients, setNutrients }) => {
   const { t } = useTranslations();
-  const [newNutrient, setNewNutrient] = useState({ name: '', unit: '', group: '', code: '' });
-
-  const getNextCode = () => {
-    if (nutrients.length === 0) return 1;
-    const maxCode = Math.max(...nutrients.map(n => n.code || 0));
-    return maxCode + 1;
-  };
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleAddNutrient = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,8 +27,13 @@ export const NutrientsScreen: React.FC<NutrientsScreenProps> = ({ nutrients, set
     }
   }
 
-  // Ordenar nutrientes por código
-  const sortedNutrients = [...nutrients].sort((a, b) => (a.code || 0) - (b.code || 0));
+  // Ordenar y Filtrar nutrientes
+  const sortedNutrients = [...nutrients]
+    .filter(n => 
+      n.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      (n.code && n.code.toString().includes(searchTerm))
+    )
+    .sort((a, b) => (a.code || 0) - (b.code || 0));
 
   return (
     <div className="p-3 space-y-3 animate-fade-in w-full">
@@ -51,6 +50,17 @@ export const NutrientsScreen: React.FC<NutrientsScreenProps> = ({ nutrients, set
                     <h1 className="text-xl md:text-2xl font-black text-white leading-tight uppercase tracking-tight">{t('nutrients.title')}</h1>
                     <p className="text-gray-400 font-bold text-[11px] md:text-[12px] leading-snug uppercase tracking-widest">{t('nav.nutrients')}</p>
                  </div>
+             </div>
+             
+             {/* Buscador de Nutrientes */}
+             <div className="relative z-10 w-full md:w-64">
+                <input 
+                  type="text"
+                  placeholder="Buscar por Nombre o Código..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-gray-900/60 border border-cyan-500/30 rounded-lg px-4 py-2 text-white text-sm outline-none focus:border-cyan-400 transition-all placeholder:text-gray-500"
+                />
              </div>
          </div>
       <div className="bg-gray-800/50 p-3 rounded border border-gray-700/50">

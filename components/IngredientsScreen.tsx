@@ -42,9 +42,7 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({
     onUpdateIngredientPrice, workspaces = {}, activeClientId
 }) => {
     const { t } = useTranslations();
-    const [editingIngredient, setEditingIngredient] = useState<Ingredient | null>(null);
-    const [viewMode, setViewMode] = useState<'list' | 'matrix'>('list');
-    const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
     
     // Import States Removed (Transferred to SettingsScreen)
     const getNextCode = () => {
@@ -81,9 +79,13 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({
         }
     };
 
-    // --- IMPORT LOGIC MOVED TO SETTINGS ROOM ---
-    // Sort for display
-    const sortedIngredients = [...ingredients].sort((a,b) => (a.code || 0) - (b.code || 0));
+    // Filtros y Orden
+    const sortedIngredients = [...ingredients]
+        .filter(i => 
+            i.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+            (i.code && i.code.toString().includes(searchTerm))
+        )
+        .sort((a,b) => (a.code || 0) - (b.code || 0));
     const sortedNutrients = [...nutrients].sort((a,b) => (a.code || 0) - (b.code || 0));
   
     return (
@@ -102,7 +104,19 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({
                         <p className="text-gray-400 font-bold text-[11px] md:text-[12px] leading-snug uppercase tracking-widest">{t('nav.ingredients')}</p>
                      </div>
                 </div>
-                <div className="flex gap-2 items-center flex-wrap justify-end">
+
+                {/* Buscador de Insumos */}
+                <div className="relative z-10 w-full md:w-64">
+                    <input 
+                        type="text"
+                        placeholder="Buscar Insumo o Código..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-gray-900/60 border border-cyan-500/30 rounded-lg px-4 py-2 text-white text-sm outline-none focus:border-cyan-400 transition-all placeholder:text-gray-500"
+                    />
+                </div>
+
+                <div className="flex gap-2 items-center flex-wrap justify-end relative z-10">
                     
                     {/* View Toggle */}
                     <div className="bg-gray-800 p-1 rounded-lg border border-gray-700 flex mr-2">

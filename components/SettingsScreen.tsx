@@ -206,6 +206,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                     }
                 });
 
+                const currentMaxCode = ingredients.length > 0 ? Math.max(...ingredients.map(i => i.code || 0)) : 100000;
+
                 const newIngs: Ingredient[] = dataRows.map((row, rIdx) => {
                     if (!row[nameCol] || String(row[nameCol]).toLowerCase().includes('nombre')) return null;
                     const nts: Record<string, number> = {};
@@ -216,9 +218,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                         const numVal = parseFloat(val);
                         if (!isNaN(numVal)) nts[nutrientMap[idx]] = numVal;
                     });
+                    
+                    const codeFromExcel = parseInt(row[codeCol]);
+                    const finalCode = !isNaN(codeFromExcel) ? codeFromExcel : (currentMaxCode + rIdx + 1);
+
                     return {
                         id: `i-xl-${Date.now()}-${rIdx}`,
-                        code: parseInt(row[codeCol]) || (100000 + Math.floor(Math.random() * 900000)),
+                        code: finalCode,
                         name: row[nameCol].toString(),
                         category: row[catCol]?.toString() || 'Macro',
                         price: parseFloat(row[priceCol]) || 0,
