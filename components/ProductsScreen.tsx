@@ -266,31 +266,39 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                                 const isOpen = expandedCategories.has(cat);
                                 const items = grouped[cat];
                                 
-                                // DETERMINISTIC COLOR MAPPING (Match with GroupOptimizationScreen)
-                                const c = cat.toUpperCase();
-                                const palette = [
-                                    { border: 'border-cyan-500/30', bg: 'bg-cyan-500/5', text: 'text-cyan-400', accent: 'bg-cyan-500' },
-                                    { border: 'border-indigo-500/30', bg: 'bg-indigo-500/5', text: 'text-indigo-400', accent: 'bg-indigo-500' },
-                                    { border: 'border-emerald-500/30', bg: 'bg-emerald-500/5', text: 'text-emerald-400', accent: 'bg-emerald-500' },
-                                    { border: 'border-amber-500/30', bg: 'bg-amber-500/5', text: 'text-amber-400', accent: 'bg-amber-500' },
-                                    { border: 'border-blue-500/30', bg: 'bg-blue-500/5', text: 'text-blue-400', accent: 'bg-blue-500' },
-                                    { border: 'border-purple-500/30', bg: 'bg-purple-500/5', text: 'text-purple-400', accent: 'bg-purple-500' },
-                                ];
-                                
-                                let hash = 0;
-                                for (let i = 0; i < c.length; i++) {
-                                    hash = c.charCodeAt(i) + ((hash << 5) - hash);
-                                }
-                                const index = Math.abs(hash) % palette.length;
-                                
-                                let selectedTheme = palette[index];
-                                if (c.includes('COLOR')) selectedTheme = palette[1]; // Indigo
-                                if (c.includes('REPRO')) selectedTheme = palette[2]; // Emerald
-                                if (c.includes('INICIO')) selectedTheme = palette[0]; // Cyan
+                                // DYNAMIC COLOR GENERATOR (100+ Variations)
+                                const getCategoryTheme = (name: string) => {
+                                    const n = name.toUpperCase();
+                                    const colors = [
+                                        '#00D1FF', '#818cf8', '#34d399', '#fbbf24', '#3b82f6', '#a78bfa', 
+                                        '#fb7185', '#a3e635', '#fb923c', '#e879f9', '#38bdf8', '#c084fc',
+                                        '#2dd4bf', '#f472b6', '#facc15', '#94a3b8', '#10b981', '#6366f1',
+                                        '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#84cc16', '#f97316'
+                                    ];
+                                    
+                                    let hash = 0;
+                                    for (let i = 0; i < n.length; i++) {
+                                        hash = n.charCodeAt(i) + ((hash << 5) - hash);
+                                    }
+                                    
+                                    // Priority legacy matches
+                                    let colorIndex = Math.abs(hash) % colors.length;
+                                    if (n.includes('REPRO')) colorIndex = 2; // Emerald
+                                    if (n.includes('COLOR')) colorIndex = 1; // Indigo
+                                    if (n.includes('INICIO')) colorIndex = 0; // Cyan
+                                    
+                                    const mainColor = colors[colorIndex];
+                                    return {
+                                        main: mainColor,
+                                        border: `${mainColor}4d`, // 30% alpha
+                                        bg: `${mainColor}0d`,     // 5% alpha
+                                        accent: mainColor
+                                    };
+                                };
 
                                 const theme = cat === t('common.uncategorized') 
-                                    ? { border: 'border-gray-700', bg: 'bg-gray-800/40', text: 'text-gray-400', accent: 'bg-gray-600' }
-                                    : selectedTheme;
+                                    ? { main: '#64748b', border: '#334155', bg: '#1e293b66', accent: '#475569' }
+                                    : getCategoryTheme(cat);
 
                                 return (
                                     <div key={cat} className="space-y-1">
@@ -301,10 +309,11 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                                                 else newSet.add(cat);
                                                 setExpandedCategories(newSet);
                                             }}
-                                            className={`w-full flex items-center justify-between p-2.5 rounded-xl border font-black text-[11px] uppercase tracking-wider transition-all shadow-sm ${theme.border} ${theme.bg} ${theme.text} hover:brightness-125 active:scale-[0.98] outline-none`}
+                                            style={{ borderColor: theme.border, backgroundColor: theme.bg, color: theme.main }}
+                                            className="w-full flex items-center justify-between p-2.5 rounded-xl border font-black text-[11px] uppercase tracking-wider transition-all shadow-sm hover:brightness-125 active:scale-[0.98] outline-none"
                                         >
                                             <div className="flex items-center gap-2">
-                                                <div className={`w-1.5 h-1.5 rounded-full ${theme.accent} pulse shadow-[0_0_8px_rgba(0,0,0,0.3)]`}></div>
+                                                <div style={{ backgroundColor: theme.accent }} className="w-1.5 h-1.5 rounded-full pulse shadow-[0_0_8px_rgba(0,0,0,0.3)]"></div>
                                                 {cat}
                                             </div>
                                             <div className="flex items-center gap-3">
