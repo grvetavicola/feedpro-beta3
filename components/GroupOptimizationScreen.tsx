@@ -191,13 +191,29 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   const [viewMode, setViewMode] = useState<'limits' | 'kg'>('limits');
   
   const getDietTheme = (cat: string) => {
-    const c = cat.toUpperCase();
-    if (c.includes('COLOR')) return { bg: 'bg-[#1a1b4b]', border: 'border-indigo-500/30', accent: 'text-indigo-400', glow: 'shadow-[0_0_15px_rgba(99,102,241,0.1)]' };
-    if (c.includes('BLANCA')) {
-       if (c.includes('REPRODUCTORA')) return { bg: 'bg-[#061c15]', border: 'border-emerald-500/30', accent: 'text-emerald-400', glow: 'shadow-[0_0_15px_rgba(16,185,129,0.1)]' };
-       return { bg: 'bg-[#0f172a]', border: 'border-cyan-500/30', accent: 'text-[#00D1FF]', glow: 'shadow-[0_0_15px_rgba(0,209,255,0.1)]' };
+    const c = (cat || 'GENERAL').toUpperCase();
+    
+    const palette = [
+      { bg: 'bg-[#0f172a]', border: 'border-cyan-500/30', borderT: 'border-t-cyan-500/50', accent: 'text-[#00D1FF]', glow: 'shadow-[0_0_20px_rgba(0,209,255,0.15)]' }, // Cyan
+      { bg: 'bg-[#1a1b4b]', border: 'border-indigo-500/30', borderT: 'border-t-indigo-500/50', accent: 'text-indigo-400', glow: 'shadow-[0_0_20px_rgba(99,102,241,0.15)]' }, // Indigo
+      { bg: 'bg-[#061c15]', border: 'border-emerald-500/30', borderT: 'border-t-emerald-500/50', accent: 'text-emerald-400', glow: 'shadow-[0_0_20px_rgba(16,185,129,0.15)]' }, // Emerald
+      { bg: 'bg-[#1e1506]', border: 'border-amber-500/30', borderT: 'border-t-amber-500/50', accent: 'text-amber-400', glow: 'shadow-[0_0_20px_rgba(245,158,11,0.15)]' }, // Amber
+      { bg: 'bg-[#1c060d]', border: 'border-rose-500/30', borderT: 'border-t-rose-500/50', accent: 'text-rose-400', glow: 'shadow-[0_0_20px_rgba(244,63,94,0.15)]' }, // Rose
+      { bg: 'bg-[#15061c]', border: 'border-purple-500/30', borderT: 'border-t-purple-500/50', accent: 'text-purple-400', glow: 'shadow-[0_0_20px_rgba(168,85,247,0.15)]' }, // Purple
+    ];
+
+    // Priority matches
+    if (c.includes('COLOR')) return palette[1]; // Indigo
+    if (c.includes('REPRO')) return palette[2]; // Emerald
+    if (c.includes('INICIO')) return palette[0]; // Cyan
+    
+    // Hash based assignment
+    let hash = 0;
+    for (let i = 0; i < c.length; i++) {
+      hash = c.charCodeAt(i) + ((hash << 5) - hash);
     }
-    return { bg: 'bg-[#061c15]', border: 'border-emerald-500/30', accent: 'text-emerald-400', glow: 'shadow-[0_0_15px_rgba(16,185,129,0.1)]' };
+    const index = Math.abs(hash) % palette.length;
+    return palette[index];
   };
 
   const [isRunning, setIsRunning] = useState(false);
@@ -514,14 +530,14 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       return (
                         <React.Fragment key={diet.id}>
                           <th className="w-4 min-w-[16px] bg-[#030303] border-none" />
-                          <th className={`p-0 text-center relative ${theme.bg} border-b border-slate-800/60 w-[180px] min-w-[180px] rounded-t-3xl ${theme.glow}`}>
+                          <th className={`p-0 text-center relative ${theme.bg} border-b border-slate-800/60 w-[180px] min-w-[180px] rounded-t-3xl ${theme.glow} border-t-2 ${theme.borderT}`}>
                              <div className="flex flex-col items-center justify-center h-28 relative">
                                 <div className="absolute top-4 right-4 flex gap-1">
                                   <button onClick={() => setActiveDietIds(p => p.filter(id => id !== diet.id))} className="p-2 hover:bg-white/10 rounded-xl transition-colors group">
                                     <TrashIcon className="w-4 h-4 text-slate-500 group-hover:text-rose-500" />
                                   </button>
                                 </div>
-                                <h3 className={`text-[15px] font-black text-white uppercase tracking-[0.1em] mb-3 font-mono ${theme.accent}`}>{diet.name}</h3>
+                                <h3 className={`text-[15px] font-black uppercase tracking-[0.1em] mb-3 font-mono ${theme.accent} drop-shadow-[0_0_10px_rgba(0,0,0,0.5)]`}>{diet.name}</h3>
                                 <div className="flex items-center gap-3 bg-black/40 px-4 py-2 rounded-full border border-slate-800/50 shadow-inner">
                                   <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">LT:</span>
                                   <input

@@ -223,16 +223,22 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                 </div>
                 <div className="flex gap-2 relative z-10 w-full md:w-auto mt-2 md:mt-0 flex-wrap justify-end">
                     <input value={newProductName} onChange={e => setNewProductName(e.target.value)} placeholder={t('products.dietNamePlaceholder')} className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-[13px] text-white focus:border-cyan-500 outline-none w-40 font-bold"/>
-                    <input id="new-product-category" placeholder={t('common.category') + "..."} className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-[13px] text-white focus:border-cyan-500 outline-none w-32 font-bold"/>
+                    <input id="new-product-category" list="category-list" placeholder={t('common.category') + "..."} className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-[13px] text-white focus:border-cyan-500 outline-none w-32 font-bold"/>
+                    <datalist id="category-list">
+                        {Array.from(new Set(products.map(p => p.category).filter(Boolean))).map(cat => (
+                           <option key={cat} value={cat} />
+                        ))}
+                    </datalist>
                     <button onClick={() => {
                         if (!newProductName) return;
                         const catInput = document.getElementById('new-product-category') as HTMLInputElement;
+                        const normalizedCat = catInput.value.trim().toUpperCase() || undefined;
                         const newId = `p_${Date.now()}`;
-                        setProducts([...products, { id: newId, clientId: 'default', code: products.length + 100, name: newProductName, category: catInput.value || undefined, constraints: [], relationships: [], ingredientConstraints: [] }]);
+                        setProducts([...products, { id: newId, clientId: 'default', code: products.length + 100, name: newProductName, category: normalizedCat, constraints: [], relationships: [], ingredientConstraints: [] }]);
                         setSelectedProductId(newId);
                         setNewProductName('');
                         if (catInput) catInput.value = '';
-                    }} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-4 py-1.5 rounded text-[13px] transition-all flex items-center justify-center gap-1 shadow-lg shadow-cyan-900/20">
+                    }} className="bg-cyan-600 hover:bg-cyan-500 text-white font-black px-4 py-1.5 rounded text-[13px] transition-all flex items-center justify-center gap-1 shadow-lg shadow-cyan-900/20">
                         <PlusIcon className="w-3 h-3"/> {t('common.create')}
                     </button>
                 </div>
@@ -335,7 +341,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                                     <div className="h-8 w-px bg-gray-700 mx-2"></div>
                                     <div className="flex flex-col">
                                         <label className="text-[9px] text-emerald-400 font-bold uppercase tracking-widest leading-none mb-1">{t('common.category')}</label>
-                                        <input value={currentProduct.category || ''} placeholder={t('products.categoryHelp')} onChange={e => handleUpdate(p => ({...p, category: e.target.value}))} className="bg-transparent text-[14px] font-black text-emerald-400 focus:outline-none focus:border-b border-emerald-500 w-48" />
+                                        <input list="category-list" value={currentProduct.category || ''} placeholder={t('products.categoryHelp')} onChange={e => handleUpdate(p => ({...p, category: e.target.value.toUpperCase()}))} className="bg-transparent text-[14px] font-black text-emerald-400 focus:outline-none focus:border-b border-emerald-500 w-48" />
                                     </div>
                                 </div>
                                 <div className="flex gap-2">
