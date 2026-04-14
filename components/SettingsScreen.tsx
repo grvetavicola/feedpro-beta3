@@ -101,7 +101,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                     alert("No se pudo detectar la fila de encabezados. Asegúrate de tener una columna llamada 'INGREDIENT' o 'NOMBRE'.");
                     return;
                 }
-                }
 
                 const headers = data[headerIdx];
                 const rows = data.slice(headerIdx + 1);
