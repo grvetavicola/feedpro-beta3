@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ViewState, Product, Ingredient, Nutrient, Client, SavedFormula, User } from './types';
+import { ViewState, Product, Ingredient, Nutrient, Client, SavedFormula, User, NutritionalBase } from './types';
 import { Dashboard } from './components/Dashboard';
 import { IngredientsScreen } from './components/IngredientsScreen';
 import { NutrientsScreen } from './components/NutrientsScreen';
@@ -20,6 +20,7 @@ import {
     INITIAL_NUTRIENTS, 
     INITIAL_PRODUCTS, 
     INITIAL_CLIENTS,
+    INITIAL_BASES,
     APP_NAME
 } from './constants';
 
@@ -171,6 +172,14 @@ export default function App() {
     setActiveTaskId(id);
   };
 
+  const handleCloseTask = (id: string) => {
+    const nextTasks = activeTasks.filter(t => t.id !== id);
+    setActiveTasks(nextTasks);
+    if (activeTaskId === id) {
+        setActiveTaskId(nextTasks.length > 0 ? nextTasks[nextTasks.length - 1].id : null);
+    }
+  };
+
   const handleSwitchClientRequest = (id: string) => {
     if (id === selectedClientId) return;
     if (isDirty) {
@@ -320,7 +329,7 @@ export default function App() {
               setView('PRODUCTS');
           }}
           onLogout={() => {
-              setUser(undefined);
+              setUser(null);
               localStorage.removeItem(STORAGE_KEY);
               setView('LOGIN');
               setIsMobileMenuOpen(false);
@@ -338,9 +347,32 @@ export default function App() {
                         (() => {
                             switch (currentActiveTask.view) {
                                 case 'OPTIMIZATION': 
-                                    return <FormulationScreen products={products} setProducts={setProducts} ingredients={effectiveIngredients} setIngredients={setIngredients} nutrients={nutrients} clients={clients} selectedClientId={selectedClientId} savedFormulas={savedFormulas} setSavedFormulas={setSavedFormulas} isDynamicMatrix={isDynamicMatrix} forceResult={currentActiveTask.data} />;
+                                    return <FormulationScreen 
+                                        products={products}
+                                        setProducts={setProducts}
+                                        ingredients={effectiveIngredients}
+                                        setIngredients={setIngredients}
+                                        nutrients={nutrients}
+                                        isDynamicMatrix={isDynamicMatrix}
+                                        clients={clients}
+                                        selectedClientId={selectedClientId}
+                                        savedFormulas={savedFormulas}
+                                        setSavedFormulas={setSavedFormulas}
+                                        forceResult={currentActiveTask.data?.result}
+                                    />;
                                 case 'GROUP_OPTIMIZATION':
-                                    return <GroupResultsScreen results={currentActiveTask.data.result} assignments={currentActiveTask.data.assignments} products={products} ingredients={effectiveIngredients} nutrients={nutrients} isDynamicMatrix={isDynamicMatrix} onUpdateProduct={(updatedProduct) => setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p))} />;
+                                    return <GroupResultsScreen 
+                                        results={currentActiveTask.data.result} 
+                                        assignments={currentActiveTask.data.assignments} 
+                                        products={products} 
+                                        ingredients={effectiveIngredients} 
+                                        nutrients={nutrients} 
+                                        isDynamicMatrix={isDynamicMatrix} 
+                                        onUpdateProduct={(updatedProduct) => setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p))}
+                                        onCloseDrawer={() => handleCloseTask(currentActiveTask.id)}
+                                        savedFormulas={savedFormulas}
+                                        setSavedFormulas={setSavedFormulas}
+                                    />;
                                 case 'SIMULATION':
                                     return <SimulationScreen ingredients={effectiveIngredients} setIngredients={setIngredients} nutrients={nutrients} />;
                                 default: return <div className="p-8 text-center text-gray-500">Vista de tarea no soportada.</div>;
