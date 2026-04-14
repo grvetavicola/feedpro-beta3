@@ -89,9 +89,8 @@ export const ConsolidatedExportTable: React.FC<Props> = ({
                 <td style={{ ...tdStyle, fontWeight: 'bold' }}>{ing.name}</td>
                 <td style={tdStyle}>{ing.price?.toFixed(2)}</td>
                 {activeDiets.map(diet => {
-                  const kilos = results[diet.id]?.formula[ing.id] || 0;
-                  const totalKg = Object.values(results[diet.id]?.formula || {}).reduce((a: any, b: any) => a + b, 0) as number;
-                  const percent = totalKg > 0 ? (kilos / totalKg) * 100 : 0;
+                  const percent = results[diet.id]?.formula[ing.id] || 0;
+                  const kilos = (percent / 100) * (batchSizes[diet.id] || 1000);
                   return (
                     <React.Fragment key={diet.id}>
                       <td style={{ ...tdStyle, textAlign: 'right', backgroundColor: '#fff9e6' }}>{percent.toFixed(2)}%</td>
@@ -107,7 +106,7 @@ export const ConsolidatedExportTable: React.FC<Props> = ({
               <td style={{ ...thStyle }}>TOTALES</td>
               <td style={tdStyle}>-</td>
               {activeDiets.map(diet => {
-                const totalKg = Object.values(results[diet.id]?.formula || {}).reduce((a: any, b: any) => a + b, 0) as number;
+                const totalKg = batchSizes[diet.id] || 1000;
                 return (
                   <React.Fragment key={diet.id}>
                     <td style={{ ...thStyle, textAlign: 'right' }}>100.00%</td>
