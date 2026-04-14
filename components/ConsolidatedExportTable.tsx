@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { ClipboardDocumentCheckIcon } from '@heroicons/react/24/outline';
+import { DuplicateIcon } from './icons';
 
 interface Props {
   activeDiets: any[];
