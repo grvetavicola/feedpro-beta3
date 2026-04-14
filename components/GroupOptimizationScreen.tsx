@@ -600,9 +600,9 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                 })}
               </tbody>
 
-              <tfoot className="sticky bottom-0 z-[60] shadow-[0_-25px_60px_rgba(0,0,0,1)] border-t-2 border-slate-800">
+              <tfoot className="sticky bottom-0 z-[60] shadow-2xl border-t-2 border-slate-800">
                 <tr className="bg-[#050505] h-20">
-                   <td className="p-6 pl-8 pr-8 sticky left-0 z-[70] bg-[#030303] border-r-2 border-slate-700 shadow-2xl w-[250px] min-w-[250px]">
+                   <td className="p-6 pl-8 pr-8 sticky left-0 z-[70] bg-slate-900 border-t border-blue-500/30 border-r-2 border-slate-700 shadow-2xl w-[250px] min-w-[250px]">
                       <div className="flex flex-col">
                         <span className="text-[14px] font-black text-[#00D1FF] uppercase tracking-[0.2em] leading-none mb-2 font-mono">Diagnóstico Maestro</span>
                         <div className="h-0.5 w-12 bg-[#00D1FF]/40 rounded-full mb-2" />
@@ -616,7 +616,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                      const isSumError = hasRun && r && Math.abs(totalPct - 100) > 0.01;
 
                      return (
-                       <td key={diet.id} className={`border-r border-slate-800 p-3 bg-black/95 backdrop-blur-3xl w-[180px] ${idx === 0 ? 'pl-8' : ''}`}>
+                       <td key={diet.id} className={`border-r border-slate-800 p-3 bg-slate-900/50 backdrop-blur-3xl w-[180px] ${idx === 0 ? 'pl-8' : ''}`}>
                          {r && hasRun ? (
                            <div className={`flex flex-col items-center justify-center gap-1.5 rounded-2xl p-2.5 border transition-all ${r.feasible ? 'bg-emerald-500/5 border-emerald-500/30' : 'bg-rose-500/5 border-rose-500/30'}`}>
                               <div className="flex items-center gap-3">
