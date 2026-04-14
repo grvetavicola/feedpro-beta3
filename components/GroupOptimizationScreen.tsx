@@ -495,8 +495,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
            <table className="border-collapse table-fixed w-max">
               <thead>
                 <tr className="sticky top-0 z-[60]">
-                  <th className="sticky left-0 z-[70] bg-slate-900 border-b-2 border-r border-slate-700 p-0 w-[250px] min-w-[250px] shadow-[20px_0_40px_rgba(0,0,0,0.9)]">
-                     <div className="flex items-center w-full h-full pl-8 pr-8 py-8 border-r border-slate-700 border-t border-blue-500/30">
+                  <th className="sticky left-0 z-[70] bg-[#0c0c0c] border-b border-r border-slate-800/60 p-0 w-[250px] min-w-[250px] shadow-[20px_0_40px_rgba(0,0,0,0.9)]">
+                     <div className="flex items-center w-full h-full pl-8 pr-8 py-8 border-t border-blue-500/30">
                         <span className="text-[16px] font-black text-white uppercase italic tracking-[0.2em] leading-tight font-mono whitespace-normal break-words">MAESTRO DE DATOS</span>
                      </div>
                   </th>
@@ -545,7 +545,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                         </td>
                       </React.Fragment>
                     ))}
-                   <td className="bg-transparent"></td>
+                   <td className="bg-transparent w-40 opacity-0"></td>
                 </tr>
 
                 {activeRows.filter(r => r.type === 'ing').map((row, rIdx) => (
@@ -582,7 +582,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                         </React.Fragment>
                       );
                     })}
-                    <td className="bg-transparent"></td>
+                    <td className="bg-transparent w-40 opacity-0"></td>
                   </tr>
                 ))}
 
@@ -641,7 +641,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                         </React.Fragment>
                       );
                     })}
-                      <td className="bg-transparent"></td>
+                      <td className="bg-transparent w-40 opacity-0"></td>
                     </tr>
                   );
                 })}
