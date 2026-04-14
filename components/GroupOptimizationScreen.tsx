@@ -35,6 +35,8 @@ interface DietResult {
   nutrients: Record<string, number>;
   shadowPrices: Record<string, number>;
   totalCost: number;
+  previousFormula?: Record<string, number>;
+  previousNutrients?: Record<string, number>;
 }
 
 interface GroupOptimizationScreenProps {
@@ -74,7 +76,8 @@ const DiagnosticCell = ({
   shadowPrice,
   hasRun,
   cellIndex,
-  rowIndex
+  rowIndex,
+  themeColor
 }: {
   row: MatrixRow;
   dietId: string;
@@ -91,15 +94,16 @@ const DiagnosticCell = ({
   hasRun: boolean;
   cellIndex: number;
   rowIndex: number;
+  themeColor?: string;
 }) => {
   const isOutOfBounds = resultValue !== undefined && min !== null && min !== undefined && max !== null && max !== undefined && (resultValue < min - 0.01 || resultValue > max + 0.01);
   const isError = min !== null && min !== undefined && max !== null && max !== undefined && min > max;
   
   let bgColor = "bg-transparent";
   let borderColor = "border-transparent";
-  let textColor = isResult ? "text-[#00D1FF]" : "text-white";
+  let textColor = themeColor || (isResult ? "text-[#00D1FF]" : "text-white");
 
-  if (hasRun) {
+  if (hasRun && !themeColor) {
     if (isError) {
       bgColor = "bg-rose-500/10";
       borderColor = "border-rose-500/30";
@@ -142,7 +146,7 @@ const DiagnosticCell = ({
            <span className={`text-[17px] font-black font-mono leading-none ${textColor} ${!hasRun ? 'opacity-20' : ''}`}>
              {displayValue}
            </span>
-           {hasRun && shadowPrice && shadowPrice > 0.01 && (
+           {hasRun && shadowPrice && shadowPrice > 0.01 && !themeColor && (
              <span className={`text-[8px] font-bold font-mono scale-[0.85] mt-0.5 ${feasible ? 'text-emerald-500/40' : 'text-rose-500/40'}`}>sp:{shadowPrice.toFixed(2)}</span>
            )}
         </div>
@@ -320,6 +324,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
         nutMap[na.nutrientId] = na.value; 
         if (na.shadowPrice) shadowMap[na.nutrientId] = na.shadowPrice; 
       });
+
       const prevRes = results[diet.id];
       newRes[diet.id] = {
         feasible: res.status === 'OPTIMAL',
@@ -329,10 +334,9 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
         nutrients: nutMap, 
         shadowPrices: shadowMap, 
         totalCost: res.totalCost,
-        // Almacenamos el resultado anterior para la nueva columna ANT
         previousFormula: prevRes?.formula,
         previousNutrients: prevRes?.nutrients
-      } as any;
+      };
     });
     setResults(newRes);
     setIsRunning(false);
@@ -532,7 +536,12 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
            <table className="border-collapse table-fixed w-max">
                <thead>
                  <tr className="sticky top-0 z-[60]">
-                    <th className="sticky left-0 z-[70] bg-[#080808] border-r-2 border-slate-700/                   {activeDiets.map((diet) => {
+                    <th className="sticky left-0 z-[70] bg-[#080808] border-r-2 border-slate-700/80 border-b border-slate-700/50 w-[250px] min-w-[250px] p-0 shadow-2xl">
+                       <div className="h-28 flex items-center justify-center text-center px-4">
+                          <span className="text-[16px] font-black text-[#00D1FF] uppercase italic tracking-[0.2em] leading-tight font-mono">Matriz Grupal</span>
+                       </div>
+                    </th>
+                   {activeDiets.map((diet) => {
                       const theme = getDietTheme(diet.category || '');
                       return (
                         <React.Fragment key={diet.id}>
@@ -600,14 +609,6 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                     })}
                     <td className="bg-transparent w-40 opacity-0"></td>
                  </tr>
-ame={`flex items-center justify-center text-[10px] font-black uppercase tracking-widest`} style={{ color: theme.accent }}>ACT</div>
-                             </div>
-                          </td>
-                        </React.Fragment>
-                      );
-                    })}
-                    <td className="bg-transparent w-40 opacity-0"></td>
-                 </tr>
 
                  {/* INGREDIENT ROWS MAP */}
                  {activeRows.filter(r => r.type === 'ing').map((row, rIdx) => (
@@ -625,7 +626,7 @@ ame={`flex items-center justify-center text-[10px] font-black uppercase tracking
                            </button>
                         </div>
                       </td>
-                       {activeDiets.map((diet) => {
+                      {activeDiets.map((diet) => {
                          const c = (constraints[row.id]?.[diet.id] || {}) as any;
                          const res = results[diet.id];
                          const sol = res?.formula[row.id] ?? 0;
@@ -763,7 +764,7 @@ ame={`flex items-center justify-center text-[10px] font-black uppercase tracking
                  </tr>
                </tfoot>
             </table>
-                       {hasRun && (
+            {hasRun && (
               <div className="mt-40 mb-60 relative z-10">
                 <div className="h-px bg-slate-800 w-full mb-20" />
                 <ConsolidatedExportTable 
@@ -775,9 +776,7 @@ ame={`flex items-center justify-center text-[10px] font-black uppercase tracking
               </div>
             )}
          </div>
-
-        
-</main>
+      </main>
       
       <BulkPriceEditorModal 
         isOpen={isPriceModalOpen}
