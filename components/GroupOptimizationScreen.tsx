@@ -181,9 +181,15 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   
   const getDietTheme = (cat: string) => {
     const c = cat.toUpperCase();
-    if (c.includes('COLOR')) return { bg: 'bg-[#1a160f]', border: 'border-amber-500/30', accent: 'text-amber-500', glow: 'shadow-[0_0_15px_rgba(245,158,11,0.1)]' };
-    if (c.includes('BLANCA')) return { bg: 'bg-[#0f172a]', border: 'border-cyan-500/30', accent: 'text-[#00D1FF]', glow: 'shadow-[0_0_15px_rgba(0,209,255,0.1)]' };
-    return { bg: 'bg-[#111827]', border: 'border-slate-700/50', accent: 'text-slate-400', glow: '' };
+    // Prioridad por nombre exacto para coincidir con Sidebar
+    if (c.includes('COLOR')) return { bg: 'bg-[#1a1b4b]', border: 'border-indigo-500/30', accent: 'text-indigo-400', glow: 'shadow-[0_0_15px_rgba(99,102,241,0.1)]' };
+    if (c.includes('BLANCA')) {
+       // Si hay una variante (ej. Reproductora) usar Esmeralda, de lo contrario Cyan
+       if (c.includes('REPRODUCTORA')) return { bg: 'bg-[#061c15]', border: 'border-emerald-500/30', accent: 'text-emerald-400', glow: 'shadow-[0_0_15px_rgba(16,185,129,0.1)]' };
+       return { bg: 'bg-[#0f172a]', border: 'border-cyan-500/30', accent: 'text-[#00D1FF]', glow: 'shadow-[0_0_15px_rgba(0,209,255,0.1)]' };
+    }
+    // Default Emerald
+    return { bg: 'bg-[#061c15]', border: 'border-emerald-500/30', accent: 'text-emerald-400', glow: 'shadow-[0_0_15px_rgba(16,185,129,0.1)]' };
   };
 
   const [isRunning, setIsRunning] = useState(false);
@@ -442,20 +448,22 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
       </nav>
 
       <main className="flex-1 flex overflow-hidden relative">
-        <aside className={`shrink-0 bg-[#080808] border-r border-slate-800 transition-all duration-300 flex flex-col overflow-hidden z-50 ${isSidebarCollapsed ? 'w-0' : 'w-64'}`}>
-           <div className="p-5 shrink-0 border-b border-slate-800 bg-black/40">
-              <span className="text-[11px] font-black text-[#00D1FF] uppercase tracking-[0.3em] border-l-3 border-[#00D1FF] pl-4 italic opacity-90 font-mono">Entorno Clínico</span>
-           </div>
-           <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3 bg-black/20">
-              {Object.entries(dietsByCategory).map(([cat, list]) => {
-                const isExp = expandedCats[cat] ?? true;
-                const allSel = list.length > 0 && list.every(d => activeDietIds.includes(d.id));
-                return (
-                  <div key={cat} className="rounded-3xl overflow-hidden border border-slate-800/50 bg-[#0f172a]/20 shadow-2xl">
+        <aside className={`shrink-0 bg-[#080808] border-r border-slate-800 transition-all duration-300 flex flex-col overflow-hidden z-50 ${isSidebarCollapsed ? 'w-0' :               {Object.entries(dietsByCategory).map(([cat, list]) => {
+                 const isExp = expandedCats[cat] ?? true;
+                 const allSel = list.length > 0 && list.every(d => activeDietIds.includes(d.id));
+                 const theme = getDietTheme(cat);
+                 return (
+                   <div key={cat} className={`rounded-3xl overflow-hidden border ${theme.border} ${theme.bg} shadow-2xl transition-all`}>
                     <button onClick={() => setExpandedCats(p => ({...p, [cat]: !isExp}))} className="w-full flex items-center justify-between p-4 hover:bg-white/[0.03] transition-colors">
-                       <span className="text-[10px] font-black text-slate-400 uppercase italic truncate max-w-[130px] tracking-widest whitespace-normal break-words">{cat}</span>
+                       <div className="flex items-center gap-3 min-w-0">
+                         <div className={`w-2 h-2 rounded-full ${theme.accent.replace('text-', 'bg-')} shadow-[0_0_8px_rgba(0,0,0,0.5)]`} />
+                         <span className={`text-[10px] font-black uppercase italic truncate max-w-[130px] tracking-widest whitespace-normal break-words ${theme.accent}`}>{cat}</span>
+                       </div>
                        <div className="flex items-center gap-3">
-                         <input type="checkbox" checked={allSel} onClick={(e) => e.stopPropagation()} onChange={() => { const ids = list.map(d => d.id); setActiveDietIds(prev => allSel ? prev.filter(id => !ids.includes(id)) : Array.from(new Set([...prev, ...ids]))); }} className="w-4 h-4 rounded-lg bg-black border-slate-800 text-[#00D1FF] focus:ring-0" />
+                         <input type="checkbox" checked={allSel} onClick={(e) => e.stopPropagation()} onChange={() => { const ids = list.map(d => d.id); setActiveDietIds(prev => allSel ? prev.filter(id => !ids.includes(id)) : Array.from(new Set([...prev, ...ids]))); }} className={`w-4 h-4 rounded-lg bg-black border-slate-800 ${theme.accent.replace('text-', 'text-')} focus:ring-0`} />
+                         <ChevronDownIcon className={`w-3.5 h-3.5 text-slate-300 transition-transform ${isExp ? 'rotate-180' : ''}`} />
+                       </div>
+                    </button>Ids(prev => allSel ? prev.filter(id => !ids.includes(id)) : Array.from(new Set([...prev, ...ids]))); }} className="w-4 h-4 rounded-lg bg-black border-slate-800 text-[#00D1FF] focus:ring-0" />
                          <ChevronDownIcon className={`w-3.5 h-3.5 text-slate-300 transition-transform ${isExp ? 'rotate-180' : ''}`} />
                        </div>
                     </button>
