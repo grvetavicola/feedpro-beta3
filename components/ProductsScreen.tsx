@@ -153,6 +153,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
     const [selectedProductId, setSelectedProductId] = useState<string | null>(products[0]?.id || null);
     const [newProductName, setNewProductName] = useState('');
     const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set([products[0]?.category || t('common.uncategorized')]));
+    const excelBasesInputRef = useRef<HTMLInputElement>(null);
     
     const currentProduct = useMemo(() => products.find(p => p.id === selectedProductId), [products, selectedProductId]);
 
@@ -223,6 +224,118 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
         setBases(prev => [...prev, newBase]);
         setIsDirty?.(true);
         alert(t('products.baseSavedSuccess') || 'Base guardada exitosamente.');
+    };
+
+    const handleImportBasesExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !(window as any).XLSX || !setBases) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const bstr = event.target?.result;
+                const XLSX = (window as any).XLSX;
+                const wb = XLSX.read(bstr, { type: 'binary' });
+                const ws = wb.Sheets[wb.SheetNames[0]];
+                const data = XLSX.utils.sheet_to_json(ws, { header: 1 }) as any[][];
+                if (data.length < 5) return;
+
+                // 1. Identificar Columnas de Dieta (C en adelante => idx 2+)
+                const dietNames: string[] = [];
+                const firstRow = data[0] || [];
+                const secondRow = data[1] || [];
+                
+                // Buscar nombres de dietas en las primeras filas
+                for (let j = 2; j < firstRow.length; j++) {
+                    const name = String(firstRow[j] || secondRow[j] || '').trim();
+                    if (name && name !== 'DIETAS') dietNames.push(name);
+                }
+
+                if (dietNames.length === 0) {
+                    alert("No se detectaron nombres de dietas en el encabezado (Columnas C en adelante).");
+                    return;
+                }
+
+                // 2. Mapear Filas
+                const ingredientRows: { name: string, values: any[] }[] = [];
+                const nutrientRows: { name: string, unit?: string, values: any[] }[] = [];
+                
+                let section: 'INSUMOS' | 'NUTRIENTES' | null = null;
+                
+                data.forEach(row => {
+                    const firstCell = String(row[0] || '').trim().toUpperCase();
+                    if (firstCell === 'INSUMOS') { section = 'INSUMOS'; return; }
+                    if (firstCell === 'NUTRIENTES') { section = 'NUTRIENTES'; return; }
+                    
+                    if (!section || !row[0]) return;
+                    
+                    const name = String(row[0]).trim();
+                    const values = row.slice(2); // Valores desde C en adelante
+                    
+                    if (section === 'INSUMOS') {
+                        ingredientRows.push({ name, values });
+                    } else {
+                        nutrientRows.push({ name, unit: String(row[1] || '').trim(), values });
+                    }
+                });
+
+                // 3. Procesar cada dieta como una Base
+                const newBases: NutritionalBase[] = dietNames.map((name, dietIdx) => {
+                    const constraints: ProductConstraint[] = [];
+                    const ingredientConstraints: IngredientConstraint[] = [];
+                    
+                    // Procesar Nutrientes
+                    nutrientRows.forEach(nr => {
+                        const val = parseFloat(String(nr.values[dietIdx]).replace(',', '.'));
+                        if (isNaN(val) || val === 0) return;
+                        
+                        // Homologación de Nutriente
+                        const normName = nr.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+                        let targetNut = nutrients.find(n => n.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim() === normName);
+                        
+                        // Si no hay match exacto, buscar por palabra clave (ej: "Proteina")
+                        if (!targetNut) targetNut = nutrients.find(n => normName.includes(n.name.toLowerCase()) || n.name.toLowerCase().includes(normName));
+                        
+                        if (targetNut) {
+                            constraints.push({ nutrientId: targetNut.id, min: val, max: 999 });
+                        }
+                    });
+                    
+                    // Procesar Insumos (Opcional en Bases, pero el usuario lo pide)
+                    ingredientRows.forEach(ir => {
+                        const val = parseFloat(String(ir.values[dietIdx]).replace(',', '.'));
+                        if (isNaN(val) || val === 0) return;
+                        
+                        const normName = ir.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+                        const targetIng = ingredients.find(i => i.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim() === normName);
+                        
+                        if (targetIng) {
+                            ingredientConstraints.push({ ingredientId: targetIng.id, min: val, max: 100 });
+                        }
+                    });
+
+                    return {
+                        id: `base_xl_${Date.now()}_${dietIdx}`,
+                        name,
+                        description: `Importada desde Excel ${new Date().toLocaleDateString()}`,
+                        constraints,
+                        relationships: [], // Las relaciones suelen ser fijas por especie
+                        ingredientConstraints // Extendemos la interfaz si es necesario o las ignoramos
+                    } as any;
+                });
+
+                if (newBases.length > 0) {
+                    setBases(prev => [...prev, ...newBases]);
+                    setIsDirty?.(true);
+                    alert(`Éxito: Se han importado ${newBases.length} bases nutricionales.`);
+                }
+
+            } catch (err) {
+                console.error(err);
+                alert("Error al procesar el Excel. Verifique el formato de la matriz.");
+            }
+        };
+        reader.readAsBinaryString(file);
     };
 
     return (
@@ -404,6 +517,13 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                                     >
                                         <PlusIcon className="w-2.5 h-2.5" /> Guardar como Base
                                     </button>
+                                    <button 
+                                        onClick={() => excelBasesInputRef.current?.click()}
+                                        className="text-[10px] bg-indigo-900/30 text-indigo-400 border border-indigo-500/30 px-2 py-1 rounded hover:bg-indigo-900/50 transition-colors uppercase font-bold flex items-center gap-1"
+                                    >
+                                        <UploadIcon className="w-2.5 h-2.5" /> Importar Bases
+                                    </button>
+                                    <input type="file" ref={excelBasesInputRef} className="hidden" accept=".xlsx,.xls,.csv" onChange={handleImportBasesExcel} />
                                     {onOpenInNewWindow && (
                                         <button onClick={() => onNavigate('OPTIMIZATION')} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-4 py-1 rounded shadow text-[11px] uppercase flex items-center gap-1 transition-all">
                                             <SparklesIcon className="w-3 h-3 animate-pulse" /> Optimizar Dieta
