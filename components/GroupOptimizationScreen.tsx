@@ -543,7 +543,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                   </button>
                                 </div>
                                 <h3 className="text-[15px] font-black uppercase tracking-[0.1em] mb-3 font-mono drop-shadow-[0_0_10px_rgba(0,0,0,0.5)]" style={{ color: theme.accent }}>{diet.name}</h3>
-                                <div className="flex items-center gap-3 bg-black/40 px-4 py-2 rounded-full border border-slate-700/80/50 shadow-inner">
+                                <div className="flex items-center gap-3 bg-black/40 px-4 py-2 rounded-full border border-slate-700/50 shadow-inner">
                                   <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">LT:</span>
                                   <input
                                     type="number"
@@ -626,9 +626,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                    const baseIdx = activeRows.filter(r => r.type === 'ing').length;
                    return (
                      <tr key={row.id} className="h-11 group hover:bg-[#00D1FF]/[0.02] transition-colors relative">
-                       <td className="p-0 sticky left-0 z-30 bg-[#0a0a0a] border-r-2 border-slate-700/80 border-b border-slate-700/50 w-[250px] min-w-[250px]">
-                          <div className="relative flex items-center justify-center h-full py-1.5 px-4 text-center">
-                            <div className="relative flex items-center justify-center h-full py-1.5 px-4 text-center">
+                       <td className="sticky left-0 z-30 bg-[#0a0a0a] border-r-2 border-slate-700/80 border-b border-slate-700/50 w-[250px] min-w-[250px] p-0 group-hover:bg-[#111] transition-colors">
+                        <div className="relative flex flex-col items-center justify-center h-full py-2 px-4 text-center">
                                <span className="text-[13px] font-black text-white group-hover:text-cyan-400 uppercase tracking-tighter leading-tight whitespace-normal break-words">
                                  {row.name}
                                </span>
@@ -649,7 +648,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                          return (
                            <React.Fragment key={diet.id}>
                              <td className="w-4 bg-[#030303] border-none" />
-                             <td className={`p-0 border-b border-slate-700/80/10 h-11`} style={{ backgroundColor: theme.cellSubtle }}>
+                             <td className={`p-0 border-b border-slate-700/20 h-11`} style={{ backgroundColor: theme.cellSubtle }}>
                                 <div className="grid grid-cols-3 h-full divide-x divide-white/[0.03]">
                                    <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={baseIdx + rIdx} />
                                    <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={baseIdx + rIdx} />
@@ -680,7 +679,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       return (
                         <React.Fragment key={`diag-${diet.id}`}>
                            <td className="w-4 bg-[#030303] border-none" />
-                           <td className={`p-6 border-b border-slate-700/80/60 align-top rounded-b-3xl ${theme.glow} border-b-2 ${theme.borderT.replace('border-t-', 'border-b-')}`} style={{ backgroundColor: theme.cellSubtle }}>
+                           <td className={`p-6 border-b border-slate-700/50 align-top rounded-b-3xl ${theme.glow} border-b-2 ${theme.borderT.replace('border-t-', 'border-b-')}`} style={{ backgroundColor: theme.cellSubtle }}>
                              {res && hasRun ? (
                                <div className="space-y-3">
                                  <div className={`text-[28px] font-black font-mono leading-none tracking-tighter ${res.feasible ? 'text-white' : 'text-rose-500'}`}>
