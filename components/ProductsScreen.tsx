@@ -192,6 +192,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                 { id: `rel_${Date.now()}`, name: t('products.newRelation'), nutrientAId: nutrients[0]?.id, nutrientBId: nutrients[1]?.id, min: 0, max: 999 }
             ]
         }));
+        alert(`✓ Base "${base.name}" aplicada correctamente a ${currentProduct?.name}.`);
     };
 
     const removeRelation = (id: string) => {
@@ -210,9 +211,9 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
         }
     };
 
-    const handleSaveAsBase = () => {
+    const handleSaveAsBase = (manualName?: string) => {
         if (!currentProduct || !setBases) return;
-        const baseName = window.prompt(t('products.baseNamePrompt') || 'Nombre de la Base:', currentProduct.name);
+        const baseName = typeof manualName === 'string' ? manualName : window.prompt(t('products.baseNamePrompt') || 'Nombre de la Base:', currentProduct.name);
         if (!baseName) return;
 
         const newBase: NutritionalBase = {
@@ -226,7 +227,8 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
 
         setBases(prev => [...prev, newBase]);
         setIsDirty?.(true);
-        alert(t('products.baseSavedSuccess') || 'Base guardada exitosamente.');
+        // Toast style notification instead of alert if possible, but alert is fine for now
+        alert(`✓ ${t('products.baseSavedSuccess') || 'Base guardada exitosamente'}: ${baseName}`);
     };
 
     const handleImportBasesExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
