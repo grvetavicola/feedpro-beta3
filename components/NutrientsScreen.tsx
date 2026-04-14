@@ -9,6 +9,7 @@ interface NutrientsScreenProps {
 }
 
 export const NutrientsScreen: React.FC<NutrientsScreenProps> = ({ nutrients, setNutrients }) => {
+  const { t } = useTranslations();
   const [searchTerm, setSearchTerm] = useState('');
   const [newNutrient, setNewNutrient] = useState({ name: '', unit: '', group: '', code: '' });
 
