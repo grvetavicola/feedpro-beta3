@@ -611,7 +611,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                        return (
                          <React.Fragment key={`diagnostic-${diet.id}`}>
                            <td className="w-4 bg-[#030303] border-none" />
-                           <td className={`p-0 border-b border-slate-800/10 ${theme.cellBg} h-11`}>
+                           <td className={`p-0 border-b border-slate-800/10 h-11`} style={{ backgroundColor: theme.cellSubtle }}>
                               <div className="grid grid-cols-3 h-full divide-x divide-white/[0.03]">
                                  <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={rIdx} />
                                  <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={rIdx} />
@@ -707,7 +707,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       return (
                         <React.Fragment key={`diag-${diet.id}`}>
                            <td className="w-4 bg-[#030303] border-none" />
-                           <td className={`p-6 bg-[#080808] border-b border-slate-800/60 align-top rounded-b-3xl ${theme.glow} border-b-2 ${theme.borderT.replace('border-t-', 'border-b-')}`}>
+                           <td className={`p-6 border-b border-slate-800/60 align-top rounded-b-3xl ${theme.glow} border-b-2 ${theme.borderT.replace('border-t-', 'border-b-')}`} style={{ backgroundColor: theme.cellSubtle }}>
                              {res && hasRun ? (
                                <div className="space-y-3">
                                  <div className={`text-[28px] font-black font-mono leading-none tracking-tighter ${res.feasible ? 'text-white' : 'text-rose-500'}`}>
