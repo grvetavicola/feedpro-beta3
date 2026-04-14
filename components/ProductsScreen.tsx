@@ -147,6 +147,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
     setBases,
     onOpenInNewWindow, 
     onNavigate,
+    onSelectDiets,
     setIsDirty 
 }) => {
     const { t } = useTranslations();
@@ -572,11 +573,11 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
 
                                 <div className="flex items-center gap-4">
                                     <button 
-                                        onClick={() => onNavigate?.('OPTIMIZATION')}
+                                        onClick={handleMigrate}
                                         className="flex items-center gap-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-tighter shadow-[0_4px_20px_rgba(6,182,212,0.3)] hover:shadow-[0_6px_25px_rgba(6,182,212,0.4)] transition-all transform hover:scale-105 active:scale-95 group border border-cyan-400/30"
                                     >
-                                        <SparklesIcon className="w-4 h-4 group-hover:rotate-12 transition-transform" />
-                                        <span>OPTIMIZAR DIETA</span>
+                                        <ChevronDoubleRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                        <span>MIGRAR DIETAS</span>
                                     </button>
                                     
                                     <button onClick={() => setSelectedProductId(null)} className="text-gray-500 hover:text-white transition-all transform hover:rotate-90">
