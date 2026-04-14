@@ -587,21 +587,22 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                 ))}
 
                 <tr className="bg-[#060606] sticky top-[112px] z-50 backdrop-blur-2xl border-b border-slate-800 h-9">
-                   <td className="sticky left-0 bg-slate-900 border-blue-500/30 z-[55] pl-8 pr-8 border-r-2 border-slate-700 w-[250px] min-w-[250px]">
+                   <td className="sticky left-0 bg-[#060606] z-[55] pl-8 pr-8 border-r border-slate-700 w-[250px] min-w-[250px]">
                       <span className="text-[12px] font-black text-slate-300 uppercase tracking-[0.4em] font-mono italic opacity-90">Sector II: Parámetros</span>
                    </td>
                    {activeDiets.map((diet, idx) => (
-                     <th key={diet.id} className="p-0 text-center relative border-x-[12px] border-[#030303] bg-[#030303]">
-                        <div className="bg-[#0c0c0c] border-x border-slate-800/40 mx-[1px]">
-                          <div className="grid grid-cols-3 h-9 divide-x divide-slate-800/20">
-                             <div className="flex items-center justify-center text-[10px] font-black text-[#00D1FF] opacity-60 uppercase tracking-widest">MIN</div>
-                             <div className="flex items-center justify-center text-[10px] font-black text-[#00D1FF] opacity-60 uppercase tracking-widest">MAX</div>
-                             <div className="flex items-center justify-center text-[10px] font-black text-[#00D1FF] opacity-60 uppercase tracking-widest">ACT</div>
-                          </div>
-                        </div>
-                     </th>
-                   ))}
-                   <td className="bg-transparent"></td>
+                      <React.Fragment key={`h2-${diet.id}`}>
+                        <td className="w-4 bg-[#030303] border-none" />
+                        <td className="p-0 border-b border-slate-800/60 bg-[#0c0c0c]">
+                           <div className="grid grid-cols-3 h-9 divide-x divide-slate-800/20">
+                              <div className="flex items-center justify-center text-[11px] font-black text-[#00D1FF]/70 uppercase tracking-widest">MIN</div>
+                              <div className="flex items-center justify-center text-[11px] font-black text-[#00D1FF]/70 uppercase tracking-widest">MAX</div>
+                              <div className="flex items-center justify-center text-[11px] font-black text-[#00D1FF] uppercase tracking-widest">ACT</div>
+                           </div>
+                        </td>
+                      </React.Fragment>
+                    ))}
+                   <td className="bg-transparent opacity-0 w-40"></td>
                 </tr>
 
                 {activeRows.filter(r => r.type === 'nut').map((row, rIdx) => {
@@ -655,40 +656,32 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                         <span className="text-[10px] text-slate-300 font-bold uppercase italic font-mono opacity-90 tracking-widest">Análisis Valorizado</span>
                       </div>
                    </td>
-                   {activeDiets.map((diet, idx) => {
-                     const r = results[diet.id];
-                     const diff = r && r.prevCostPerKg ? r.costPerKg - r.prevCostPerKg : 0;
-                     const totalPct = r ? Object.values(r.formula).reduce((a, b) => a + b, 0) : 0;
-                     const isSumError = hasRun && r && Math.abs(totalPct - 100) > 0.01;
-
-                     return (
-                       <td key={diet.id} className={`border-r border-slate-800 p-3 bg-slate-900/50 backdrop-blur-3xl w-[180px] ${idx === 0 ? 'pl-8' : ''}`}>
-                         {r && hasRun ? (
-                           <div className={`flex flex-col items-center justify-center gap-1.5 rounded-2xl p-2.5 border transition-all ${r.feasible ? 'bg-emerald-500/5 border-emerald-500/30' : 'bg-rose-500/5 border-rose-500/30'}`}>
-                              <div className="flex items-center gap-3">
-                                <span className={`text-[26px] font-black font-mono leading-none tracking-tighter ${r.feasible ? 'text-white' : 'text-rose-500'}`}>
-                                  ${r.costPerKg.toFixed(2)}
-                                </span>
-                                {diff !== 0 && (
-                                  <div className={`flex items-center px-1.5 py-0.5 rounded-lg bg-black/40 border border-slate-800 ${diff > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
-                                    <span className="text-[8px] font-bold">{diff > 0 ? '↑' : '↓'}</span>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="flex flex-col items-center">
-                                 <div className={`text-[8px] font-black uppercase tracking-[0.3em] font-mono ${r.feasible ? 'text-emerald-500/40' : 'text-rose-600'}`}>
-                                    {r.feasible ? 'OPTIMO' : 'INFACTIBLE'}
+                    {activeDiets.map((diet, idx) => {
+                      const r = results[diet.id];
+                      return (
+                        <React.Fragment key={`diag-${diet.id}`}>
+                           <td className="w-4 bg-[#030303] border-none" />
+                           <td className="p-6 bg-[#0c0c0c] border-b border-slate-800/60 align-top">
+                             {r && hasRun ? (
+                               <div className="space-y-3">
+                                 <div className={`text-[28px] font-black font-mono leading-none tracking-tighter ${r.feasible ? 'text-white' : 'text-rose-500'}`}>
+                                   ${r.costPerKg.toFixed(2)}
                                  </div>
-                                 {isSumError && (
-                                   <div className="text-[8px] font-black text-rose-500 uppercase tracking-tighter mt-0.5 bg-rose-500/10 px-1 rounded animate-pulse">ERROR SUMA: {totalPct.toFixed(1)}%</div>
-                                 )}
-                              </div>
-                           </div>
-                         ) : <div className="text-[12px] text-slate-950 font-black uppercase text-center italic py-2 tracking-[0.5em] opacity-10">Optimiazar F4...</div>}
-                       </td>
-                     );
-                   })}
-                   <td className="bg-transparent"></td>
+                                 <div className="flex items-center gap-2">
+                                   <div className={`h-1.5 w-1.5 rounded-full ${r.feasible ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-rose-500'}`} />
+                                   <div className={`text-[10px] uppercase tracking-[0.2em] font-black ${r.feasible ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                     {r.feasible ? 'Óptimo' : 'Infactible'}
+                                   </div>
+                                 </div>
+                               </div>
+                             ) : (
+                               <div className="text-slate-800 text-[10px] uppercase font-bold tracking-[0.3em] pt-4 italic opacity-30">Pendiente</div>
+                             )}
+                          </td>
+                        </React.Fragment>
+                      );
+                    })}
+                    <td className="bg-transparent opacity-0 w-40"></td>
                 </tr>
               </tfoot>
            </table>
