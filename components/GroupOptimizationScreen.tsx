@@ -465,10 +465,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                          <span className={`text-[10px] font-black uppercase italic truncate max-w-[130px] tracking-widest whitespace-normal break-words ${theme.accent}`}>{cat}</span>
                        </div>
                        <div className="flex items-center gap-3">
-                         <input type="checkbox" checked={allSel} onClick={(e) => e.stopPropagation()} onChange={() => { const ids = list.map(d => d.id); setActiveDietIds(prev => allSel ? prev.filter(id => !ids.includes(id)) : Array.from(new Set([...prev, ...ids]))); }} className={`w-4 h-4 rounded-lg bg-black border-slate-800 ${theme.accent.replace('text-', 'text-')} focus:ring-0`} />
-                         <ChevronDownIcon className={`w-3.5 h-3.5 text-slate-300 transition-transform ${isExp ? 'rotate-180' : ''}`} />
-                       </div>
-                    </button>Ids(prev => allSel ? prev.filter(id => !ids.includes(id)) : Array.from(new Set([...prev, ...ids]))); }} className="w-4 h-4 rounded-lg bg-black border-slate-800 text-[#00D1FF] focus:ring-0" />
+                     </button>
                          <ChevronDownIcon className={`w-3.5 h-3.5 text-slate-300 transition-transform ${isExp ? 'rotate-180' : ''}`} />
                        </div>
                     </button>
