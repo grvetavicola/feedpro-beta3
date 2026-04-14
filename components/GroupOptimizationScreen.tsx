@@ -607,7 +607,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       {activeDiets.map((diet) => {
                         const c = (constraints[row.id]?.[diet.id] || {}) as any;
                         const res = results[diet.id];
-                        const sol = res?.solution[row.id] ?? 0;
+                        const sol = res?.formula[row.id] ?? 0;
                         const theme = getDietTheme(diet.category || '');
                         return (
                           <React.Fragment key={diet.id}>
