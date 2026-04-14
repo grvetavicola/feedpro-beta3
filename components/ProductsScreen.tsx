@@ -79,10 +79,6 @@ const SelectionModal = ({
     disabled?: boolean;
 }) => {
     const { t } = useTranslations();
-    const [showIngredientsModal, setShowIngredientsModal] = useState(false);
-    const [showNutrientsModal, setShowNutrientsModal] = useState(false);
-    const [showBasesModal, setShowBasesModal] = useState(false);
-    const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -157,6 +153,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
     const [selectedProductId, setSelectedProductId] = useState<string | null>(products[0]?.id || null);
     const [newProductName, setNewProductName] = useState('');
     const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set([products[0]?.category || t('common.uncategorized')]));
+    const [showBasesModal, setShowBasesModal] = useState(false);
     const excelBasesInputRef = useRef<HTMLInputElement>(null);
     
     const currentProduct = useMemo(() => products.find(p => p.id === selectedProductId), [products, selectedProductId]);
@@ -662,10 +659,43 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                                     <h3 className="text-xl font-bold text-white uppercase tracking-wider">Seleccionar Base Nutricional</h3>
                                     <p className="text-gray-400 text-xs">Aplica requerimientos estandarizados a la dieta actual</p>
                                 </div>
+                                <div className="flex items-center gap-2 bg-gray-900/50 p-1.5 rounded-xl border border-gray-700/50 backdrop-blur-sm">
+                                    <button 
+                                        onClick={() => setShowBasesModal(true)}
+                                        className="flex items-center gap-2 bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-400 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border border-cyan-500/30 hover:shadow-[0_0_15px_rgba(6,182,212,0.2)]"
+                                    >
+                                        <DuplicateIcon className="w-3 h-3" />
+                                        APLICAR BASE
+                                    </button>
+
+                                    <div className="w-px h-6 bg-gray-700 mx-1" />
+
+                                    <button 
+                                        onClick={() => {
+                                            const name = prompt(t('products.enterBaseName'));
+                                            if (name) handleSaveAsBase(name);
+                                        }}
+                                        className="flex items-center gap-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border border-emerald-500/30"
+                                    >
+                                        <SaveIcon className="w-3 h-3" />
+                                        GUARDAR COMO BASE
+                                    </button>
+                                </div>
                             </div>
-                            <button onClick={() => setShowBasesModal(false)} className="text-gray-500 hover:text-white transition-colors p-2 hover:bg-gray-700 rounded-full">
-                                <XCircleIcon className="w-6 h-6" />
-                            </button>
+
+                            <div className="flex items-center gap-3">
+                                <button 
+                                    onClick={() => onNavigate?.('OPTIMIZATION')}
+                                    className="flex items-center gap-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-tighter shadow-lg shadow-cyan-900/20 transition-all transform hover:scale-105 active:scale-95 group border border-cyan-400/30"
+                                >
+                                    <SparklesIcon className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+                                    OPTIMIZAR DIETA
+                                </button>
+                                
+                                <button onClick={() => setSelectedProductId(null)} className="text-gray-400 hover:text-white p-2">
+                                    <XCircleIcon className="w-6 h-6" />
+                                </button>
+                            </div>
                         </div>
                         
                         <div className="p-4 border-b border-gray-700 bg-gray-900/30">
