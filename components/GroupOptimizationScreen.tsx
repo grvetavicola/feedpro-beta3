@@ -482,7 +482,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
       <main className="flex-1 flex overflow-hidden relative">
         <aside className={`shrink-0 bg-[#080808] border-r border-slate-800 transition-all duration-300 flex flex-col overflow-hidden z-50 ${isSidebarCollapsed ? 'w-0' : 'w-64'}`}>
            <div className="p-5 shrink-0 border-b border-slate-800 bg-black/40">
-              <span className="text-[11px] font-black text-[#00D1FF] uppercase tracking-[0.3em] border-l-3 border-[#00D1FF] pl-4 italic opacity-90 font-mono">Entorno Clínico</span>
+              <span className="text-[11px] font-black text-[#00D1FF] uppercase tracking-[0.3em] border-l-3 border-[#00D1FF] pl-4 italic opacity-90 font-mono">Dietas Disponibles</span>
            </div>
            <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3 bg-black/20">
               {Object.entries(dietsByCategory).map(([cat, list]) => {
@@ -565,8 +565,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                <tbody className="divide-y divide-slate-800/20">
                  <tr className="bg-[#030303] sticky top-[112px] z-50 border-b border-slate-800">
                     <td className="sticky left-0 z-30 bg-[#080808] border-r-2 border-slate-700/80 pl-8 pr-8 py-0 shadow-[10px_0_20px_rgba(0,0,0,0.8)] group-focus-within:bg-[#0c0c0c] transition-colors w-[250px] min-w-[250px]">
-                       <div className="h-14 flex items-center pl-8 border-r border-slate-700">
-                          <span className="text-[12px] font-black text-[#00D1FF] uppercase tracking-[0.4em] font-mono italic opacity-90">Sector I: Componentes</span>
+                       <div className="h-14 flex items-center justify-center border-r border-slate-700">
+                          <span className="text-[12px] font-black text-[#00D1FF] uppercase tracking-[0.4em] font-mono italic opacity-90">Sector I: Insumos</span>
                        </div>
                     </td>
                     {activeDiets.map((diet, idx) => {
@@ -591,7 +591,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                    <tr key={row.id} className="h-11 group hover:bg-[#00D1FF]/[0.02] transition-colors relative">
                      <td className="p-0 sticky left-0 z-30 bg-[#080808] border-r-2 border-slate-700/80 border-b border-slate-700/50 w-[250px] min-w-[250px]">
                         <div className="flex items-center justify-between h-full py-1.5 gap-4">
-                          <div className="min-w-0 flex-1 flex flex-col justify-center">
+                          <div className="min-w-0 flex-1 flex flex-col justify-center text-center px-4">
                              <span className="text-[13px] font-black text-white group-hover:text-cyan-400 uppercase tracking-tighter leading-tight whitespace-normal break-words block w-full">
                                {row.name}
                              </span>
@@ -628,8 +628,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
 
                  <tr className="bg-[#030303] sticky top-[112px] z-50 border-b border-slate-800">
                     <td className="p-0 sticky left-0 z-30 bg-[#080808] border-r-2 border-slate-700/80 border-b border-slate-700/50 w-[250px] min-w-[250px]">
-                       <div className="h-14 flex items-center pl-8 border-r border-slate-700">
-                          <span className="text-[12px] font-black text-[#00D1FF] uppercase tracking-[0.4em] font-mono italic opacity-90">Sector II: Parámetros</span>
+                       <div className="h-14 flex items-center justify-center border-r border-slate-700">
+                          <span className="text-[12px] font-black text-[#00D1FF] uppercase tracking-[0.4em] font-mono italic opacity-90">Sector II: Nutrientes</span>
                        </div>
                     </td>
                     {activeDiets.map((diet, idx) => {
@@ -656,7 +656,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                      <tr key={row.id} className="h-11 group hover:bg-[#00D1FF]/[0.02] transition-colors relative">
                        <td className="p-0 sticky left-0 z-30 bg-[#0a0a0a] border-r-2 border-slate-700/80 border-t-2 border-b border-slate-700/80 w-[250px] min-w-[250px]">
                           <div className="flex items-center justify-between h-full py-1.5 gap-4">
-                            <div className="min-w-0 flex-1 flex flex-col justify-center">
+                            <div className="min-w-0 flex-1 flex flex-col justify-center text-center px-4">
                                <span className="text-[13px] font-black text-white group-hover:text-cyan-400 uppercase tracking-tighter leading-tight whitespace-normal break-words block w-full">
                                  {row.name}
                                </span>
