@@ -481,12 +481,12 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
            {isSidebarCollapsed ? <ChevronRightIcon className="w-6 h-6" /> : <ChevronLeftIcon className="w-6 h-6" />}
         </button>
 
-        <div className="flex-1 overflow-auto bg-[#020202] custom-scrollbar shadow-inner">
+        <div className="flex-1 overflow-auto bg-[#020202] custom-scrollbar">
            <table className="border-collapse table-fixed w-max">
               <thead>
                 <tr className="sticky top-0 z-[60]">
-                  <th className="sticky left-0 z-[70] bg-[#050505] border-b-2 border-r border-slate-800 p-0 w-[250px] min-w-[250px] shadow-[20px_0_40px_rgba(0,0,0,0.9)]">
-                     <div className="flex items-center w-full h-full pl-8 pr-8 py-8 border-r border-slate-700">
+                  <th className="sticky left-0 z-[70] bg-slate-900 border-b-2 border-r border-slate-700 p-0 w-[250px] min-w-[250px] shadow-[20px_0_40px_rgba(0,0,0,0.9)]">
+                     <div className="flex items-center w-full h-full pl-8 pr-8 py-8 border-r border-slate-700 border-t border-blue-500/30">
                         <span className="text-[16px] font-black text-white uppercase italic tracking-[0.2em] leading-tight font-mono whitespace-normal break-words">MAESTRO DE DATOS</span>
                      </div>
                   </th>
@@ -529,7 +529,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
 
                 {activeRows.filter(r => r.type === 'ing').map((row, rIdx) => (
                   <tr key={row.id} className="h-11 group hover:bg-[#00D1FF]/[0.02] transition-colors relative">
-                    <td className="sticky left-0 z-40 bg-[#030303] border-r border-slate-700 pl-8 pr-8 py-0 shadow-[10px_0_20px_rgba(0,0,0,0.8)] group-focus-within:bg-[#0c0c0c] transition-colors w-[250px] min-w-[250px]">
+                    <td className="sticky left-0 z-40 bg-slate-900 border-t border-blue-500/30 border-r-2 border-slate-700 pl-8 pr-8 py-0 shadow-[10px_0_20px_rgba(0,0,0,0.8)] group-focus-within:bg-[#0c0c0c] transition-colors w-[250px] min-w-[250px]">
                        <div className="flex items-center justify-between h-full py-1.5 gap-4">
                          <div className="min-w-0 flex-1 flex flex-col justify-center">
                             <span className="text-[13px] font-black text-white group-hover:text-cyan-400 uppercase tracking-tighter leading-tight whitespace-normal break-words block w-full">
@@ -549,7 +549,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       const res = results[diet.id];
                       const val = res?.formula[row.id] ?? 0;
                       return (
-                        <td key={diet.id} className={`p-0 border-r border-slate-800/10 h-full w-[180px] bg-[#050505]/30 ${idx === 0 ? 'pl-8' : ''}`}>
+                        <td key={diet.id} className={`p-0 border-r border-slate-800/10 h-full w-[180px] bg-slate-900/50 ${idx === 0 ? 'pl-8' : ''}`}>
                            <div className="grid grid-cols-3 h-11 divide-x divide-slate-800/10">
                               <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={rIdx} />
                               <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={rIdx} />
@@ -563,7 +563,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                 ))}
 
                 <tr className="bg-[#060606] sticky top-[112px] z-50 backdrop-blur-2xl border-b border-slate-800 h-9">
-                   <td className="sticky left-0 bg-[#060606] z-[55] pl-8 pr-8 border-r border-slate-700 w-[250px] min-w-[250px]">
+                   <td className="sticky left-0 bg-slate-900 border-blue-500/30 z-[55] pl-8 pr-8 border-r-2 border-slate-700 w-[250px] min-w-[250px]">
                       <span className="text-[12px] font-black text-slate-300 uppercase tracking-[0.4em] font-mono italic opacity-90">Sector II: Parámetros</span>
                    </td>
                    {activeDiets.map((diet, idx) => (
@@ -582,7 +582,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                   const baseIdx = activeRows.filter(r => r.type === 'ing').length;
                   return (
                     <tr key={row.id} className="h-11 group hover:bg-[#00D1FF]/[0.02] transition-colors relative">
-                      <td className="sticky left-0 z-40 bg-[#030303] border-r border-slate-700 pl-8 pr-8 py-0 shadow-[10px_0_20px_rgba(0,0,0,0.8)] group-focus-within:bg-[#0c0c0c] transition-colors w-[250px] min-w-[250px]">
+                      <td className="sticky left-0 z-40 bg-slate-900 border-t border-blue-500/30 border-r-2 border-slate-700 pl-8 pr-8 py-0 shadow-[10px_0_20px_rgba(0,0,0,0.8)] group-focus-within:bg-[#0c0c0c] transition-colors w-[250px] min-w-[250px]">
                          <div className="flex items-center justify-between h-full py-1.5 gap-4">
                            <div className="min-w-0 flex-1 flex flex-col justify-center">
                               <span className="text-[13px] font-black text-white group-hover:text-cyan-400 uppercase tracking-tighter leading-tight whitespace-normal break-words block w-full">
@@ -602,7 +602,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                         const res = results[diet.id];
                         const val = res?.nutrients[row.id] ?? 0;
                         return (
-                          <td key={diet.id} className={`p-0 border-r border-slate-800/10 h-full w-[180px] bg-[#050505]/30 ${idx === 0 ? 'pl-8' : ''}`}>
+                          <td key={diet.id} className={`p-0 border-r border-slate-800/10 h-full w-[180px] bg-slate-900/50 ${idx === 0 ? 'pl-8' : ''}`}>
                              <div className="grid grid-cols-3 h-11 divide-x divide-slate-800/10">
                                 <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={baseIdx + rIdx} />
                                 <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={baseIdx + rIdx} />
