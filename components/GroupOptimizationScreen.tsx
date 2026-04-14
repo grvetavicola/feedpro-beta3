@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Product, Ingredient, Nutrient, SavedFormula } from '../types';
 import { solveFeedFormulation } from '../services/solver';
 import { BulkPriceEditorModal } from './BulkPriceEditorModal';
+import { ConsolidatedExportTable } from './ConsolidatedExportTable';
 import { 
   CalculatorIcon, RefreshIcon, XCircleIcon, CheckIcon, 
   TrashIcon, SearchIcon, ChevronDownIcon, ChevronLeftIcon, 
@@ -745,6 +746,14 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
           setHasRun(false); // Reset matrix to require recalculation
         }}
       />
+
+      {hasRun && (
+        <ConsolidatedExportTable 
+          activeDiets={activeDiets}
+          results={results}
+          activeRows={activeRows}
+        />
+      )}
     </div>
   );
 };
