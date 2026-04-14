@@ -215,6 +215,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
       border: `${mainColor}4d`, // 30% alpha
       borderT: mainColor,
       cellBg: 'bg-[#050505]/30',
+      cellSubtle: `${mainColor}0f`, // ~6% alpha for background strip
       glow: `0 0 20px ${mainColor}26` // 15% alpha
     };
   };
@@ -533,7 +534,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       return (
                         <React.Fragment key={diet.id}>
                           <th className="w-4 min-w-[16px] bg-[#030303] border-none" />
-                          <th className={`p-0 text-center relative bg-[#080808] border-b border-slate-800/60 w-[180px] min-w-[180px] rounded-t-3xl border-t-2`} style={{ borderTopColor: theme.borderT, boxShadow: theme.glow }}>
+                          <th className={`p-0 text-center relative border-b border-slate-800/60 w-[180px] min-w-[180px] rounded-t-3xl border-t-2`} style={{ borderTopColor: theme.borderT, boxShadow: theme.glow, backgroundColor: theme.cellSubtle }}>
                              <div className="flex flex-col items-center justify-center h-28 relative">
                                 <div className="absolute top-4 right-4 flex gap-1">
                                   <button onClick={() => setActiveDietIds(p => p.filter(id => id !== diet.id))} className="p-2 hover:bg-white/10 rounded-xl transition-colors group">
@@ -572,7 +573,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       return (
                         <React.Fragment key={`h1-${diet.id}`}>
                           <td className="w-4 bg-[#030303] border-none" />
-                          <td className={`p-0 border-b border-slate-800/60 ${theme.cellBg}`}>
+                          <td className={`p-0 border-b border-slate-800/60`} style={{ backgroundColor: theme.cellSubtle }}>
                              <div className="grid grid-cols-3 h-14 divide-x divide-slate-800/20">
                                 <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest`} style={{ color: theme.accent }}>MIN</div>
                                 <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest`} style={{ color: theme.accent }}>MAX</div>
@@ -635,7 +636,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       return (
                         <React.Fragment key={`h2-${diet.id}`}>
                           <td className="w-4 bg-[#030303] border-none" />
-                          <td className={`p-0 border-b border-slate-800/60 ${theme.cellBg}`}>
+                          <td className={`p-0 border-b border-slate-800/60`} style={{ backgroundColor: theme.cellSubtle }}>
                              <div className="grid grid-cols-3 h-14 divide-x divide-slate-800/20">
                                 <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest`} style={{ color: theme.accent }}>MIN</div>
                                 <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest`} style={{ color: theme.accent }}>MAX</div>
@@ -675,7 +676,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                          return (
                            <React.Fragment key={diet.id}>
                              <td className="w-4 bg-[#030303] border-none" />
-                             <td className={`p-0 border-b border-slate-800/10 ${theme.cellBg} h-11`}>
+                             <td className={`p-0 border-b border-slate-800/10 h-11`} style={{ backgroundColor: theme.cellSubtle }}>
                                 <div className="grid grid-cols-3 h-full divide-x divide-white/[0.03]">
                                    <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={baseIdx + rIdx} />
                                    <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={baseIdx + rIdx} />
