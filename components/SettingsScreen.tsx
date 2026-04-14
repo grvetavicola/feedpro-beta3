@@ -86,12 +86,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                 const data = XLSX.utils.sheet_to_json(ws, { header: 1 }) as any[][];
                 if (data.length < 2) return;
 
-                let headerIdx = 0;
-                for(let i=0; i<Math.min(data.length, 10); i++) {
-                    if (data[i] && data[i].some(c => typeof c === 'string' && (c.toLowerCase().includes('nombre') || c.toLowerCase().includes('name')))) {
+                let headerIdx = -1;
+                for(let i=0; i<Math.min(data.length, 15); i++) {
+                    if (data[i] && data[i].some(c => {
+                        const s = String(c).toLowerCase();
+                        return s.includes('nombre') || s.includes('name') || s.includes('ingredient') || s.includes('insumo');
+                    })) {
                         headerIdx = i;
                         break;
                     }
+                }
+
+                if (headerIdx === -1) {
+                    alert("No se pudo detectar la fila de encabezados. Asegúrate de tener una columna llamada 'INGREDIENT' o 'NOMBRE'.");
+                    return;
+                }
                 }
 
                 const headers = data[headerIdx];
@@ -132,7 +141,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                 }).filter(Boolean) as Ingredient[];
 
                 if (newIngs.length > 0) {
-                    if (confirm(`Detectados ${newIngs.length} insumos. ¿Deseas COMBINAR con actuales? (Sino se reemplazarán)`)) {
+                    if (window.confirm(`Detectados ${newIngs.length} insumos. ¿Deseas COMBINAR con actuales? (Sino se reemplazarán)`)) {
                         setIngredients([...ingredients, ...newIngs]);
                     } else {
                         setIngredients(newIngs);
