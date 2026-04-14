@@ -734,19 +734,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
            </table>
         </div>
 
-        {hasRun && (
-
-          <ConsolidatedExportTable 
-
-            activeDiets={activeDiets}
-
-            results={results}
-
-            activeRows={activeRows}
-
-          />
-
-        )}
+        
 </main>
       
       <BulkPriceEditorModal 
