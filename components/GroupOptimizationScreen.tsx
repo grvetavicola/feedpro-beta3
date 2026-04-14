@@ -527,7 +527,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                  <tr className="sticky top-0 z-[60]">
                    <th className="p-6 sticky left-0 z-30 bg-[#080808] border-r-2 border-slate-700/80 border-b-2 shadow-2xl w-[250px] min-w-[250px]">
                       <div className="flex items-center w-full h-full pl-8 pr-8 py-8 border-t border-blue-500/30">
-                         <span className="text-[16px] font-black text-white uppercase italic tracking-[0.2em] leading-tight font-mono whitespace-normal break-words">MAESTRO DE DATOS</span>
+                         <span className="text-[16px] font-black text-[#00D1FF] uppercase italic tracking-[0.2em] leading-tight font-mono whitespace-normal break-words">Matriz Grupal</span>
                       </div>
                    </th>
                    {activeDiets.map((diet, idx) => {
