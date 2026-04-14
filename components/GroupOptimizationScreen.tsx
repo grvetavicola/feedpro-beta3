@@ -116,9 +116,9 @@ const DiagnosticCell = ({
     }
   }
 
-  const displayValue = viewMode === 'kg' && isResult && resultValue !== undefined 
-    ? ((resultValue / 100) * (batchSize || 1000)).toFixed(2) 
-    : (typeof value === 'number' ? value.toFixed(1) : (value ?? ''));
+  const displayValue = viewMode === 'kg' && row.type === 'ing' && value !== undefined && value !== null
+    ? ((Number(value) / 100) * (batchSize || 1000)).toFixed(rowIndex !== undefined ? 1 : 2)
+    : (typeof value === 'number' ? (value > 99 ? value.toFixed(0) : value.toFixed(1)) : (value ?? ''));
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
