@@ -507,31 +507,48 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                                         <input list="category-list" value={currentProduct.category || ''} placeholder={t('products.categoryHelp')} onChange={e => handleUpdate(p => ({...p, category: e.target.value.toUpperCase()}))} className="bg-transparent text-[14px] font-black text-emerald-400 focus:outline-none focus:border-b border-emerald-500 w-48" />
                                     </div>
                                 </div>
-                                <div className="flex gap-2">
-                                    {bases && bases.length > 0 && bases.map(b => (
-                                        <div key={b.id} className="relative group/base">
-                                            <button onClick={() => applyBase(b)} className="text-[10px] bg-purple-900/30 text-purple-400 border border-purple-500/30 px-2 py-1 rounded hover:bg-purple-900/50 transition-colors uppercase font-bold">Base: {b.name}</button>
-                                            <button onClick={(e) => { e.stopPropagation(); setBases?.(prev => prev.filter(x => x.id !== b.id)); }} className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-3.5 h-3.5 flex items-center justify-center opacity-0 group-hover/base:opacity-100 transition-opacity text-[8px] border border-gray-900">×</button>
-                                        </div>
-                                    ))}
-                                    <button 
-                                        onClick={handleSaveAsBase}
-                                        className="text-[10px] bg-emerald-900/30 text-emerald-400 border border-emerald-500/30 px-2 py-1 rounded hover:bg-emerald-900/50 transition-colors uppercase font-bold flex items-center gap-1"
-                                    >
-                                        <PlusIcon className="w-2.5 h-2.5" /> Guardar como Base
-                                    </button>
+                                <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 bg-purple-900/20 p-1 rounded-xl border border-purple-500/20 backdrop-blur-sm">
+                                        <button 
+                                            onClick={() => setShowBasesModal(true)}
+                                            className="flex items-center gap-2 hover:bg-purple-900/40 text-purple-400 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all group"
+                                        >
+                                            <DuplicateIcon className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                                            APLICAR BASE
+                                        </button>
+                                        <div className="w-px h-5 bg-purple-500/30" />
+                                        <button 
+                                            onClick={handleSaveAsBase}
+                                            className="flex items-center gap-2 hover:bg-emerald-900/40 text-emerald-400 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all group"
+                                        >
+                                            <SaveIcon className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                                            GUARDAR COMO BASE
+                                        </button>
+                                    </div>
+
+                                    <div className="h-8 w-px bg-gray-700 mx-1"></div>
+
                                     <button 
                                         onClick={() => excelBasesInputRef.current?.click()}
-                                        className="text-[10px] bg-indigo-900/30 text-indigo-400 border border-indigo-500/30 px-2 py-1 rounded hover:bg-indigo-900/50 transition-colors uppercase font-bold flex items-center gap-1"
+                                        className="text-[10px] bg-indigo-950/40 text-indigo-400 border border-indigo-500/20 px-3 py-1.5 rounded-xl hover:bg-indigo-900/50 transition-all uppercase font-black tracking-widest flex items-center gap-2"
                                     >
-                                        <UploadIcon className="w-2.5 h-2.5" /> Importar Bases
+                                        <UploadIcon className="w-3.5 h-3.5" /> IMPORTAR EXCEL
                                     </button>
                                     <input type="file" ref={excelBasesInputRef} className="hidden" accept=".xlsx,.xls,.csv" onChange={handleImportBasesExcel} />
-                                    {onOpenInNewWindow && (
-                                        <button onClick={() => onNavigate('OPTIMIZATION')} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-4 py-1 rounded shadow text-[11px] uppercase flex items-center gap-1 transition-all">
-                                            <SparklesIcon className="w-3 h-3 animate-pulse" /> Optimizar Dieta
-                                        </button>
-                                    )}
+                                </div>
+
+                                <div className="flex items-center gap-4">
+                                    <button 
+                                        onClick={() => onNavigate?.('OPTIMIZATION')}
+                                        className="flex items-center gap-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-tighter shadow-[0_4px_20px_rgba(6,182,212,0.3)] hover:shadow-[0_6px_25px_rgba(6,182,212,0.4)] transition-all transform hover:scale-105 active:scale-95 group border border-cyan-400/30"
+                                    >
+                                        <SparklesIcon className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+                                        <span>OPTIMIZAR DIETA</span>
+                                    </button>
+                                    
+                                    <button onClick={() => setSelectedProductId(null)} className="text-gray-500 hover:text-white transition-all transform hover:rotate-90">
+                                        <XCircleIcon className="w-7 h-7" />
+                                    </button>
                                 </div>
                             </div>
                             {/* Ratios Accordion */}
@@ -652,50 +669,17 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                     <div className="bg-gray-800 border-2 border-cyan-500/30 rounded-2xl shadow-[0_0_50px_rgba(6,182,212,0.2)] w-full max-w-xl flex flex-col max-h-[85vh] animate-in fade-in zoom-in duration-300">
                         <div className="p-6 border-b border-gray-700 flex justify-between items-center bg-gray-800/50">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-cyan-500/10 rounded-lg">
+                                <div className="p-2 bg-cyan-500/10 rounded-lg shadow-inner">
                                     <DuplicateIcon className="w-6 h-6 text-cyan-400" />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold text-white uppercase tracking-wider">Seleccionar Base Nutricional</h3>
-                                    <p className="text-gray-400 text-xs">Aplica requerimientos estandarizados a la dieta actual</p>
-                                </div>
-                                <div className="flex items-center gap-2 bg-gray-900/50 p-1.5 rounded-xl border border-gray-700/50 backdrop-blur-sm">
-                                    <button 
-                                        onClick={() => setShowBasesModal(true)}
-                                        className="flex items-center gap-2 bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-400 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border border-cyan-500/30 hover:shadow-[0_0_15px_rgba(6,182,212,0.2)]"
-                                    >
-                                        <DuplicateIcon className="w-3 h-3" />
-                                        APLICAR BASE
-                                    </button>
-
-                                    <div className="w-px h-6 bg-gray-700 mx-1" />
-
-                                    <button 
-                                        onClick={() => {
-                                            const name = prompt(t('products.enterBaseName'));
-                                            if (name) handleSaveAsBase(name);
-                                        }}
-                                        className="flex items-center gap-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border border-emerald-500/30"
-                                    >
-                                        <SaveIcon className="w-3 h-3" />
-                                        GUARDAR COMO BASE
-                                    </button>
+                                    <h3 className="text-xl font-black text-white uppercase tracking-wider">Seleccionar Base Nutricional</h3>
+                                    <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Aplica requerimientos estandarizados a la dieta</p>
                                 </div>
                             </div>
-
-                            <div className="flex items-center gap-3">
-                                <button 
-                                    onClick={() => onNavigate?.('OPTIMIZATION')}
-                                    className="flex items-center gap-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-tighter shadow-lg shadow-cyan-900/20 transition-all transform hover:scale-105 active:scale-95 group border border-cyan-400/30"
-                                >
-                                    <SparklesIcon className="w-4 h-4 group-hover:rotate-12 transition-transform" />
-                                    OPTIMIZAR DIETA
-                                </button>
-                                
-                                <button onClick={() => setSelectedProductId(null)} className="text-gray-400 hover:text-white p-2">
-                                    <XCircleIcon className="w-6 h-6" />
-                                </button>
-                            </div>
+                            <button onClick={() => setShowBasesModal(false)} className="text-gray-500 hover:text-white transition-all transform hover:rotate-90 p-2 hover:bg-gray-700 rounded-full">
+                                <XCircleIcon className="w-6 h-6" />
+                            </button>
                         </div>
                         
                         <div className="p-4 border-b border-gray-700 bg-gray-900/30">
