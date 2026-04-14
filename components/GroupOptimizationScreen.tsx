@@ -732,13 +732,16 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                  </tr>
                </tfoot>
            </table>
-           {hasRun && (
-             <ConsolidatedExportTable 
-               activeDiets={activeDiets}
-               results={results}
-               activeRows={activeRows}
-             />
-           )}
+                       {hasRun && (
+              <div className="mt-40 mb-60 relative z-10">
+                <div className="h-px bg-slate-800 w-full mb-20" />
+                <ConsolidatedExportTable 
+                  activeDiets={activeDiets}
+                  results={results}
+                  activeRows={activeRows}
+                />
+              </div>
+            )}
          </div>
 
         

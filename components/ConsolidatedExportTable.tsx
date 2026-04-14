@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { DuplicateIcon } from './icons';
+import { DownloadIcon } from './icons';
 
 interface Props {
   activeDiets: any[];
@@ -14,62 +14,69 @@ export const ConsolidatedExportTable: React.FC<Props> = ({
 }) => {
   const tableRef = useRef<HTMLTableElement>(null);
 
-  const copyToExcel = async () => {
+  const downloadExcel = () => {
     if (!tableRef.current) return;
-    try {
-      const blob = new Blob([tableRef.current.outerHTML], { type: 'text/html' });
-      const item = new ClipboardItem({ 'text/html': blob });
-      await navigator.clipboard.write([item]);
-      alert('¡Tabla copiada al portapapeles! Pégala directamente en Excel.');
-    } catch (err) {
-      console.error('Error al copiar:', err);
-      try {
-        // Fallback for older browsers
-        const range = document.createRange();
-        range.selectNode(tableRef.current);
-        window.getSelection()?.removeAllRanges();
-        window.getSelection()?.addRange(range);
-        document.execCommand('copy');
-        window.getSelection()?.removeAllRanges();
-        alert('Copiado (método alternativo).');
-      } catch (err2) {
-        alert('Error al copiar. Por favor, selecciona la tabla manualmente.');
-      }
-    }
+    
+    const tableHTML = tableRef.current.outerHTML;
+    const fileName = `FeedPro_Export_${new Date().toISOString().split('T')[0]}.xls`;
+    
+    // Excel-compatible HTML wrapper
+    const template = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Reporte Consolidado</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
+      <body>${tableHTML}</body>
+      </html>
+    `;
+
+    const blob = new Blob([template], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const activeIngs = activeRows.filter(r => r.type === 'ing');
   const activeNuts = activeRows.filter(r => r.type === 'nut');
 
-  const tdStyle = { border: '1px solid #ccc', padding: '6px', textAlign: 'left' as const, fontSize: '12px', color: 'black' };
-  const thStyle = { ...tdStyle, backgroundColor: '#f2f2f2', fontWeight: 'bold' as const };
-  const headerStyle = { ...thStyle, backgroundColor: '#d1d1d1', textAlign: 'center' as const };
+  const tdStyle = { border: '1px solid #000', padding: '5px', textAlign: 'left' as const, fontSize: '11px', color: 'black' };
+  const thStyle = { ...tdStyle, backgroundColor: '#e2e2e2', fontWeight: 'bold' as const };
+  const headerStyle = { ...thStyle, backgroundColor: '#c0c0c0', textAlign: 'center' as const };
+  const subHeaderStyle = { ...tdStyle, backgroundColor: '#f0f0f0', textAlign: 'center' as const, fontSize: '10px', fontWeight: 'bold' as const };
 
   return (
-    <div className="mt-16 mb-24 p-8 bg-[#0a0a0a] border border-slate-800 rounded-3xl mx-6">
-      <div className="flex items-center justify-between mb-8">
+    <div className="mt-20 mb-32 p-10 bg-white border-4 border-double border-slate-300 rounded-none shadow-2xl mx-auto max-w-[98%]">
+      <div className="flex items-center justify-between mb-8 border-b-2 border-slate-200 pb-6">
         <div>
-          <h2 className="text-2xl font-black uppercase tracking-[0.2em] text-[#00D1FF] font-mono">Exportación Consolidada</h2>
-          <div className="h-1 w-20 bg-[#00D1FF]/40 rounded-full mt-2" />
-          <p className="text-[10px] text-slate-500 mt-2 uppercase italic tracking-widest font-black">Formato Plano Optimizado para Microsoft Excel</p>
+          <h2 className="text-3xl font-black uppercase text-black font-serif">Reporte de Formulación Grupal</h2>
+          <p className="text-sm text-slate-600 mt-1 uppercase tracking-tighter">Versión para Exportación Directa a Excel (Planilla Plana v3.0)</p>
         </div>
         <button 
-          onClick={copyToExcel}
-          className="flex items-center gap-3 bg-[#00D1FF] hover:bg-[#00b8e6] text-black px-8 py-4 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 shadow-[0_0_30px_rgba(0,209,255,0.2)] group"
+          onClick={downloadExcel}
+          className="flex items-center gap-3 bg-emerald-600 hover:bg-emerald-700 text-white px-10 py-5 rounded-none font-black uppercase tracking-widest transition-all active:scale-95 shadow-xl border-b-4 border-emerald-900"
         >
-          <DuplicateIcon className="w-6 h-6 group-hover:scale-110 transition-transform" />
-          Copiar a Excel
+          <DownloadIcon className="w-6 h-6" />
+          Descargar Excel (.XLS)
         </button>
       </div>
 
-      <div className="overflow-auto bg-white rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-        <table ref={tableRef} style={{ borderCollapse: 'collapse', width: '100%', color: 'black', backgroundColor: 'white', fontFamily: 'Calibri, sans-serif' }}>
+      <div className="overflow-auto border border-black p-1 bg-white">
+        <table ref={tableRef} style={{ borderCollapse: 'collapse', width: '100%', color: 'black', backgroundColor: 'white', fontFamily: 'Calibri, Arial, sans-serif' }}>
           <thead>
             <tr>
-              <th style={headerStyle}>Ingrediente / Insumo</th>
-              <th style={headerStyle}>$/kg</th>
+              <th rowSpan={2} style={headerStyle}>Ingrediente / Insumo</th>
+              <th rowSpan={2} style={headerStyle}>$/kg</th>
               {activeDiets.map(diet => (
-                <th key={diet.id} style={headerStyle}>{diet.name}</th>
+                <th key={diet.id} colSpan={2} style={headerStyle}>{diet.name.toUpperCase()}</th>
+              ))}
+            </tr>
+            <tr>
+              {activeDiets.map(diet => (
+                <React.Fragment key={`sub-${diet.id}`}>
+                  <th style={subHeaderStyle}>% INCLUSIÓN</th>
+                  <th style={subHeaderStyle}>KILOS</th>
+                </React.Fragment>
               ))}
             </tr>
           </thead>
@@ -80,23 +87,35 @@ export const ConsolidatedExportTable: React.FC<Props> = ({
                 <td style={{ ...tdStyle, fontWeight: 'bold' }}>{ing.name}</td>
                 <td style={tdStyle}>{ing.price?.toFixed(2)}</td>
                 {activeDiets.map(diet => {
-                  const val = results[diet.id]?.formula[ing.id] || 0;
-                  return <td key={diet.id} style={{ ...tdStyle, textAlign: 'right' }}>{val.toFixed(2)}</td>;
+                  const kilos = results[diet.id]?.formula[ing.id] || 0;
+                  const totalKg = Object.values(results[diet.id]?.formula || {}).reduce((a: any, b: any) => a + b, 0) as number;
+                  const percent = totalKg > 0 ? (kilos / totalKg) * 100 : 0;
+                  return (
+                    <React.Fragment key={diet.id}>
+                      <td style={{ ...tdStyle, textAlign: 'right', backgroundColor: '#fff9e6' }}>{percent.toFixed(2)}%</td>
+                      <td style={{ ...tdStyle, textAlign: 'right' }}>{kilos.toFixed(2)}</td>
+                    </React.Fragment>
+                  );
                 })}
               </tr>
             ))}
 
             {/* Fila Totales */}
-            <tr style={{ backgroundColor: '#fafafa' }}>
-              <td style={{ ...thStyle }}>TOTAL KG (BATCH)</td>
+            <tr style={{ backgroundColor: '#eeeeee' }}>
+              <td style={{ ...thStyle }}>TOTALES</td>
               <td style={tdStyle}>-</td>
               {activeDiets.map(diet => {
-                const total = Object.values(results[diet.id]?.formula || {}).reduce((a: any, b: any) => a + b, 0);
-                return <td key={diet.id} style={{ ...thStyle, textAlign: 'right' }}>{(total as number).toFixed(2)}</td>;
+                const totalKg = Object.values(results[diet.id]?.formula || {}).reduce((a: any, b: any) => a + b, 0) as number;
+                return (
+                  <React.Fragment key={diet.id}>
+                    <td style={{ ...thStyle, textAlign: 'right' }}>100.00%</td>
+                    <td style={{ ...thStyle, textAlign: 'right' }}>{totalKg.toFixed(2)}</td>
+                  </React.Fragment>
+                );
               })}
             </tr>
 
-            <tr style={{ backgroundColor: '#f5f5f5' }}>
+            <tr style={{ backgroundColor: '#fff' }}>
               <td style={{ ...thStyle }}>VALOR FÓRMULA (COSTO TOTAL)</td>
               <td style={tdStyle}>-</td>
               {activeDiets.map(diet => {
@@ -104,30 +123,30 @@ export const ConsolidatedExportTable: React.FC<Props> = ({
                   const qty = results[diet.id]?.formula[ing.id] || 0;
                   return sum + (qty * (ing.price || 0));
                 }, 0);
-                return <td key={diet.id} style={{ ...thStyle, textAlign: 'right', color: '#b91c1c' }}>{totalCost.toFixed(2)}</td>;
+                return <td key={diet.id} colSpan={2} style={{ ...thStyle, textAlign: 'center', color: '#cc0000', fontSize: '14px' }}>${totalCost.toFixed(2)}</td>;
               })}
             </tr>
 
-            <tr style={{ backgroundColor: '#fdfaea' }}>
+            <tr style={{ backgroundColor: '#f9f9f9' }}>
               <td style={{ ...thStyle }}>COSTO POR KG</td>
               <td style={tdStyle}>-</td>
               {activeDiets.map(diet => {
                 const cost = results[diet.id]?.costPerKg || 0;
-                return <td key={diet.id} style={{ ...thStyle, textAlign: 'right', fontWeight: '900' }}>{cost.toFixed(4)}</td>;
+                return <td key={diet.id} colSpan={2} style={{ ...thStyle, textAlign: 'center', borderBottom: '3px double black' }}>{cost.toFixed(4)}</td>;
               })}
             </tr>
 
-            {/* SEPARADOR Nutrientes */}
+            {/* Nutrientes Section */}
             <tr>
-              <td colSpan={2 + activeDiets.length} style={{ ...headerStyle, backgroundColor: '#333', color: 'white', padding: '10px' }}>
-                VALORES NUTRICIONALES ESPERADOS (ACT)
+              <td colSpan={2 + (activeDiets.length * 2)} style={{ padding: '20px', backgroundColor: '#333', color: 'white', fontWeight: 'bold', textAlign: 'center' }}>
+                PERFIL NUTRICIONAL DEL RESULTADO (ACT)
               </td>
             </tr>
-            <tr style={{ backgroundColor: '#f2f2f2' }}>
+            <tr style={{ backgroundColor: '#e2e2e2' }}>
               <th style={thStyle}>Nutriente</th>
               <th style={thStyle}>Unidad</th>
               {activeDiets.map(diet => (
-                <th key={diet.id} style={thStyle}>{diet.name}</th>
+                <th key={diet.id} colSpan={2} style={thStyle}>{diet.name.toUpperCase()} (ACT)</th>
               ))}
             </tr>
 
@@ -137,7 +156,7 @@ export const ConsolidatedExportTable: React.FC<Props> = ({
                 <td style={tdStyle}>{nut.unit}</td>
                 {activeDiets.map(diet => {
                   const val = results[diet.id]?.nutrients[nut.id] || 0;
-                  return <td key={diet.id} style={{ ...tdStyle, textAlign: 'right' }}>{val.toFixed(2)}</td>;
+                  return <td key={diet.id} colSpan={2} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>{val.toFixed(2)}</td>;
                 })}
               </tr>
             ))}
