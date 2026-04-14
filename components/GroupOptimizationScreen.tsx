@@ -525,11 +525,11 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
            <table className="border-collapse table-fixed w-max">
                <thead>
                  <tr className="sticky top-0 z-[60]">
-                   <th className="p-6 sticky left-0 z-30 bg-[#080808] border-r-2 border-slate-700/80 border-b-2 shadow-2xl w-[250px] min-w-[250px]">
-                      <div className="flex items-center w-full h-full pl-8 pr-8 py-8 border-t border-blue-500/30">
-                         <span className="text-[16px] font-black text-[#00D1FF] uppercase italic tracking-[0.2em] leading-tight font-mono whitespace-normal break-words">Matriz Grupal</span>
-                      </div>
-                   </th>
+                                       <th className="sticky left-0 z-[70] bg-[#080808] border-r-2 border-slate-700/80 border-b border-slate-700/50 w-[250px] min-w-[250px] p-0">
+                       <div className="h-28 flex items-center justify-center text-center px-4">
+                          <span className="text-[16px] font-black text-[#00D1FF] uppercase italic tracking-[0.2em] leading-tight font-mono">Matriz Grupal</span>
+                       </div>
+                    </th>
                    {activeDiets.map((diet, idx) => {
                       const theme = getDietTheme(diet.category || '');
                       return (
@@ -564,11 +564,11 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                
                <tbody className="divide-y divide-slate-800/20">
                  <tr className="bg-[#030303] sticky top-[112px] z-50 border-b border-slate-800">
-                    <td className="sticky left-0 z-30 bg-[#080808] border-r-2 border-slate-700/80 pl-8 pr-8 py-0 shadow-[10px_0_20px_rgba(0,0,0,0.8)] group-focus-within:bg-[#0c0c0c] transition-colors w-[250px] min-w-[250px]">
-                       <div className="h-14 flex items-center justify-center border-r border-slate-700">
-                          <span className="text-[12px] font-black text-[#00D1FF] uppercase tracking-[0.4em] font-mono italic opacity-90">Sector I: Insumos</span>
-                       </div>
-                    </td>
+                                         <td className="sticky left-0 z-30 bg-[#080808] border-r-2 border-slate-700/80 border-b border-slate-700/50 w-[250px] min-w-[250px] p-0">
+                        <div className="h-14 flex items-center justify-center text-center px-4">
+                           <span className="text-[12px] font-black text-[#00D1FF] uppercase tracking-[0.4em] font-mono italic opacity-90">Sector I: Insumos</span>
+                        </div>
+                     </td>
                     {activeDiets.map((diet, idx) => {
                       const theme = getDietTheme(diet.category || '');
                       return (
@@ -589,49 +589,11 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
 
                  {activeRows.filter(r => r.type === 'ing').map((row, rIdx) => (
                    <tr key={row.id} className="h-11 group hover:bg-[#00D1FF]/[0.02] transition-colors relative">
-                     <td className="p-0 sticky left-0 z-30 bg-[#080808] border-r-2 border-slate-700/80 border-b border-slate-700/50 w-[250px] min-w-[250px]">
-                        <div className="flex items-center justify-between h-full py-1.5 gap-4">
-                          <div className="min-w-0 flex-1 flex flex-col justify-center text-center px-4">
-                             <span className="text-[13px] font-black text-white group-hover:text-cyan-400 uppercase tracking-tighter leading-tight whitespace-normal break-words block w-full">
-                               {row.name}
-                             </span>
-                             <span className="text-[11px] text-slate-300 font-bold uppercase italic font-mono scale-95 origin-left tracking-widest opacity-90 group-hover:opacity-100">
-                               ${row.price?.toFixed(2)}
-                             </span>
-                          </div>
-                          <button onClick={() => handleRemoveRow(row.id)} className="text-red-900/20 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all p-2 hover:bg-red-600/10 rounded-xl shrink-0">
-                             <TrashIcon className="w-3.5 h-3.5" />
-                          </button>
+                                          <td className="sticky left-0 z-30 bg-[#080808] border-r-2 border-slate-700/80 border-b border-slate-700/50 w-[250px] min-w-[250px] p-0">
+                        <div className="h-14 flex items-center justify-center text-center px-4">
+                           <span className="text-[12px] font-black text-[#00D1FF] uppercase tracking-[0.4em] font-mono italic opacity-90">Sector II: Nutrientes</span>
                         </div>
                      </td>
-                     {activeDiets.map((diet, idx) => {
-                       const c = constraints[row.id]?.[diet.id];
-                       const res = results[diet.id];
-                       const val = res?.formula[row.id] ?? 0;
-                       const theme = getDietTheme(diet.category || '');
-                       return (
-                         <React.Fragment key={`diagnostic-${diet.id}`}>
-                           <td className="w-4 bg-[#030303] border-none" />
-                           <td className={`p-0 border-b border-slate-800/10 h-11`} style={{ backgroundColor: theme.cellSubtle }}>
-                              <div className="grid grid-cols-3 h-full divide-x divide-white/[0.03]">
-                                 <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={rIdx} />
-                                 <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={rIdx} />
-                                 <DiagnosticCell row={row} dietId={diet.id} value={val} isResult resultValue={val} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={res?.feasible ?? true} min={c?.min} max={c?.max} shadowPrice={res?.shadowPrices[row.id]} hasRun={hasRun} cellIndex={2} rowIndex={rIdx} />
-                              </div>
-                           </td>
-                         </React.Fragment>
-                       );
-                     })}
-                     <td className="bg-transparent w-40 opacity-0"></td>
-                   </tr>
-                 ))}
-
-                 <tr className="bg-[#030303] sticky top-[112px] z-50 border-b border-slate-800">
-                    <td className="p-0 sticky left-0 z-30 bg-[#080808] border-r-2 border-slate-700/80 border-b border-slate-700/50 w-[250px] min-w-[250px]">
-                       <div className="h-14 flex items-center justify-center border-r border-slate-700">
-                          <span className="text-[12px] font-black text-[#00D1FF] uppercase tracking-[0.4em] font-mono italic opacity-90">Sector II: Nutrientes</span>
-                       </div>
-                    </td>
                     {activeDiets.map((diet, idx) => {
                       const theme = getDietTheme(diet.category || '');
                       return (
@@ -654,17 +616,17 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                    const baseIdx = activeRows.filter(r => r.type === 'ing').length;
                    return (
                      <tr key={row.id} className="h-11 group hover:bg-[#00D1FF]/[0.02] transition-colors relative">
-                       <td className="p-0 sticky left-0 z-30 bg-[#0a0a0a] border-r-2 border-slate-700/80 border-t-2 border-b border-slate-700/80 w-[250px] min-w-[250px]">
-                          <div className="flex items-center justify-between h-full py-1.5 gap-4">
-                            <div className="min-w-0 flex-1 flex flex-col justify-center text-center px-4">
-                               <span className="text-[13px] font-black text-white group-hover:text-cyan-400 uppercase tracking-tighter leading-tight whitespace-normal break-words block w-full">
+                       <td className="p-0 sticky left-0 z-30 bg-[#0a0a0a] border-r-2 border-slate-700/80 border-b border-slate-700/50 w-[250px] min-w-[250px]">
+                          <div className="relative flex items-center justify-center h-full py-1.5 px-4 text-center">
+                            <div className="relative flex items-center justify-center h-full py-1.5 px-4 text-center">
+                               <span className="text-[13px] font-black text-white group-hover:text-cyan-400 uppercase tracking-tighter leading-tight whitespace-normal break-words">
                                  {row.name}
                                </span>
                                <span className="text-[11px] text-slate-300 font-bold uppercase italic font-mono scale-95 origin-left tracking-[0.3em] opacity-90 group-hover:opacity-100">
                                  {row.unit}
                                </span>
                             </div>
-                            <button onClick={() => handleRemoveRow(row.id)} className="text-red-900/20 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all p-2 hover:bg-red-600/10 rounded-xl shrink-0">
+                            <button onClick={() => handleRemoveRow(row.id)} className="absolute right-2 text-red-900/40 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all p-2 hover:bg-red-600/10 rounded-xl">
                              <TrashIcon className="w-3.5 h-3.5" />
                           </button>
                           </div>
@@ -695,7 +657,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
 
                <tfoot className="sticky bottom-0 z-[60] shadow-2xl border-t-2 border-slate-800">
                  <tr className="bg-[#050505] h-20">
-                    <td className="p-0 sticky left-0 z-30 bg-[#0a0a0a] border-r-2 border-slate-700/80 border-t-2 border-b border-slate-700/80 w-[250px] min-w-[250px]">
+                    <td className="p-0 sticky left-0 z-30 bg-[#0a0a0a] border-r-2 border-slate-700/80 border-b border-slate-700/50 w-[250px] min-w-[250px]">
                        <div className="flex flex-col justify-center items-center text-center h-full">
                          <span className="text-[14px] font-black text-[#00D1FF] uppercase tracking-[0.2em] leading-none mb-2 font-mono">Diagnóstico Maestro</span>
                          <div className="h-0.5 w-12 bg-[#00D1FF]/40 rounded-full mb-2" />
