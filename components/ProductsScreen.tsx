@@ -203,7 +203,8 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
             handleUpdate(p => ({
                 ...p,
                 constraints: [...base.constraints],
-                relationships: [...base.relationships]
+                relationships: [...base.relationships],
+                ingredientConstraints: base.ingredientConstraints ? [...base.ingredientConstraints] : []
             }));
         }
     };
@@ -218,7 +219,8 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
             name: baseName,
             description: `Generada desde ${currentProduct.name}`,
             constraints: [...currentProduct.constraints],
-            relationships: [...currentProduct.relationships]
+            relationships: [...currentProduct.relationships],
+            ingredientConstraints: [...currentProduct.ingredientConstraints]
         };
 
         setBases(prev => [...prev, newBase]);

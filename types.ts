@@ -78,6 +78,7 @@ export interface NutritionalBase {
   description: string;
   constraints: ProductConstraint[];
   relationships: Relationship[];
+  ingredientConstraints?: IngredientConstraint[];
 }
 
 export interface FormulationResult {
