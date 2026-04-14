@@ -376,6 +376,17 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
         reader.readAsBinaryString(file);
     };
 
+    const handleMigrate = () => {
+        const idsToMigrate = products.map(p => p.id);
+        if (idsToMigrate.length === 0) {
+            alert("No hay dietas disponibles para migrar.");
+            return;
+        }
+        onSelectDiets?.(idsToMigrate);
+        onNavigate?.('OPTIMIZATION');
+        alert(`✓ ${idsToMigrate.length} dietas migradas a Optimización correctamente.`);
+    };
+
     return (
         <div className="p-3 space-y-3 h-full flex flex-col animate-fade-in w-full">
             <div className="relative bg-gradient-to-br from-cyan-900/40 to-indigo-900/40 rounded-xl p-4 border border-cyan-500/20 overflow-hidden shadow-md flex flex-col md:flex-row justify-between items-center gap-4 shrink-0">
