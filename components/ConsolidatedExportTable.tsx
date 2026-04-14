@@ -5,12 +5,14 @@ interface Props {
   activeDiets: any[];
   results: Record<string, any>;
   activeRows: any[];
+  batchSizes: Record<string, number>;
 }
 
 export const ConsolidatedExportTable: React.FC<Props> = ({
   activeDiets,
   results,
-  activeRows
+  activeRows,
+  batchSizes
 }) => {
   const tableRef = useRef<HTMLTableElement>(null);
 
