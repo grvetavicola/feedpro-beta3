@@ -486,7 +486,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                  const allSel = list.length > 0 && list.every(d => activeDietIds.includes(d.id));
                  const theme = getDietTheme(cat);
                  return (
-                   <div key={cat} className={`rounded-3xl overflow-hidden border ${theme.border} ${theme.bg} shadow-2xl transition-all`}>
+                   <div key={cat} className={`rounded-3xl overflow-hidden border ${theme.border} bg-[#080808]/40 shadow-2xl transition-all`}>
                     <button onClick={() => setExpandedCats(p => ({...p, [cat]: !isExp}))} className="w-full flex items-center justify-between p-4 hover:bg-white/[0.03] transition-colors">
                        <div className="flex items-center gap-3 min-w-0">
                          <div className={`w-2 h-2 rounded-full ${theme.accent.replace('text-', 'bg-')} shadow-[0_0_8px_rgba(0,0,0,0.5)]`} />
