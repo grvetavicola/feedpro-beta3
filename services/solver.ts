@@ -75,9 +75,40 @@ export const solveFeedFormulation = (
     });
 
     // 6. Solve
-    const results = solver.Solve(model);
+    let results = solver.Solve(model);
 
-    // 7. Format Results
+    // 7. Best Effort Fallback (Elastic Logic)
+    // If infeasible, re-solve with huge penalties for constraint violations
+    // to show the user the closest possible result.
+    let isBestEffort = false;
+    if (!results.feasible) {
+        isBestEffort = true;
+        const elasticModel = JSON.parse(JSON.stringify(model));
+        
+        // Add Slack/Surplus variables with massive costs for each constraint
+        Object.entries(elasticModel.constraints).forEach(([cName, cVal]: [string, any]) => {
+            if (cName === 'totalWeight') return; // Don't relax weight!
+            
+            if (cVal.min !== undefined) {
+                const slackVar = `slack_${cName}`;
+                elasticModel.variables[slackVar] = { cost: 1000000, [cName]: 1 };
+            }
+            if (cVal.max !== undefined) {
+                const surplusVar = `surplus_${cName}`;
+                elasticModel.variables[surplusVar] = { cost: 1000000, [cName]: -1 };
+            }
+            if (cVal.equal !== undefined) {
+                const slackVar = `slack_${cName}`;
+                const surplusVar = `surplus_${cName}`;
+                elasticModel.variables[slackVar] = { cost: 1000000, [cName]: 1 };
+                elasticModel.variables[surplusVar] = { cost: 1000000, [cName]: -1 };
+            }
+        });
+        
+        results = solver.Solve(elasticModel);
+    }
+
+    // 8. Format Results
     if (!results.feasible) {
         return {
             status: 'INFEASIBLE',
@@ -177,7 +208,7 @@ export const solveFeedFormulation = (
     });
 
     return {
-        status: 'OPTIMAL',
+        status: isBestEffort ? 'INFEASIBLE' : 'OPTIMAL',
         totalCost: Number((results.result / 100 * batchSize).toFixed(2)), 
         items: items.sort((a, b) => b.percentage - a.percentage),
         rejectedItems,
