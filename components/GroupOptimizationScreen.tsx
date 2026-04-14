@@ -342,7 +342,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     const L = (e: KeyboardEvent) => { if (e.key === 'F4') { e.preventDefault(); handleRunAll(); } };
     window.addEventListener('keydown', L);
     onEnterFullscreen?.();
-    return () => { window.removeEventListener('keydown', L); onEnterFullscreen?.(); };
+    return () => { window.removeEventListener('keydown', L); onLeaveFullscreen?.(); };
   }, [handleRunAll, onEnterFullscreen, onLeaveFullscreen]);
 
   return (
@@ -473,8 +473,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                         <span className="text-[16px] font-black text-white uppercase italic tracking-[0.2em] leading-tight font-mono whitespace-normal break-words">MAESTRO DE DATOS</span>
                      </div>
                   </th>
-                  {activeDiets.map(diet => (
-                    <th key={diet.id} className="bg-[#080808] border-b-2 border-r border-slate-800 p-0 w-[180px] transition-all">
+                  {activeDiets.map((diet, idx) => (
+                    <th key={diet.id} className={`bg-[#080808] border-b-2 border-r border-slate-800 p-0 w-[180px] transition-all ${idx === 0 ? 'pl-8' : ''}`}>
                        <div className="flex flex-col h-full bg-[#0f172a]/20">
                           <div className="flex items-center justify-between p-4 min-h-[80px]">
                             <span className="text-[16px] font-black text-white uppercase text-center flex-1 tracking-tight italic font-mono whitespace-normal break-words leading-tight pr-2">{diet.name}</span>
@@ -498,8 +498,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                    <td className="sticky left-0 bg-[#060606] z-[55] pl-8 pr-8 border-r border-slate-700 w-[250px] min-w-[250px]">
                       <span className="text-[12px] font-black text-slate-300 uppercase tracking-[0.4em] font-mono italic opacity-90">Sector I: Componentes</span>
                    </td>
-                   {activeDiets.map(diet => (
-                     <td key={`h1-${diet.id}`} className="p-0 border-r border-slate-800 bg-black/40">
+                   {activeDiets.map((diet, idx) => (
+                     <td key={`h1-${diet.id}`} className={`p-0 border-r border-slate-800 bg-black/40 ${idx === 0 ? 'pl-8' : ''}`}>
                         <div className="grid grid-cols-3 h-9 divide-x divide-slate-800/20">
                            <div className="flex items-center justify-center text-[12px] font-black text-[#00D1FF] uppercase tracking-widest">MIN</div>
                            <div className="flex items-center justify-center text-[12px] font-black text-[#00D1FF] uppercase tracking-widest">MAX</div>
@@ -527,12 +527,12 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                          </button>
                        </div>
                     </td>
-                    {activeDiets.map(diet => {
+                    {activeDiets.map((diet, idx) => {
                       const c = constraints[row.id]?.[diet.id];
                       const res = results[diet.id];
                       const val = res?.formula[row.id] ?? 0;
                       return (
-                        <td key={diet.id} className="p-0 border-r border-slate-800/10 h-full w-[180px] bg-[#050505]/30">
+                        <td key={diet.id} className={`p-0 border-r border-slate-800/10 h-full w-[180px] bg-[#050505]/30 ${idx === 0 ? 'pl-8' : ''}`}>
                            <div className="grid grid-cols-3 h-11 divide-x divide-slate-800/10">
                               <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={rIdx} />
                               <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={rIdx} />
@@ -549,8 +549,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                    <td className="sticky left-0 bg-[#060606] z-[55] pl-8 pr-8 border-r border-slate-700 w-[250px] min-w-[250px]">
                       <span className="text-[12px] font-black text-slate-300 uppercase tracking-[0.4em] font-mono italic opacity-90">Sector II: Parámetros</span>
                    </td>
-                   {activeDiets.map(diet => (
-                     <td key={`h2-${diet.id}`} className="p-0 border-r border-slate-800 bg-black/40">
+                   {activeDiets.map((diet, idx) => (
+                     <td key={`h2-${diet.id}`} className={`p-0 border-r border-slate-800 bg-black/40 ${idx === 0 ? 'pl-8' : ''}`}>
                         <div className="grid grid-cols-3 h-9 divide-x divide-slate-800/20">
                            <div className="flex items-center justify-center text-[12px] font-black text-[#00D1FF] uppercase tracking-widest">MIN</div>
                            <div className="flex items-center justify-center text-[12px] font-black text-[#00D1FF] uppercase tracking-widest">MAX</div>
@@ -580,12 +580,12 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                          </button>
                          </div>
                       </td>
-                      {activeDiets.map(diet => {
+                      {activeDiets.map((diet, idx) => {
                         const c = constraints[row.id]?.[diet.id];
                         const res = results[diet.id];
                         const val = res?.nutrients[row.id] ?? 0;
                         return (
-                          <td key={diet.id} className="p-0 border-r border-slate-800/10 h-full w-[180px] bg-[#050505]/30">
+                          <td key={diet.id} className={`p-0 border-r border-slate-800/10 h-full w-[180px] bg-[#050505]/30 ${idx === 0 ? 'pl-8' : ''}`}>
                              <div className="grid grid-cols-3 h-11 divide-x divide-slate-800/10">
                                 <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={baseIdx + rIdx} />
                                 <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={baseIdx + rIdx} />
@@ -609,14 +609,14 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                         <span className="text-[10px] text-slate-300 font-bold uppercase italic font-mono opacity-90 tracking-widest">Análisis Valorizado</span>
                       </div>
                    </td>
-                   {activeDiets.map(diet => {
+                   {activeDiets.map((diet, idx) => {
                      const r = results[diet.id];
                      const diff = r && r.prevCostPerKg ? r.costPerKg - r.prevCostPerKg : 0;
                      const totalPct = r ? Object.values(r.formula).reduce((a, b) => a + b, 0) : 0;
                      const isSumError = hasRun && r && Math.abs(totalPct - 100) > 0.01;
 
                      return (
-                       <td key={diet.id} className="border-r border-slate-800 p-3 bg-black/95 backdrop-blur-3xl w-[180px]">
+                       <td key={diet.id} className={`border-r border-slate-800 p-3 bg-black/95 backdrop-blur-3xl w-[180px] ${idx === 0 ? 'pl-8' : ''}`}>
                          {r && hasRun ? (
                            <div className={`flex flex-col items-center justify-center gap-1.5 rounded-2xl p-2.5 border transition-all ${r.feasible ? 'bg-emerald-500/5 border-emerald-500/30' : 'bg-rose-500/5 border-rose-500/30'}`}>
                               <div className="flex items-center gap-3">

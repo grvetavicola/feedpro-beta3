@@ -262,7 +262,7 @@ export default function App() {
         )}
         
         <div
-          style={{ display: isOptimizationFullscreen ? 'none' : undefined }}
+          style={{ display: isOptimizationFullscreen ? 'none' : 'flex' }}
           className={`fixed md:relative inset-y-0 left-0 z-50 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 md:flex flex-col h-full`}
         >
             <ProductsSidebar 
