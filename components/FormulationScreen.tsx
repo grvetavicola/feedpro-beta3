@@ -101,7 +101,7 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
           id: `sf${Date.now()}`,
           clientId: selectedClientId,
           name: `${currentProductData.name} - ${new Date().toLocaleDateString()}`,
-          date: new Date().toISOString(),
+          date: Date.now(),
           result: localResult
       };
       setSavedFormulas(prev => [...prev, newFormula]);

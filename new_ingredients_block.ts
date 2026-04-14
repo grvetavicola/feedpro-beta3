@@ -1,3 +1,4 @@
+import { Ingredient } from './types';
 export const INITIAL_INGREDIENTS: Ingredient[] = [
   { id: 'i1', code: 101010, name: 'Maíz', category: 'MACRO', subcategory: 'CEREALES', family: 'MAIZ', price: 0, stock: 0, nutrients: { 'n1': 12.9, 'n4': 3860, 'n9': 3.9, 'n10': 2.1, 'n12': 1.9, 'n14': 11.4, 'n15': 8.44, 'n16': 0.25, 'n17': 0.31, 'n18': 0.17, 'n19': 0.2, 'n20': 0.36, 'n21': 0.06, 'n22': 0.32, 'n23': 0.43, 'n24': 1.06, 'n25': 0.43, 'n26': 0.29, 'n27': 0.72, 'n28': 0.24, 'n29': 0.38, 'n30': 0.61, 'n31': 0.53, 'n32': 1.54, 'n33': 0.32, 'n34': 0.41, 'n35': 0.75 } },
   { id: 'i2', code: 101011, name: 'Maíz, baja CP', category: 'MACRO', subcategory: 'CEREALES', price: 0, stock: 0, nutrients: { 'n15': 7 } },
