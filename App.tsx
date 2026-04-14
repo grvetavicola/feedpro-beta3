@@ -228,6 +228,22 @@ export default function App() {
       alert("✓ Datos replicados exitosamente entre clientes.");
   };
 
+  const handleUpdateIngredientPrices = (newPrices: Record<string, number>) => {
+    if (!selectedClientId) return;
+    setWorkspaces(prev => {
+        const workspace = prev[selectedClientId] || { clientId: selectedClientId, ingredientOverrides: {}, productConstraintsOverrides: {} };
+        const nextOverrides = { ...workspace.ingredientOverrides };
+        Object.entries(newPrices).forEach(([id, price]) => {
+            nextOverrides[id] = { ...nextOverrides[id], price };
+        });
+        return {
+            ...prev,
+            [selectedClientId]: { ...workspace, ingredientOverrides: nextOverrides }
+        };
+    });
+    setIsDirty(true);
+  };
+
   return (
     <div 
         className="flex flex-col h-screen bg-gray-950 text-white overflow-hidden font-sans"
