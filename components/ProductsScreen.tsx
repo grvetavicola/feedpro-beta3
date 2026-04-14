@@ -355,6 +355,31 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
     };
 
     const executeFinalImport = (dietNames: string[], nrList: any[], irList: any[], maps: Record<string, string>) => {
+        const newIngredients: Ingredient[] = [];
+        const finalMappings = { ...maps };
+        
+        // 1. Crear nuevos ingredientes si es necesario
+        Object.entries(maps).forEach(([sourceName, targetId]) => {
+            if (targetId === 'CREATE_NEW') {
+                const newId = `ing_new_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+                const newIng: Ingredient = {
+                    id: newId,
+                    name: sourceName,
+                    code: ingredients.length + newIngredients.length + 101, // Mayorista para evitar colisiones
+                    category: t('common.uncategorized'),
+                    price: 0,
+                    stock: 999999,
+                    nutrients: {}
+                };
+                newIngredients.push(newIng);
+                finalMappings[sourceName] = newId;
+            }
+        });
+
+        if (newIngredients.length > 0) {
+            setIngredients(prev => [...prev, ...newIngredients]);
+        }
+
         const newBases: NutritionalBase[] = dietNames.map((name, dietIdx) => {
             const constraints: any[] = [];
             const ingredientConstraints: any[] = [];
@@ -363,7 +388,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                 const val = parseFloat(String(nr.values[dietIdx]).replace(',', '.'));
                 if (isNaN(val) || val === 0) return;
 
-                let targetNutId = maps[nr.name];
+                let targetNutId = finalMappings[nr.name];
                 if (!targetNutId) {
                      const normName = nr.name.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
                      const found = nutrients.find(n => {
@@ -384,7 +409,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                 const val = parseFloat(String(ir.values[dietIdx]).replace(',', '.'));
                 if (isNaN(val) || val === 0) return;
 
-                let targetIngId = maps[ir.name];
+                let targetIngId = finalMappings[ir.name];
                 if (!targetIngId) {
                     const normName = ir.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
                     const found = ingredients.find(i => i.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim() === normName);
