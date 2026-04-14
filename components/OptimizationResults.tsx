@@ -35,7 +35,14 @@ export const OptimizationResults: React.FC<OptimizationResultsProps> = ({ result
   const [hasEdits, setHasEdits] = useState(false);
 
   const handleConstraintChange = (nutrientId: string, field: 'min' | 'max', value: string) => {
-      const numValue = value === '' ? 0 : parseFloat(value);
+      const rawNum = value === '' ? 0 : parseFloat(value.replace(',', '.'));
+      let numValue = rawNum;
+
+      // Auto-conversión de Energía (Mcal -> kcal/kg)
+      if (nutrientId.startsWith('n2') && numValue > 0 && numValue < 20) {
+          numValue = numValue * 1000;
+      }
+
       setLocalConstraints(prev => prev.map(c => 
           c.nutrientId === nutrientId ? { ...c, [field]: numValue } : c
       ));

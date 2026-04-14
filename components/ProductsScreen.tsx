@@ -425,8 +425,14 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                      targetNutId = found?.id;
                 }
 
+                // Auto-conversión de Energía (Mcal -> kcal/kg)
+                let finalVal = val;
+                if (targetNutId && targetNutId.startsWith('n2') && val < 20) {
+                    finalVal = val * 1000;
+                }
+
                 if (targetNutId && targetNutId !== 'IGNORE') {
-                    constraints.push({ nutrientId: targetNutId, min: val, max: 999 });
+                    constraints.push({ nutrientId: targetNutId, min: finalVal, max: 999 });
                 }
             });
 
@@ -781,11 +787,21 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                                                         <div className="flex gap-2">
                                                             <div className="flex-1 group/field">
                                                                 <label className="text-[9px] text-gray-400 uppercase font-bold block mb-1 text-center">{t('common.min')}</label>
-                                                                <SmartInput value={c.min} onChange={v => handleUpdate(p => ({...p, constraints: p.constraints.map((x, i) => i === idx ? {...x, min: v} : x)}))} placeholder="0" className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 text-[14px] text-indigo-300 focus:border-indigo-500 border focus:ring-1 focus:ring-indigo-500/50 outline-none font-bold transition-all" />
+                                                                <SmartInput value={c.min} onChange={v => {
+                                                                    let finalV = v;
+                                                                    const isEnergy = nut?.id?.startsWith('n2');
+                                                                    if (isEnergy && v > 0 && v < 20) finalV = v * 1000;
+                                                                    handleUpdate(p => ({...p, constraints: p.constraints.map((x, i) => i === idx ? {...x, min: finalV} : x)}));
+                                                                }} placeholder="0" className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 text-[14px] text-indigo-300 focus:border-indigo-500 border focus:ring-1 focus:ring-indigo-500/50 outline-none font-bold transition-all" />
                                                             </div>
                                                             <div className="flex-1 group/field">
                                                                 <label className="text-[9px] text-gray-400 uppercase font-bold block mb-1 text-center">{t('common.max')}</label>
-                                                                <SmartInput value={c.max} isMax={true} onChange={v => handleUpdate(p => ({...p, constraints: p.constraints.map((x, i) => i === idx ? {...x, max: v} : x)}))} placeholder={t('common.max')} className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 text-[14px] text-indigo-300 focus:border-indigo-500 border focus:ring-1 focus:ring-indigo-500/50 outline-none font-bold transition-all" />
+                                                                <SmartInput value={c.max} isMax={true} onChange={v => {
+                                                                    let finalV = v;
+                                                                    const isEnergy = nut?.id?.startsWith('n2');
+                                                                    if (isEnergy && v > 0 && v < 20) finalV = v * 1000;
+                                                                    handleUpdate(p => ({...p, constraints: p.constraints.map((x, i) => i === idx ? {...x, max: finalV} : x)}));
+                                                                }} placeholder={t('common.max')} className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 text-[14px] text-indigo-300 focus:border-indigo-500 border focus:ring-1 focus:ring-indigo-500/50 outline-none font-bold transition-all" />
                                                             </div>
                                                         </div>
                                                     </div>

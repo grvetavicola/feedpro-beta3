@@ -60,7 +60,14 @@ export const EditIngredientModal: React.FC<EditIngredientModalProps> = ({ ingred
 
     const handleCompositionChange = (nutrientId: string, value: string) => {
         const val = parseFloat(value) || 0;
-        const newComposition = { ...editedIngredient.nutrients, [nutrientId]: val };
+        let finalVal = val;
+        
+        // Auto-conversión de Energía (Mcal -> kcal/kg)
+        if (nutrientId.startsWith('n2') && val > 0 && val < 20) {
+            finalVal = val * 1000;
+        }
+
+        const newComposition = { ...editedIngredient.nutrients, [nutrientId]: finalVal };
         setEditedIngredient({ ...editedIngredient, nutrients: newComposition });
     };
 
@@ -232,8 +239,18 @@ export const EditIngredientModal: React.FC<EditIngredientModalProps> = ({ ingred
                                         placeholder="--"
                                         onChange={(v) => {
                                             const newDyn = {...(editedIngredient.dynamicNutrients || {})};
-                                            if (v === 0 && (document.activeElement as HTMLInputElement)?.value === '') { delete newDyn[n.id]; }
-                                            else { newDyn[n.id] = v; }
+                                            let finalV = v;
+                                            
+                                            // Auto-conversión de Energía (Mcal -> kcal/kg)
+                                            if (n.id.startsWith('n2') && v > 0 && v < 20) {
+                                                finalV = v * 1000;
+                                            }
+
+                                            if (finalV === 0 && (document.activeElement as HTMLInputElement)?.value === '') { 
+                                                delete newDyn[n.id]; 
+                                            } else { 
+                                                newDyn[n.id] = finalV; 
+                                            }
                                             setEditedIngredient({...editedIngredient, dynamicNutrients: newDyn});
                                         }}
                                         className="w-full bg-purple-950/20 text-[13px] rounded p-1.5 border border-purple-500/30 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 outline-none text-right font-mono font-bold text-purple-400 transition-all placeholder-purple-800/50"
