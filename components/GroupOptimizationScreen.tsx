@@ -178,6 +178,13 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   
   const [isDynamic, setIsDynamic] = useState(initialIsDynamic);
   const [viewMode, setViewMode] = useState<'limits' | 'kg'>('limits');
+  
+  const getDietTheme = (cat: string) => {
+    const c = cat.toUpperCase();
+    if (c.includes('COLOR')) return { bg: 'bg-[#1a160f]', border: 'border-amber-500/30', accent: 'text-amber-500', glow: 'shadow-[0_0_15px_rgba(245,158,11,0.1)]' };
+    if (c.includes('BLANCA')) return { bg: 'bg-[#0f172a]', border: 'border-cyan-500/30', accent: 'text-[#00D1FF]', glow: 'shadow-[0_0_15px_rgba(0,209,255,0.1)]' };
+    return { bg: 'bg-[#111827]', border: 'border-slate-700/50', accent: 'text-slate-400', glow: '' };
+  };
   const [isRunning, setIsRunning] = useState(false);
   const [hasRun, setHasRun] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -495,29 +502,33 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
            <table className="border-collapse table-fixed w-max">
               <thead>
                 <tr className="sticky top-0 z-[60]">
-                  <th className="sticky left-0 z-[70] bg-[#0c0c0c] border-b border-r border-slate-800/60 p-0 w-[250px] min-w-[250px] shadow-[20px_0_40px_rgba(0,0,0,0.9)]">
-                     <div className="flex items-center w-full h-full pl-8 pr-8 py-8 border-t border-blue-500/30">
-                        <span className="text-[16px] font-black text-white uppercase italic tracking-[0.2em] leading-tight font-mono whitespace-normal break-words">MAESTRO DE DATOS</span>
-                     </div>
-                  </th>
-                  {activeDiets.map((diet, idx) => (
-                      <React.Fragment key={diet.id}>
-                        <th className="w-4 min-w-[16px] bg-[#030303] border-none" />
-                        <th className="p-0 text-center relative bg-[#0c0c0c] border-b border-slate-800/60 w-[180px] min-w-[180px]">
-                           <div className="flex flex-col items-center justify-center pt-6 pb-4 relative">
-                              <div className="absolute top-2 right-2 flex gap-1">
-                                <button onClick={() => setActiveDietIds(p => p.filter(id => id !== diet.id))} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors group">
-                                  <TrashIcon className="w-3.5 h-3.5 text-slate-500 group-hover:text-rose-500" />
-                                </button>
-                              </div>
-                              <h3 className="text-[15px] font-black text-white uppercase tracking-[0.1em] mb-1 font-mono">{diet.name}</h3>
-                              <div className="flex items-center gap-3 bg-black/40 px-3 py-1 rounded-full border border-slate-800/50">
-                                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">LT:</span>
-                                <input
-                                  type="number"
-                                  value={batchSizes[diet.id] || 1000}
-                                  onChange={(e) => setBatchSizes(prev => ({...prev, [diet.id]: Number(e.target.value)}))}
-                                  className="w-12 bg-transparent border-none text-[12px] font-black text-[#00D1FF] focus:outline-none focus:ring-0 p-0 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  <th className="sticky left-0 z-[70] bg-[#0c0c0c] border-b border-r border-slate-800/60 p-0 w-[250px] min-w-[250px] sha                   {activeDiets.map((diet, idx) => {
+                      const theme = getDietTheme(diet.category || '');
+                      return (
+                        <React.Fragment key={diet.id}>
+                          <th className="w-4 min-w-[16px] bg-[#030303] border-none" />
+                          <th className={`p-0 text-center relative ${theme.bg} border-b border-slate-800/60 w-[180px] min-w-[180px] rounded-t-3xl ${theme.glow}`}>
+                             <div className="flex flex-col items-center justify-center pt-8 pb-5 relative">
+                                <div className="absolute top-3 right-3 flex gap-1">
+                                  <button onClick={() => setActiveDietIds(p => p.filter(id => id !== diet.id))} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors group">
+                                    <TrashIcon className="w-3.5 h-3.5 text-slate-500 group-hover:text-rose-500" />
+                                  </button>
+                                </div>
+                                <h3 className={`text-[15px] font-black text-white uppercase tracking-[0.1em] mb-2 font-mono ${theme.accent}`}>{diet.name}</h3>
+                                <div className="flex items-center gap-3 bg-black/40 px-3 py-1.5 rounded-full border border-slate-800/50">
+                                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">LT:</span>
+                                  <input
+                                    type="number"
+                                    value={batchSizes[diet.id] || 1000}
+                                    onChange={(e) => setBatchSizes(prev => ({...prev, [diet.id]: Number(e.target.value)}))}
+                                    className={`w-12 bg-transparent border-none text-[12px] font-black ${theme.accent} focus:outline-none focus:ring-0 p-0 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
+                                  />
+                                </div>
+                             </div>
+                          </th>
+                        </React.Fragment>
+                      );
+                    })}ont-black text-[#00D1FF] focus:outline-none focus:ring-0 p-0 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                               </div>
                            </div>
@@ -535,18 +546,21 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                          <span className="text-[12px] font-black text-[#00D1FF] uppercase tracking-[0.4em] font-mono italic opacity-90">Sector I: Componentes</span>
                       </div>
                    </td>
-                   {activeDiets.map((diet, idx) => (
-                      <React.Fragment key={`h1-${diet.id}`}>
-                        <td className="w-4 bg-[#030303] border-none" />
-                        <td className="p-0 border-b border-slate-800/60 bg-[#080808]">
-                           <div className="grid grid-cols-3 h-14 divide-x divide-slate-800/20">
-                              <div className="flex items-center justify-center text-[10px] font-black text-slate-500 uppercase tracking-widest">MIN</div>
-                              <div className="flex items-center justify-center text-[10px] font-black text-slate-500 uppercase tracking-widest">MAX</div>
-                              <div className="flex items-center justify-center text-[11px] font-black text-[#00D1FF] uppercase tracking-widest">ACT</div>
-                           </div>
-                        </td>
-                      </React.Fragment>
-                    ))}
+                   {activeDiets.map((diet, idx) => {
+                      const theme = getDietTheme(diet.category || '');
+                      return (
+                        <React.Fragment key={`h1-${diet.id}`}>
+                          <td className="w-4 bg-[#030303] border-none" />
+                          <td className={`p-0 border-b border-slate-800/60 ${theme.bg}`}>
+                             <div className="grid grid-cols-3 h-14 divide-x divide-slate-800/20">
+                                <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest ${theme.accent}`}>MIN</div>
+                                <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest ${theme.accent}`}>MAX</div>
+                                <div className={`flex items-center justify-center text-[10px] font-black uppercase tracking-widest ${theme.accent}`}>ACT</div>
+                             </div>
+                          </td>
+                        </React.Fragment>
+                      );
+                    })}
                    <td className="bg-transparent w-40 opacity-0"></td>
                 </tr>
 
@@ -571,11 +585,12 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       const c = constraints[row.id]?.[diet.id];
                       const res = results[diet.id];
                       const val = res?.formula[row.id] ?? 0;
+                      const theme = getDietTheme(diet.category || '');
                       return (
                         <React.Fragment key={`diagnostic-${diet.id}`}>
                           <td className="w-4 bg-[#030303] border-none" />
-                          <td className="p-0 border-b border-slate-800/10 bg-[#050505] h-11">
-                             <div className="grid grid-cols-3 h-full divide-x divide-slate-800/10">
+                          <td className={`p-0 border-b border-slate-800/10 ${theme.bg} h-11`}>
+                             <div className="grid grid-cols-3 h-full divide-x divide-white/[0.03]">
                                 <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={rIdx} />
                                 <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={rIdx} />
                                 <DiagnosticCell row={row} dietId={diet.id} value={val} isResult resultValue={val} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={res?.feasible ?? true} min={c?.min} max={c?.max} shadowPrice={res?.shadowPrices[row.id]} hasRun={hasRun} cellIndex={2} rowIndex={rIdx} />
@@ -594,18 +609,21 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                          <span className="text-[12px] font-black text-[#00D1FF] uppercase tracking-[0.4em] font-mono italic opacity-90">Sector II: Parámetros</span>
                       </div>
                    </td>
-                   {activeDiets.map((diet, idx) => (
-                      <React.Fragment key={`h2-${diet.id}`}>
-                        <td className="w-4 bg-[#030303] border-none" />
-                        <td className="p-0 border-b border-slate-800/60 bg-[#080808]">
-                           <div className="grid grid-cols-3 h-14 divide-x divide-slate-800/20">
-                              <div className="flex items-center justify-center text-[10px] font-black text-slate-500 uppercase tracking-widest">MIN</div>
-                              <div className="flex items-center justify-center text-[10px] font-black text-slate-500 uppercase tracking-widest">MAX</div>
-                              <div className="flex items-center justify-center text-[11px] font-black text-[#00D1FF] uppercase tracking-widest">ACT</div>
-                           </div>
-                        </td>
-                      </React.Fragment>
-                    ))}
+                   {activeDiets.map((diet, idx) => {
+                      const theme = getDietTheme(diet.category || '');
+                      return (
+                        <React.Fragment key={`h2-${diet.id}`}>
+                          <td className="w-4 bg-[#030303] border-none" />
+                          <td className={`p-0 border-b border-slate-800/60 ${theme.bg}`}>
+                             <div className="grid grid-cols-3 h-14 divide-x divide-slate-800/20">
+                                <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest ${theme.accent}`}>MIN</div>
+                                <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest ${theme.accent}`}>MAX</div>
+                                <div className={`flex items-center justify-center text-[10px] font-black uppercase tracking-widest ${theme.accent}`}>ACT</div>
+                             </div>
+                          </td>
+                        </React.Fragment>
+                      );
+                    })}
                    <td className="bg-transparent opacity-0 w-40"></td>
                 </tr>
 
