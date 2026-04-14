@@ -501,21 +501,29 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                      </div>
                   </th>
                   {activeDiets.map((diet, idx) => (
-                    <th key={diet.id} className={`bg-[#080808] border-b-2 border-r border-slate-800 p-0 w-[180px] transition-all ${idx === 0 ? 'pl-8' : ''}`}>
-                       <div className="flex flex-col h-full bg-[#0f172a]/20">
-                          <div className="flex items-center justify-between p-4 min-h-[80px]">
-                            <span className="text-[16px] font-black text-white uppercase text-center flex-1 tracking-tight italic font-mono whitespace-normal break-words leading-tight pr-2">{diet.name}</span>
-                            <button onClick={() => setActiveDietIds(p => p.filter(id => id !== diet.id))} className="text-red-500 opacity-40 hover:opacity-100 transition-all p-2 hover:bg-red-950/20 rounded-2xl shrink-0">
-                               <TrashIcon className="w-4 h-4" />
-                            </button>
-                          </div>
-                          <div className="flex items-center justify-center py-2.5 bg-black/40 border-t border-slate-800/30 gap-2">
-                             <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest scale-90">LT:</span>
-                             <input type="number" value={batchSizes[diet.id] || 1000} onFocus={e => (e.target as HTMLInputElement).select()} onChange={e => { const v = parseInt(e.target.value) || 0; setBatchSizes(prev => ({...prev, [diet.id]: v})); setHasRun(false); }} className="w-14 bg-[#020617] text-[12px] font-black text-[#00D1FF] font-mono rounded-xl outline-none text-center h-6 border border-[#1e293b] focus:border-[#00D1FF] shadow-inner" />
-                          </div>
-                       </div>
-                    </th>
-                  ))}
+                      <React.Fragment key={diet.id}>
+                        <th className="w-4 min-w-[16px] bg-[#030303] border-none" />
+                        <th className="p-0 text-center relative bg-[#0c0c0c] border-b border-slate-800/60 w-[180px] min-w-[180px]">
+                           <div className="flex flex-col items-center justify-center pt-6 pb-4 relative">
+                              <div className="absolute top-2 right-2 flex gap-1">
+                                <button onClick={() => setActiveDietIds(p => p.filter(id => id !== diet.id))} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors group">
+                                  <TrashIcon className="w-3.5 h-3.5 text-slate-500 group-hover:text-rose-500" />
+                                </button>
+                              </div>
+                              <h3 className="text-[15px] font-black text-white uppercase tracking-[0.1em] mb-1 font-mono">{diet.name}</h3>
+                              <div className="flex items-center gap-3 bg-black/40 px-3 py-1 rounded-full border border-slate-800/50">
+                                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">LT:</span>
+                                <input
+                                  type="number"
+                                  value={batchSizes[diet.id] || 1000}
+                                  onChange={(e) => setBatchSizes(prev => ({...prev, [diet.id]: Number(e.target.value)}))}
+                                  className="w-12 bg-transparent border-none text-[12px] font-black text-[#00D1FF] focus:outline-none focus:ring-0 p-0 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                              </div>
+                           </div>
+                        </th>
+                      </React.Fragment>
+                    ))}
                   <th className="bg-transparent w-40"></th>
                 </tr>
               </thead>
@@ -526,15 +534,16 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       <span className="text-[12px] font-black text-slate-300 uppercase tracking-[0.4em] font-mono italic opacity-90">Sector I: Componentes</span>
                    </td>
                    {activeDiets.map((diet, idx) => (
-                      <th key={diet.id} className="p-0 text-center relative border-x-[12px] border-[#030303] bg-[#030303]">
-                        <div className="bg-[#0c0c0c] border-x border-slate-800/40 mx-[1px]">
-                          <div className="grid grid-cols-3 h-9 divide-x divide-slate-800/20">
-                             <div className="flex items-center justify-center text-[10px] font-black text-[#00D1FF] opacity-60 uppercase tracking-widest">MIN</div>
-                             <div className="flex items-center justify-center text-[10px] font-black text-[#00D1FF] opacity-60 uppercase tracking-widest">MAX</div>
-                             <div className="flex items-center justify-center text-[10px] font-black text-[#00D1FF] opacity-60 uppercase tracking-widest">ACT</div>
-                          </div>
-                        </div>
-                      </th>
+                      <React.Fragment key={`h1-${diet.id}`}>
+                        <td className="w-4 bg-[#030303] border-none" />
+                        <td className="p-0 border-b border-slate-800/60 bg-[#0c0c0c]">
+                           <div className="grid grid-cols-3 h-9 divide-x divide-slate-800/20">
+                              <div className="flex items-center justify-center text-[11px] font-black text-[#00D1FF]/70 uppercase tracking-widest">MIN</div>
+                              <div className="flex items-center justify-center text-[11px] font-black text-[#00D1FF]/70 uppercase tracking-widest">MAX</div>
+                              <div className="flex items-center justify-center text-[11px] font-black text-[#00D1FF] uppercase tracking-widest">ACT</div>
+                           </div>
+                        </td>
+                      </React.Fragment>
                     ))}
                    <td className="bg-transparent"></td>
                 </tr>
@@ -561,13 +570,16 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       const res = results[diet.id];
                       const val = res?.formula[row.id] ?? 0;
                       return (
-                        <td key={diet.id} className="p-0 border-x-[12px] border-[#030303] h-full w-[180px] bg-[#030303]">
-                           <div className="bg-[#080808]/60 border-x border-slate-800/20 mx-[1px] grid grid-cols-3 h-11 divide-x divide-slate-800/10">
-                              <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={rIdx} />
-                              <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={rIdx} />
-                              <DiagnosticCell row={row} dietId={diet.id} value={val} isResult resultValue={val} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={res?.feasible ?? true} min={c?.min} max={c?.max} shadowPrice={res?.shadowPrices[row.id]} hasRun={hasRun} cellIndex={2} rowIndex={rIdx} />
-                           </div>
-                        </td>
+                        <React.Fragment key={`diagnostic-${diet.id}`}>
+                          <td className="w-4 bg-[#030303] border-none" />
+                          <td className="p-0 border-b border-slate-800/10 bg-[#050505] h-11">
+                             <div className="grid grid-cols-3 h-full divide-x divide-slate-800/10">
+                                <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={rIdx} />
+                                <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={rIdx} />
+                                <DiagnosticCell row={row} dietId={diet.id} value={val} isResult resultValue={val} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={res?.feasible ?? true} min={c?.min} max={c?.max} shadowPrice={res?.shadowPrices[row.id]} hasRun={hasRun} cellIndex={2} rowIndex={rIdx} />
+                             </div>
+                          </td>
+                        </React.Fragment>
                       );
                     })}
                     <td className="bg-transparent"></td>
@@ -616,13 +628,16 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       const res = results[diet.id];
                       const val = res?.nutrients[row.id] ?? 0;
                       return (
-                        <td key={diet.id} className="p-0 border-x-[12px] border-[#030303] h-full bg-[#030303]">
-                           <div className="bg-[#0c0c0c]/80 border-x border-slate-800/30 mx-[1px] grid grid-cols-3 h-11 divide-x divide-slate-800/10">
-                              <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={baseIdx + rIdx} />
-                              <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={baseIdx + rIdx} />
-                              <DiagnosticCell row={row} dietId={diet.id} value={val} isResult resultValue={val} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={res?.feasible ?? true} min={c?.min} max={c?.max} shadowPrice={res?.shadowPrices[row.id]} hasRun={hasRun} cellIndex={2} rowIndex={baseIdx + rIdx} />
-                           </div>
-                        </td>
+                        <React.Fragment key={diet.id}>
+                          <td className="w-4 bg-[#030303] border-none" />
+                          <td className="p-0 border-b border-slate-800/10 bg-[#080808] h-11">
+                             <div className="grid grid-cols-3 h-full divide-x divide-slate-800/10">
+                                <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={baseIdx + rIdx} />
+                                <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={baseIdx + rIdx} />
+                                <DiagnosticCell row={row} dietId={diet.id} value={val} isResult resultValue={val} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={res?.feasible ?? true} min={c?.min} max={c?.max} shadowPrice={res?.shadowPrices[row.id]} hasRun={hasRun} cellIndex={2} rowIndex={baseIdx + rIdx} />
+                             </div>
+                          </td>
+                        </React.Fragment>
                       );
                     })}
                       <td className="bg-transparent"></td>
