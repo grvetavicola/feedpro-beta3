@@ -266,9 +266,26 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
       const res = solveFeedFormulation(matrixProduct, ingredients, nutrients, batchSizes[diet.id] || 1000, isDynamic);
       const formulaMap: Record<string, number> = {};
       const shadowMap: Record<string, number> = {};
-      res.items.forEach(item => { formulaMap[item.ingredientId] = item.percentage; if (item.shadowPrice) shadowMap[item.ingredientId] = item.shadowPrice; });
+      
+      // Mapeo limpio de Insumos (Inclusiones y Precios de Sombra)
+      res.items.forEach(item => { 
+        formulaMap[item.ingredientId] = item.percentage; 
+        if (item.shadowPrice) shadowMap[item.ingredientId] = item.shadowPrice; 
+      });
+      
+      // Mapeo de Precios de Sombra para Insumos Rechazados (Opportunity Cost)
+      if (res.rejectedItems) {
+        res.rejectedItems.forEach(ri => {
+          shadowMap[ri.ingredientId] = ri.viabilityGap;
+        });
+      }
+
       const nutMap: Record<string, number> = {};
-      res.nutrientAnalysis.forEach(na => { nutMap[na.nutrientId] = na.value; if (na.shadowPrice) shadowMap[na.nutrientId] = na.shadowPrice; });
+      // Mapeo limpio de Nutrientes (Análisis ACT)
+      res.nutrientAnalysis.forEach(na => { 
+        nutMap[na.nutrientId] = na.value; 
+        if (na.shadowPrice) shadowMap[na.nutrientId] = na.shadowPrice; 
+      });
       newRes[diet.id] = {
         feasible: res.status === 'OPTIMAL',
         costPerKg: res.totalCost / (batchSizes[diet.id] || 1000),

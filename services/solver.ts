@@ -26,7 +26,7 @@ export const solveFeedFormulation = (
         if (c.max < 999) constraintObj.max = c.max; 
         
         if (Object.keys(constraintObj).length > 0) {
-            model.constraints[c.nutrientId] = constraintObj;
+            model.constraints[`nut_${c.nutrientId}`] = constraintObj;
         }
     });
 
@@ -57,7 +57,7 @@ export const solveFeedFormulation = (
         // Add nutrient contributions (scaled by 100 to match constraints)
         const activeNutrients = (isDynamicMatrix && Object.keys(ing.dynamicNutrients || {}).length > 0) ? (ing.dynamicNutrients as Record<string, number>) : ing.nutrients;
         Object.entries(activeNutrients).forEach(([nutId, value]) => {
-            variable[nutId] = value; 
+            variable[`nut_${nutId}`] = value; 
         });
 
         // Add Relationship contributions (Coefficients)
@@ -69,7 +69,7 @@ export const solveFeedFormulation = (
             if (rel.max < 999) variable[`rel_${rel.id}_max`] = valA - (rel.max * valB);
         });
 
-        model.variables[ing.id] = variable;
+        model.variables[`ing_${ing.id}`] = variable;
     });
 
     // 6. Solve
@@ -90,7 +90,7 @@ export const solveFeedFormulation = (
 
     const items = ingredients
         .map(ing => {
-            const percentage = results[ing.id] || 0;
+            const percentage = results[`ing_${ing.id}`] || 0;
             const effectivePrice = (ing.price / (1 - (ing.shrinkage || 0) / 100)) + (ing.processingCost || 0);
 
             if (percentage <= 0.0001) {
