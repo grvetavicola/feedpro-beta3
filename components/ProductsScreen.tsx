@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Product, Ingredient, Nutrient, ProductConstraint, Relationship, IngredientConstraint, NutritionalBase } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
-import { PlusIcon, DuplicateIcon, TrashIcon, UploadIcon, SaveIcon, XCircleIcon, SparklesIcon, ChevronDownIcon, SearchIcon, FlaskIcon, RatiosIcon } from './icons';
+import { SparklesIcon, SaveIcon, DuplicateIcon, UploadIcon, SearchIcon, XCircleIcon, TrashIcon, FlaskIcon, PlusIcon, ChevronDownIcon, ChevronRightIcon, RatiosIcon } from './icons';
 import { parseRequirementsWithGemini } from '../services/geminiService';
 
 interface ProductsScreenProps {
