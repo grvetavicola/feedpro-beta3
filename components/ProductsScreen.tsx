@@ -157,6 +157,13 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
     const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set([products[0]?.category || t('common.uncategorized')]));
     const [showBasesModal, setShowBasesModal] = useState(false);
     const excelBasesInputRef = useRef<HTMLInputElement>(null);
+
+    // Homologation State
+    const [isHomologating, setIsHomologating] = useState(false);
+    const [unmappedNutrients, setUnmappedNutrients] = useState<string[]>([]);
+    const [unmappedIngredients, setUnmappedIngredients] = useState<string[]>([]);
+    const [homologationMappings, setHomologationMappings] = useState<Record<string, string>>({});
+    const [pendingExcelData, setPendingExcelData] = useState<{ dietNames: string[], nutrientRows: any[], ingredientRows: any[] } | null>(null);
     
     const currentProduct = useMemo(() => products.find(p => p.id === selectedProductId), [products, selectedProductId]);
 
@@ -305,67 +312,36 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                     }
                 });
 
-                // 3. Procesar cada dieta como una Base
-                const newBases: NutritionalBase[] = dietNames.map((name, dietIdx) => {
-                    const constraints: ProductConstraint[] = [];
-                    const ingredientConstraints: IngredientConstraint[] = [];
-                    
-                    // Procesar Nutrientes
-                    nutrientRows.forEach(nr => {
-                        const val = parseFloat(String(nr.values[dietIdx]).replace(',', '.'));
-                        if (isNaN(val) || val === 0) return;
-                        
-                        // Homologación de Nutriente con Sinónimos
-                        const normName = nr.name.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-                        
-                        let targetNut = nutrients.find(n => {
-                            const nName = n.name.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-                            if (nName === normName) return true;
-                            // Check synonyms
-                            const synonyms = NUTRIENT_SYNONYMS[n.id] || [];
-                            return synonyms.some(s => s === normName || normName.includes(s));
-                        });
-                        
-                        // Si no hay match exacto/sinónimo, búsqueda parcial como fallback
-                        if (!targetNut) {
-                            targetNut = nutrients.find(n => {
-                                const nName = n.name.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-                                return normName.includes(nName) || nName.includes(normName);
-                            });
-                        }
-                        
-                        if (targetNut) {
-                            constraints.push({ nutrientId: targetNut.id, min: val, max: 999 });
-                        }
-                    });
-                    
-                    // Procesar Insumos (Opcional en Bases, pero el usuario lo pide)
-                    ingredientRows.forEach(ir => {
-                        const val = parseFloat(String(ir.values[dietIdx]).replace(',', '.'));
-                        if (isNaN(val) || val === 0) return;
-                        
-                        const normName = ir.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-                        const targetIng = ingredients.find(i => i.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim() === normName);
-                        
-                        if (targetIng) {
-                            ingredientConstraints.push({ ingredientId: targetIng.id, min: val, max: 100 });
-                        }
-                    });
+                const rawNutrientRows = nutrientRows;
+                const rawIngredientRows = ingredientRows;
 
-                    return {
-                        id: `base_xl_${Date.now()}_${dietIdx}`,
-                        name,
-                        description: `Importada desde Excel ${new Date().toLocaleDateString()}`,
-                        constraints,
-                        relationships: [], // Las relaciones suelen ser fijas por especie
-                        ingredientConstraints // Extendemos la interfaz si es necesario o las ignoramos
-                    } as any;
+                // 3. Verificar Homologación
+                const missingNuts = new Set<string>();
+                rawNutrientRows.forEach(nr => {
+                    const normName = nr.name.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+                    const found = nutrients.find(n => {
+                        const sysName = n.name.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+                        if (sysName === normName) return true;
+                        const synonyms = NUTRIENT_SYNONYMS[n.id] || [];
+                        return synonyms.some(s => s === normName);
+                    });
+                    if (!found) missingNuts.add(nr.name);
                 });
 
-                if (newBases.length > 0) {
-                    setBases(prev => [...prev, ...newBases]);
-                    setIsDirty?.(true);
-                    alert(`Éxito: Se han importado ${newBases.length} bases nutricionales.`);
+                const missingIngs = new Set<string>();
+                rawIngredientRows.forEach(ir => {
+                    const normName = ir.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+                    const found = ingredients.find(i => i.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim() === normName);
+                    if (!found) missingIngs.add(ir.name);
+                });
+
+                if (missingNuts.size > 0 || missingIngs.size > 0) {
+                    setUnmappedNutrients(Array.from(missingNuts));
+                    setUnmappedIngredients(Array.from(missingIngs));
+                    setPendingExcelData({ dietNames, nutrientRows: rawNutrientRows, ingredientRows: rawIngredientRows });
+                    setIsHomologating(true);
+                } else {
+                    executeFinalImport(dietNames, rawNutrientRows, rawIngredientRows, {});
                 }
 
             } catch (err) {
@@ -374,6 +350,70 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
             }
         };
         reader.readAsBinaryString(file);
+    };
+
+    const executeFinalImport = (dietNames: string[], nrList: any[], irList: any[], maps: Record<string, string>) => {
+        const newBases: NutritionalBase[] = dietNames.map((name, dietIdx) => {
+            const constraints: any[] = [];
+            const ingredientConstraints: any[] = [];
+
+            nrList.forEach(nr => {
+                const val = parseFloat(String(nr.values[dietIdx]).replace(',', '.'));
+                if (isNaN(val) || val === 0) return;
+
+                let targetNutId = maps[nr.name];
+                if (!targetNutId) {
+                     const normName = nr.name.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+                     const found = nutrients.find(n => {
+                        const sysName = n.name.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+                        if (sysName === normName) return true;
+                        const synonyms = NUTRIENT_SYNONYMS[n.id] || [];
+                        return synonyms.some(s => s === normName);
+                     });
+                     targetNutId = found?.id;
+                }
+
+                if (targetNutId && targetNutId !== 'IGNORE') {
+                    constraints.push({ nutrientId: targetNutId, min: val, max: 999 });
+                }
+            });
+
+            irList.forEach(ir => {
+                const val = parseFloat(String(ir.values[dietIdx]).replace(',', '.'));
+                if (isNaN(val) || val === 0) return;
+
+                let targetIngId = maps[ir.name];
+                if (!targetIngId) {
+                    const normName = ir.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+                    const found = ingredients.find(i => i.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim() === normName);
+                    targetIngId = found?.id;
+                }
+
+                if (targetIngId && targetIngId !== 'IGNORE') {
+                    ingredientConstraints.push({ ingredientId: targetIngId, min: val, max: 100 });
+                }
+            });
+
+            return {
+                id: `base_xl_${Date.now()}_${dietIdx}`,
+                name,
+                description: `Importada desde Excel ${new Date().toLocaleDateString()}`,
+                constraints,
+                relationships: [],
+                ingredientConstraints
+            } as any;
+        });
+
+        if (newBases.length > 0) {
+            setBases?.(prev => [...prev, ...newBases]);
+            setIsDirty?.(true);
+            alert(`✓ Sincronización Exitosa: Se han importado ${newBases.length} bases nutricionales.`);
+        }
+        setIsHomologating(false);
+        setUnmappedNutrients([]);
+        setUnmappedIngredients([]);
+        setPendingExcelData(null);
+        setHomologationMappings({});
     };
 
     const handleMigrate = () => {
