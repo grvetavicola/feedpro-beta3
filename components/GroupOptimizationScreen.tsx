@@ -526,14 +526,16 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       <span className="text-[12px] font-black text-slate-300 uppercase tracking-[0.4em] font-mono italic opacity-90">Sector I: Componentes</span>
                    </td>
                    {activeDiets.map((diet, idx) => (
-                     <th key={diet.id} className="p-0 text-center relative border-x-[8px] border-[#020202] bg-[#0c0c0c]/40">
-                        <div className="grid grid-cols-3 h-9 divide-x divide-slate-800/20">
-                           <div className="flex items-center justify-center text-[12px] font-black text-[#00D1FF] uppercase tracking-widest">MIN</div>
-                           <div className="flex items-center justify-center text-[12px] font-black text-[#00D1FF] uppercase tracking-widest">MAX</div>
-                           <div className="flex items-center justify-center text-[12px] font-black text-[#00D1FF] uppercase tracking-widest">ACT</div>
+                      <th key={diet.id} className="p-0 text-center relative border-x-[12px] border-[#030303] bg-[#030303]">
+                        <div className="bg-[#0c0c0c] border-x border-slate-800/40 mx-[1px]">
+                          <div className="grid grid-cols-3 h-9 divide-x divide-slate-800/20">
+                             <div className="flex items-center justify-center text-[10px] font-black text-[#00D1FF] opacity-60 uppercase tracking-widest">MIN</div>
+                             <div className="flex items-center justify-center text-[10px] font-black text-[#00D1FF] opacity-60 uppercase tracking-widest">MAX</div>
+                             <div className="flex items-center justify-center text-[10px] font-black text-[#00D1FF] opacity-60 uppercase tracking-widest">ACT</div>
+                          </div>
                         </div>
-                     </th>
-                   ))}
+                      </th>
+                    ))}
                    <td className="bg-transparent"></td>
                 </tr>
 
@@ -559,8 +561,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       const res = results[diet.id];
                       const val = res?.formula[row.id] ?? 0;
                       return (
-                        <td key={diet.id} className="p-0 border-x-[8px] border-[#020202] h-full w-[180px] bg-[#050505]/40">
-                           <div className="grid grid-cols-3 h-11 divide-x divide-slate-800/10">
+                        <td key={diet.id} className="p-0 border-x-[12px] border-[#030303] h-full w-[180px] bg-[#030303]">
+                           <div className="bg-[#080808]/60 border-x border-slate-800/20 mx-[1px] grid grid-cols-3 h-11 divide-x divide-slate-800/10">
                               <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={rIdx} />
                               <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={rIdx} />
                               <DiagnosticCell row={row} dietId={diet.id} value={val} isResult resultValue={val} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={res?.feasible ?? true} min={c?.min} max={c?.max} shadowPrice={res?.shadowPrices[row.id]} hasRun={hasRun} cellIndex={2} rowIndex={rIdx} />
@@ -577,11 +579,13 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       <span className="text-[12px] font-black text-slate-300 uppercase tracking-[0.4em] font-mono italic opacity-90">Sector II: Parámetros</span>
                    </td>
                    {activeDiets.map((diet, idx) => (
-                     <th key={diet.id} className="p-0 text-center relative border-x-[8px] border-[#020202] bg-[#0c0c0c]/40">
-                        <div className="grid grid-cols-3 h-9 divide-x divide-slate-800/20">
-                           <div className="flex items-center justify-center text-[12px] font-black text-[#00D1FF] uppercase tracking-widest">MIN</div>
-                           <div className="flex items-center justify-center text-[12px] font-black text-[#00D1FF] uppercase tracking-widest">MAX</div>
-                           <div className="flex items-center justify-center text-[12px] font-black text-[#00D1FF] uppercase tracking-widest">ACT</div>
+                     <th key={diet.id} className="p-0 text-center relative border-x-[12px] border-[#030303] bg-[#030303]">
+                        <div className="bg-[#0c0c0c] border-x border-slate-800/40 mx-[1px]">
+                          <div className="grid grid-cols-3 h-9 divide-x divide-slate-800/20">
+                             <div className="flex items-center justify-center text-[10px] font-black text-[#00D1FF] opacity-60 uppercase tracking-widest">MIN</div>
+                             <div className="flex items-center justify-center text-[10px] font-black text-[#00D1FF] opacity-60 uppercase tracking-widest">MAX</div>
+                             <div className="flex items-center justify-center text-[10px] font-black text-[#00D1FF] opacity-60 uppercase tracking-widest">ACT</div>
+                          </div>
                         </div>
                      </th>
                    ))}
@@ -608,19 +612,19 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                          </div>
                       </td>
                       {activeDiets.map((diet, idx) => {
-                        const c = (constraints[row.id]?.[diet.id] || {}) as any;
-                        const res = results[diet.id];
-                        const val = res?.nutrients[row.id] ?? 0;
-                        return (
-                          <td key={diet.id} className="p-0 border-x-[8px] border-[#020202] h-full bg-[#050505]/60">
-                             <div className="grid grid-cols-3 h-11 divide-x divide-slate-800/10">
-                                <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={baseIdx + rIdx} />
-                                <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={baseIdx + rIdx} />
-                                <DiagnosticCell row={row} dietId={diet.id} value={val} isResult resultValue={val} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={res?.feasible ?? true} min={c?.min} max={c?.max} shadowPrice={res?.shadowPrices[row.id]} hasRun={hasRun} cellIndex={2} rowIndex={baseIdx + rIdx} />
-                             </div>
-                          </td>
-                        );
-                      })}
+                      const c = (constraints[row.id]?.[diet.id] || {}) as any;
+                      const res = results[diet.id];
+                      const val = res?.nutrients[row.id] ?? 0;
+                      return (
+                        <td key={diet.id} className="p-0 border-x-[12px] border-[#030303] h-full bg-[#030303]">
+                           <div className="bg-[#0c0c0c]/80 border-x border-slate-800/30 mx-[1px] grid grid-cols-3 h-11 divide-x divide-slate-800/10">
+                              <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={baseIdx + rIdx} />
+                              <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={baseIdx + rIdx} />
+                              <DiagnosticCell row={row} dietId={diet.id} value={val} isResult resultValue={val} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={res?.feasible ?? true} min={c?.min} max={c?.max} shadowPrice={res?.shadowPrices[row.id]} hasRun={hasRun} cellIndex={2} rowIndex={baseIdx + rIdx} />
+                           </div>
+                        </td>
+                      );
+                    })}
                       <td className="bg-transparent"></td>
                     </tr>
                   );
