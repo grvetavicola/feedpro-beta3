@@ -190,31 +190,33 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   const [isDynamic, setIsDynamic] = useState(initialIsDynamic);
   const [viewMode, setViewMode] = useState<'limits' | 'kg'>('limits');
   
-  const getDietTheme = (cat: string) => {
-    const c = (cat || 'GENERAL').toUpperCase();
-    
-    const palette = [
-      { border: 'border-cyan-500/30', borderT: 'border-t-cyan-500/50', accent: 'text-cyan-400', cellBg: 'bg-[#050505]/30', glow: 'shadow-[0_0_20px_rgba(6,182,212,0.15)]' }, // Cyan
-      { border: 'border-indigo-500/30', borderT: 'border-t-indigo-500/50', accent: 'text-indigo-400', cellBg: 'bg-[#050505]/30', glow: 'shadow-[0_0_20px_rgba(99,102,241,0.15)]' }, // Indigo
-      { border: 'border-emerald-500/30', borderT: 'border-t-emerald-500/50', accent: 'text-emerald-400', cellBg: 'bg-[#050505]/30', glow: 'shadow-[0_0_20px_rgba(16,185,129,0.15)]' }, // Emerald
-      { border: 'border-amber-500/30', borderT: 'border-t-amber-500/50', accent: 'text-amber-400', cellBg: 'bg-[#050505]/30', glow: 'shadow-[0_0_20px_rgba(245,158,11,0.15)]' }, // Amber
-      { border: 'border-blue-500/30', borderT: 'border-t-blue-500/50', accent: 'text-blue-400', cellBg: 'bg-[#050505]/30', glow: 'shadow-[0_0_20px_rgba(59,130,246,0.15)]' }, // Blue
-      { border: 'border-purple-500/30', borderT: 'border-t-purple-500/50', accent: 'text-purple-400', cellBg: 'bg-[#050505]/30', glow: 'shadow-[0_0_20px_rgba(168,85,247,0.15)]' }, // Purple
+    const getDietTheme = (cat: string) => {
+    const n = (cat || 'GENERAL').toUpperCase();
+    const colors = [
+      '#00D1FF', '#818cf8', '#34d399', '#fbbf24', '#3b82f6', '#a78bfa', 
+      '#fb7185', '#a3e635', '#fb923c', '#e879f9', '#38bdf8', '#c084fc',
+      '#2dd4bf', '#f472b6', '#facc15', '#94a3b8', '#10b981', '#6366f1',
+      '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#84cc16', '#f97316'
     ];
-
-    // Priority matches
-    if (c.includes('COLOR')) return palette[1]; // Indigo
-    if (c.includes('REPRO')) return palette[2]; // Emerald
-    if (c.includes('INICIO')) return palette[0]; // Cyan
-    if (c.includes('GENERAL') || !cat) return palette[0]; 
     
-    // Hash based assignment
     let hash = 0;
-    for (let i = 0; i < c.length; i++) {
-      hash = c.charCodeAt(i) + ((hash << 5) - hash);
+    for (let i = 0; i < n.length; i++) {
+        hash = n.charCodeAt(i) + ((hash << 5) - hash);
     }
-    const index = Math.abs(hash) % palette.length;
-    return palette[index];
+    
+    let colorIndex = Math.abs(hash) % colors.length;
+    if (n.includes('REPRO')) colorIndex = 2; // Emerald
+    if (n.includes('COLOR')) colorIndex = 1; // Indigo
+    if (n.includes('INICIO')) colorIndex = 0; // Cyan
+    
+    const mainColor = colors[colorIndex];
+    return {
+      accent: mainColor,
+      border: `${mainColor}4d`, // 30% alpha
+      borderT: mainColor,
+      cellBg: 'bg-[#050505]/30',
+      glow: `0 0 20px ${mainColor}26` // 15% alpha
+    };
   };
 
   const [isRunning, setIsRunning] = useState(false);
@@ -531,21 +533,22 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       return (
                         <React.Fragment key={diet.id}>
                           <th className="w-4 min-w-[16px] bg-[#030303] border-none" />
-                          <th className={`p-0 text-center relative bg-[#080808] border-b border-slate-800/60 w-[180px] min-w-[180px] rounded-t-3xl ${theme.glow} border-t-2 ${theme.borderT}`}>
+                          <th className={`p-0 text-center relative bg-[#080808] border-b border-slate-800/60 w-[180px] min-w-[180px] rounded-t-3xl border-t-2`} style={{ borderTopColor: theme.borderT, boxShadow: theme.glow }}>
                              <div className="flex flex-col items-center justify-center h-28 relative">
                                 <div className="absolute top-4 right-4 flex gap-1">
                                   <button onClick={() => setActiveDietIds(p => p.filter(id => id !== diet.id))} className="p-2 hover:bg-white/10 rounded-xl transition-colors group">
                                     <TrashIcon className="w-4 h-4 text-slate-500 group-hover:text-rose-500" />
                                   </button>
                                 </div>
-                                <h3 className={`text-[15px] font-black uppercase tracking-[0.1em] mb-3 font-mono ${theme.accent} drop-shadow-[0_0_10px_rgba(0,0,0,0.5)]`}>{diet.name}</h3>
+                                <h3 className="text-[15px] font-black uppercase tracking-[0.1em] mb-3 font-mono drop-shadow-[0_0_10px_rgba(0,0,0,0.5)]" style={{ color: theme.accent }}>{diet.name}</h3>
                                 <div className="flex items-center gap-3 bg-black/40 px-4 py-2 rounded-full border border-slate-800/50 shadow-inner">
                                   <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">LT:</span>
                                   <input
                                     type="number"
                                     value={batchSizes[diet.id] || 1000}
                                     onChange={(e) => setBatchSizes(prev => ({...prev, [diet.id]: Number(e.target.value)}))}
-                                    className={`w-14 bg-transparent border-none text-[13px] font-black ${theme.accent} focus:outline-none focus:ring-0 p-0 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
+                                    className={`w-14 bg-transparent border-none text-[13px] font-black focus:outline-none focus:ring-0 p-0 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
+                                    style={{ color: theme.accent }}
                                   />
                                 </div>
                              </div>
@@ -571,9 +574,9 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                           <td className="w-4 bg-[#030303] border-none" />
                           <td className={`p-0 border-b border-slate-800/60 ${theme.cellBg}`}>
                              <div className="grid grid-cols-3 h-14 divide-x divide-slate-800/20">
-                                <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest ${theme.accent}`}>MIN</div>
-                                <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest ${theme.accent}`}>MAX</div>
-                                <div className={`flex items-center justify-center text-[10px] font-black uppercase tracking-widest ${theme.accent}`}>ACT</div>
+                                <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest`} style={{ color: theme.accent }}>MIN</div>
+                                <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest`} style={{ color: theme.accent }}>MAX</div>
+                                <div className={`flex items-center justify-center text-[10px] font-black uppercase tracking-widest`} style={{ color: theme.accent }}>ACT</div>
                              </div>
                           </td>
                         </React.Fragment>
@@ -634,9 +637,9 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                           <td className="w-4 bg-[#030303] border-none" />
                           <td className={`p-0 border-b border-slate-800/60 ${theme.cellBg}`}>
                              <div className="grid grid-cols-3 h-14 divide-x divide-slate-800/20">
-                                <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest ${theme.accent}`}>MIN</div>
-                                <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest ${theme.accent}`}>MAX</div>
-                                <div className={`flex items-center justify-center text-[10px] font-black uppercase tracking-widest ${theme.accent}`}>ACT</div>
+                                <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest`} style={{ color: theme.accent }}>MIN</div>
+                                <div className={`flex items-center justify-center text-[10px] font-black opacity-50 uppercase tracking-widest`} style={{ color: theme.accent }}>MAX</div>
+                                <div className={`flex items-center justify-center text-[10px] font-black uppercase tracking-widest`} style={{ color: theme.accent }}>ACT</div>
                              </div>
                           </td>
                         </React.Fragment>
