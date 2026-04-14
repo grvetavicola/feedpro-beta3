@@ -739,6 +739,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                   activeDiets={activeDiets}
                   results={results}
                   activeRows={activeRows}
+                  batchSizes={batchSizes}
                 />
               </div>
             )}
