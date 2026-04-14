@@ -265,14 +265,32 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                             return categories.map((cat, catIdx) => {
                                 const isOpen = expandedCategories.has(cat);
                                 const items = grouped[cat];
-                                const catColors = [
-                                    'border-emerald-500/30 bg-emerald-500/5 text-emerald-400',
-                                    'border-cyan-500/30 bg-cyan-500/5 text-cyan-400',
-                                    'border-blue-500/30 bg-blue-500/5 text-blue-400',
-                                    'border-indigo-500/30 bg-indigo-500/5 text-indigo-400',
-                                    'border-purple-500/30 bg-purple-500/5 text-purple-400'
+                                
+                                // DETERMINISTIC COLOR MAPPING (Match with GroupOptimizationScreen)
+                                const c = cat.toUpperCase();
+                                const palette = [
+                                    { border: 'border-cyan-500/30', bg: 'bg-cyan-500/5', text: 'text-cyan-400', accent: 'bg-cyan-500' },
+                                    { border: 'border-indigo-500/30', bg: 'bg-indigo-500/5', text: 'text-indigo-400', accent: 'bg-indigo-500' },
+                                    { border: 'border-emerald-500/30', bg: 'bg-emerald-500/5', text: 'text-emerald-400', accent: 'bg-emerald-500' },
+                                    { border: 'border-amber-500/30', bg: 'bg-amber-500/5', text: 'text-amber-400', accent: 'bg-amber-500' },
+                                    { border: 'border-blue-500/30', bg: 'bg-blue-500/5', text: 'text-blue-400', accent: 'bg-blue-500' },
+                                    { border: 'border-purple-500/30', bg: 'bg-purple-500/5', text: 'text-purple-400', accent: 'bg-purple-500' },
                                 ];
-                                const colorClass = cat === t('common.uncategorized') ? 'border-gray-700 bg-gray-800/40 text-gray-400' : catColors[catIdx % catColors.length];
+                                
+                                let hash = 0;
+                                for (let i = 0; i < c.length; i++) {
+                                    hash = c.charCodeAt(i) + ((hash << 5) - hash);
+                                }
+                                const index = Math.abs(hash) % palette.length;
+                                
+                                let selectedTheme = palette[index];
+                                if (c.includes('COLOR')) selectedTheme = palette[1]; // Indigo
+                                if (c.includes('REPRO')) selectedTheme = palette[2]; // Emerald
+                                if (c.includes('INICIO')) selectedTheme = palette[0]; // Cyan
+
+                                const theme = cat === t('common.uncategorized') 
+                                    ? { border: 'border-gray-700', bg: 'bg-gray-800/40', text: 'text-gray-400', accent: 'bg-gray-600' }
+                                    : selectedTheme;
 
                                 return (
                                     <div key={cat} className="space-y-1">
@@ -283,10 +301,10 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                                                 else newSet.add(cat);
                                                 setExpandedCategories(newSet);
                                             }}
-                                            className={`w-full flex items-center justify-between p-2.5 rounded-xl border font-black text-[11px] uppercase tracking-wider transition-all shadow-sm ${colorClass} hover:brightness-125 active:scale-[0.98] outline-none`}
+                                            className={`w-full flex items-center justify-between p-2.5 rounded-xl border font-black text-[11px] uppercase tracking-wider transition-all shadow-sm ${theme.border} ${theme.bg} ${theme.text} hover:brightness-125 active:scale-[0.98] outline-none`}
                                         >
                                             <div className="flex items-center gap-2">
-                                                <div className={`w-1.5 h-1.5 rounded-full ${cat === t('common.uncategorized') ? 'bg-gray-600' : 'bg-current pulse'}`}></div>
+                                                <div className={`w-1.5 h-1.5 rounded-full ${theme.accent} pulse shadow-[0_0_8px_rgba(0,0,0,0.3)]`}></div>
                                                 {cat}
                                             </div>
                                             <div className="flex items-center gap-3">

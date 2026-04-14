@@ -194,19 +194,19 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
     const c = (cat || 'GENERAL').toUpperCase();
     
     const palette = [
-      { bg: 'bg-[#080808]', cellBg: 'bg-[#050505]/30', border: 'border-cyan-500/30', borderT: 'border-t-cyan-500/50', accent: 'text-[#00D1FF]', glow: 'shadow-[0_0_20px_rgba(0,209,255,0.15)]' }, // Cyan
-      { bg: 'bg-[#080808]', cellBg: 'bg-[#050505]/30', border: 'border-indigo-500/30', borderT: 'border-t-indigo-500/50', accent: 'text-indigo-400', glow: 'shadow-[0_0_20px_rgba(99,102,241,0.15)]' }, // Indigo
-      { bg: 'bg-[#080808]', cellBg: 'bg-[#050505]/30', border: 'border-emerald-500/30', borderT: 'border-t-emerald-500/50', accent: 'text-emerald-400', glow: 'shadow-[0_0_20px_rgba(16,185,129,0.15)]' }, // Emerald
-      { bg: 'bg-[#080808]', cellBg: 'bg-[#050505]/30', border: 'border-amber-500/30', borderT: 'border-t-amber-500/50', accent: 'text-amber-400', glow: 'shadow-[0_0_20px_rgba(245,158,11,0.15)]' }, // Amber
-      { bg: 'bg-[#080808]', cellBg: 'bg-[#050505]/30', border: 'border-cyan-500/20', borderT: 'border-t-cyan-500/40', accent: 'text-[#00D1FF]', glow: 'shadow-[0_0_20px_rgba(0,209,255,0.1)]' }, // Fallback Cyan
-      { bg: 'bg-[#080808]', cellBg: 'bg-[#050505]/30', border: 'border-purple-500/30', borderT: 'border-t-purple-500/50', accent: 'text-purple-400', glow: 'shadow-[0_0_20px_rgba(168,85,247,0.15)]' }, // Purple
+      { border: 'border-cyan-500/30', borderT: 'border-t-cyan-500/50', accent: 'text-cyan-400', cellBg: 'bg-[#050505]/30', glow: 'shadow-[0_0_20px_rgba(6,182,212,0.15)]' }, // Cyan
+      { border: 'border-indigo-500/30', borderT: 'border-t-indigo-500/50', accent: 'text-indigo-400', cellBg: 'bg-[#050505]/30', glow: 'shadow-[0_0_20px_rgba(99,102,241,0.15)]' }, // Indigo
+      { border: 'border-emerald-500/30', borderT: 'border-t-emerald-500/50', accent: 'text-emerald-400', cellBg: 'bg-[#050505]/30', glow: 'shadow-[0_0_20px_rgba(16,185,129,0.15)]' }, // Emerald
+      { border: 'border-amber-500/30', borderT: 'border-t-amber-500/50', accent: 'text-amber-400', cellBg: 'bg-[#050505]/30', glow: 'shadow-[0_0_20px_rgba(245,158,11,0.15)]' }, // Amber
+      { border: 'border-blue-500/30', borderT: 'border-t-blue-500/50', accent: 'text-blue-400', cellBg: 'bg-[#050505]/30', glow: 'shadow-[0_0_20px_rgba(59,130,246,0.15)]' }, // Blue
+      { border: 'border-purple-500/30', borderT: 'border-t-purple-500/50', accent: 'text-purple-400', cellBg: 'bg-[#050505]/30', glow: 'shadow-[0_0_20px_rgba(168,85,247,0.15)]' }, // Purple
     ];
 
     // Priority matches
     if (c.includes('COLOR')) return palette[1]; // Indigo
     if (c.includes('REPRO')) return palette[2]; // Emerald
     if (c.includes('INICIO')) return palette[0]; // Cyan
-    if (c.includes('GENERAL') || !cat) return palette[0]; // Fallback to Cyan
+    if (c.includes('GENERAL') || !cat) return palette[0]; 
     
     // Hash based assignment
     let hash = 0;
