@@ -34,6 +34,7 @@ export default function App() {
   const [nutrients, setNutrients] = useState<Nutrient[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
+  const [bases, setBases] = useState<NutritionalBase[]>([]);
   const [savedFormulas, setSavedFormulas] = useState<SavedFormula[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string | undefined>();
   const [isDynamicMatrix, setIsDynamicMatrix] = useState<boolean>(false);
@@ -78,6 +79,7 @@ export default function App() {
         setNutrients(parsed.nutrients || INITIAL_NUTRIENTS);
         setProducts(parsed.products || INITIAL_PRODUCTS);
         setClients(parsed.clients || INITIAL_CLIENTS);
+        setBases(parsed.bases || INITIAL_BASES);
         setSavedFormulas(parsed.savedFormulas || []);
         setSelectedClientId(parsed.selectedClientId || INITIAL_CLIENTS[0].id);
         setUser(parsed.user);
@@ -96,6 +98,7 @@ export default function App() {
         setNutrients(INITIAL_NUTRIENTS);
         setProducts(INITIAL_PRODUCTS);
         setClients(INITIAL_CLIENTS);
+        setBases(INITIAL_BASES);
         setSelectedClientId(INITIAL_CLIENTS[0].id);
         // User must login, so we don't set user
     }
@@ -117,7 +120,7 @@ export default function App() {
   useEffect(() => {
     if (user) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ 
-            ingredients, nutrients, products, clients, savedFormulas, 
+            ingredients, nutrients, products, clients, bases, savedFormulas, 
             selectedClientId, user, isDynamicMatrix, workspaces 
         }));
     }
@@ -349,7 +352,7 @@ export default function App() {
                                 case 'DASHBOARD': return <Dashboard products={products} ingredients={effectiveIngredients} savedFormulas={savedFormulas} clients={clients} onNavigate={setView} isDynamicMatrix={isDynamicMatrix} setIsDynamicMatrix={setIsDynamicMatrix} user={user} />;
                                 case 'INGREDIENTS': return <IngredientsScreen ingredients={ingredients} setIngredients={setIngredients} nutrients={nutrients} setNutrients={setNutrients} setIsDirty={setIsDirty} onUpdateIngredientPrice={handleUpdateIngredientPrices} workspaces={workspaces} activeClientId={selectedClientId} />;
                                 case 'NUTRIENTS': return <NutrientsScreen nutrients={nutrients} setNutrients={setNutrients} />;
-                                case 'PRODUCTS': return <ProductsScreen products={products} setProducts={setProducts} ingredients={effectiveIngredients} nutrients={nutrients} onOpenInNewWindow={(data, name) => handleOpenTask('OPTIMIZATION', name, data)} onNavigate={setView} setIsDirty={setIsDirty} />;
+                                case 'PRODUCTS': return <ProductsScreen products={products} setProducts={setProducts} ingredients={effectiveIngredients} nutrients={nutrients} bases={bases} setBases={setBases} onOpenInNewWindow={(data, name) => handleOpenTask('OPTIMIZATION', name, data)} onNavigate={setView} setIsDirty={setIsDirty} />;
                                 case 'OPTIMIZATION': return <GroupOptimizationScreen products={products} ingredients={effectiveIngredients} nutrients={nutrients} isDynamicMatrix={isDynamicMatrix} selectedDietIds={selectedDietIds} onOpenInNewWindow={(data, name) => handleOpenTask('GROUP_OPTIMIZATION', name, data)} onUpdateProduct={(updatedProduct) => setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p))} setIsDirty={setIsDirty} savedFormulas={savedFormulas} setSavedFormulas={setSavedFormulas} onRemoveDietFromSelection={(id) => setSelectedDietIds(prev => prev.filter(d => d !== id))} onEnterFullscreen={() => setIsOptimizationFullscreen(true)} onLeaveFullscreen={() => setIsOptimizationFullscreen(false)} onNavigate={setView} onUpdateIngredientPrice={handleUpdateIngredientPrices} workspaces={workspaces} selectedClientId={selectedClientId} />;
                                 case 'GROUP_OPTIMIZATION': return <GroupOptimizationScreen products={products} ingredients={effectiveIngredients} nutrients={nutrients} isDynamicMatrix={isDynamicMatrix} selectedDietIds={selectedDietIds} onOpenInNewWindow={(data, name) => handleOpenTask('GROUP_OPTIMIZATION', name, data)} onUpdateProduct={(updatedProduct) => setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p))} setIsDirty={setIsDirty} savedFormulas={savedFormulas} setSavedFormulas={setSavedFormulas} onRemoveDietFromSelection={(id) => setSelectedDietIds(prev => prev.filter(d => d !== id))} onEnterFullscreen={() => setIsOptimizationFullscreen(true)} onLeaveFullscreen={() => setIsOptimizationFullscreen(false)} onNavigate={setView} onUpdateIngredientPrice={handleUpdateIngredientPrices} workspaces={workspaces} selectedClientId={selectedClientId} />;
                                 case 'SIMULATION': return <SimulationScreen ingredients={effectiveIngredients} setIngredients={setIngredients} nutrients={nutrients} />;

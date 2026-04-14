@@ -10,6 +10,7 @@ interface ProductsScreenProps {
   ingredients: Ingredient[];
   nutrients: Nutrient[];
   bases?: NutritionalBase[];
+  setBases?: React.Dispatch<React.SetStateAction<NutritionalBase[]>>;
   onOpenInNewWindow?: (data: any, name: string) => void;
   onNavigate: (view: any) => void;
   setIsDirty?: (dirty: boolean) => void;
@@ -143,6 +144,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
     ingredients, 
     nutrients, 
     bases = [], 
+    setBases,
     onOpenInNewWindow, 
     onNavigate,
     setIsDirty 
@@ -203,6 +205,24 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                 relationships: [...base.relationships]
             }));
         }
+    };
+
+    const handleSaveAsBase = () => {
+        if (!currentProduct || !setBases) return;
+        const baseName = window.prompt(t('products.baseNamePrompt') || 'Nombre de la Base:', currentProduct.name);
+        if (!baseName) return;
+
+        const newBase: NutritionalBase = {
+            id: `base_${Date.now()}`,
+            name: baseName,
+            description: `Generada desde ${currentProduct.name}`,
+            constraints: [...currentProduct.constraints],
+            relationships: [...currentProduct.relationships]
+        };
+
+        setBases(prev => [...prev, newBase]);
+        setIsDirty?.(true);
+        alert(t('products.baseSavedSuccess') || 'Base guardada exitosamente.');
     };
 
     return (
@@ -373,8 +393,17 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                                 </div>
                                 <div className="flex gap-2">
                                     {bases && bases.length > 0 && bases.map(b => (
-                                        <button key={b.id} onClick={() => applyBase(b)} className="text-[10px] bg-purple-900/30 text-purple-400 border border-purple-500/30 px-2 py-1 rounded hover:bg-purple-900/50 transition-colors">Base: {b.name}</button>
+                                        <div key={b.id} className="relative group/base">
+                                            <button onClick={() => applyBase(b)} className="text-[10px] bg-purple-900/30 text-purple-400 border border-purple-500/30 px-2 py-1 rounded hover:bg-purple-900/50 transition-colors uppercase font-bold">Base: {b.name}</button>
+                                            <button onClick={(e) => { e.stopPropagation(); setBases?.(prev => prev.filter(x => x.id !== b.id)); }} className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-3.5 h-3.5 flex items-center justify-center opacity-0 group-hover/base:opacity-100 transition-opacity text-[8px] border border-gray-900">×</button>
+                                        </div>
                                     ))}
+                                    <button 
+                                        onClick={handleSaveAsBase}
+                                        className="text-[10px] bg-emerald-900/30 text-emerald-400 border border-emerald-500/30 px-2 py-1 rounded hover:bg-emerald-900/50 transition-colors uppercase font-bold flex items-center gap-1"
+                                    >
+                                        <PlusIcon className="w-2.5 h-2.5" /> Guardar como Base
+                                    </button>
                                     {onOpenInNewWindow && (
                                         <button onClick={() => onNavigate('OPTIMIZATION')} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-4 py-1 rounded shadow text-[11px] uppercase flex items-center gap-1 transition-all">
                                             <SparklesIcon className="w-3 h-3 animate-pulse" /> Optimizar Dieta
