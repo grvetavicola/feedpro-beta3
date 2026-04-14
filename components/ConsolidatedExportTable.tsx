@@ -121,8 +121,9 @@ export const ConsolidatedExportTable: React.FC<Props> = ({
               <td style={tdStyle}>-</td>
               {activeDiets.map(diet => {
                 const totalCost = activeIngs.reduce((sum, ing) => {
-                  const qty = results[diet.id]?.formula[ing.id] || 0;
-                  return sum + (qty * (ing.price || 0));
+                  const percent = results[diet.id]?.formula[ing.id] || 0;
+                  const kilos = (percent / 100) * (batchSizes[diet.id] || 1000);
+                  return sum + (kilos * (ing.price || 0));
                 }, 0);
                 return <td key={diet.id} colSpan={2} style={{ ...thStyle, textAlign: 'center', color: '#cc0000', fontSize: '14px' }}>${totalCost.toFixed(2)}</td>;
               })}
