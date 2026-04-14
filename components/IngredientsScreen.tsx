@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Ingredient, Nutrient } from '../types';
+import { Ingredient, Nutrient, ClientWorkspace } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
-import { PencilIcon, TrashIcon, PlusIcon, UploadIcon, SaveIcon, XCircleIcon, SparklesIcon, FlaskIcon, MenuIcon } from './icons'; 
+import { PencilIcon, TrashIcon, PlusIcon, UploadIcon, SaveIcon, XCircleIcon, SparklesIcon, FlaskIcon, MenuIcon, ZapIcon } from './icons'; 
 import { parseIngredientsWithGemini } from '../services/geminiService';
 import { EditIngredientModal } from './EditIngredientModal';
+import { BulkPriceEditorModal } from './BulkPriceEditorModal';
 
 declare global {
     interface Window {

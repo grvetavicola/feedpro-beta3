@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Product, Ingredient, Nutrient, SavedFormula } from '../types';
 import { solveFeedFormulation } from '../services/solver';
+import { BulkPriceEditorModal } from './BulkPriceEditorModal';
 import { 
   CalculatorIcon, RefreshIcon, XCircleIcon, CheckIcon, 
   TrashIcon, SearchIcon, ChevronDownIcon, ChevronLeftIcon, 
   ChevronRightIcon, ArrowLeftIcon, ZapIcon 
 } from './icons';
+import { ActiveTask, ClientWorkspace, IngredientDelta } from '../types';
 
 // ─── Interfaces & Types ─────────────────────────────────────────────────────────────
 
