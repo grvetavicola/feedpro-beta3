@@ -8,6 +8,7 @@ interface ProductsScreenProps {
   products: Product[];
   setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
   ingredients: Ingredient[];
+  setIngredients: React.Dispatch<React.SetStateAction<Ingredient[]>>;
   nutrients: Nutrient[];
   bases?: NutritionalBase[];
   setBases?: React.Dispatch<React.SetStateAction<NutritionalBase[]>>;
@@ -143,6 +144,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
     products, 
     setProducts, 
     ingredients, 
+    setIngredients,
     nutrients, 
     bases = [], 
     setBases,
