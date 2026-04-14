@@ -733,7 +733,21 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                </tfoot>
            </table>
         </div>
-      </main>
+
+        {hasRun && (
+
+          <ConsolidatedExportTable 
+
+            activeDiets={activeDiets}
+
+            results={results}
+
+            activeRows={activeRows}
+
+          />
+
+        )}
+</main>
       
       <BulkPriceEditorModal 
         isOpen={isPriceModalOpen}
@@ -746,14 +760,6 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
           setHasRun(false); // Reset matrix to require recalculation
         }}
       />
-
-      {hasRun && (
-        <ConsolidatedExportTable 
-          activeDiets={activeDiets}
-          results={results}
-          activeRows={activeRows}
-        />
-      )}
     </div>
   );
 };
