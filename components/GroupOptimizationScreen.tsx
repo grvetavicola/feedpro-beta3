@@ -401,8 +401,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
       
       {showCatalog && (
         <div className="fixed inset-0 bg-black/98 backdrop-blur-3xl z-[200] flex items-center justify-center p-4">
-           <div className="bg-[#0e0e0e] border border-slate-800 rounded-[2rem] w-full max-w-2xl shadow-2xl flex flex-col overflow-hidden max-h-[85vh]">
-             <div className="p-8 border-b border-slate-800 flex items-center justify-between bg-[#0f172a]/50">
+           <div className="bg-[#0e0e0e] border border-slate-700/80 rounded-[2rem] w-full max-w-2xl shadow-2xl flex flex-col overflow-hidden max-h-[85vh]">
+             <div className="p-8 border-b border-slate-700/80 flex items-center justify-between bg-[#0f172a]/50">
                <div className="flex items-center gap-5">
                   <div className="p-4 bg-cyan-600/10 rounded-3xl border border-cyan-500/20 shadow-lg shadow-cyan-900/10"><ZapIcon className="w-6 h-6 text-[#00D1FF]" /></div>
                   <h2 className="text-base font-black text-white uppercase tracking-widest italic">Inyectar Vectores</h2>
@@ -410,7 +410,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                <button onClick={() => setShowCatalog(false)} className="text-white/70 hover:text-white transition-all"><XCircleIcon className="w-8 h-8" /></button>
              </div>
              
-             <div className="p-5 bg-black/40 flex gap-4 border-b border-slate-800">
+             <div className="p-5 bg-black/40 flex gap-4 border-b border-slate-700/80">
                 <input type="text" value={catalogSearch} onChange={e => setCatalogSearch(e.target.value)} placeholder="EXPLORAR MAESTROS..." className="flex-1 h-11 bg-[#020617] border border-[#1e293b] rounded-2xl px-5 text-[12px] font-black uppercase text-white outline-none focus:border-[#00D1FF] transition-all placeholder-gray-400 shadow-inner" />
                 <button onClick={handleBulkAdd} className="px-10 h-11 bg-[#00D1FF] text-white font-black uppercase rounded-2xl shadow-[0_10px_30px_rgba(0,209,255,0.2)] transition-all active:scale-95 text-[11px] tracking-[0.2em]">CARGAR EN MATRIZ</button>
              </div>
@@ -422,7 +422,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       <div className="grid grid-cols-1 gap-1.5 focus-within:opacity-100">
                         {ingredients.filter(i => i.name.toLowerCase().includes(catalogSearch.toLowerCase())).map(i => (
                           <label key={i.id} className={`flex items-center gap-4 p-2.5 rounded-2xl cursor-pointer border transition-all ${catalogSelection.has(i.id) ? 'bg-[#00D1FF]/10 border-[#00D1FF]/30 shadow-[0_0_15px_rgba(0,209,255,0.05)]' : 'border-transparent hover:bg-white/[0.03]'}`}>
-                             <input type="checkbox" checked={catalogSelection.has(i.id)} onChange={() => { const s = new Set(catalogSelection); if (s.has(i.id)) s.delete(i.id); else s.add(i.id); setCatalogSelection(s); }} className="w-4.5 h-4.5 rounded-lg border-slate-800 bg-black text-[#00D1FF] focus:ring-0" />
+                             <input type="checkbox" checked={catalogSelection.has(i.id)} onChange={() => { const s = new Set(catalogSelection); if (s.has(i.id)) s.delete(i.id); else s.add(i.id); setCatalogSelection(s); }} className="w-4.5 h-4.5 rounded-lg border-slate-700/80 bg-black text-[#00D1FF] focus:ring-0" />
                              <span className={`text-[13px] font-bold uppercase truncate ${catalogSelection.has(i.id) ? 'text-white' : 'text-slate-400'}`}>{i.name}</span>
                           </label>
                         ))}
@@ -433,7 +433,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       <div className="grid grid-cols-1 gap-1.5">
                         {nutrients.filter(n => n.name.toLowerCase().includes(catalogSearch.toLowerCase())).map(n => (
                           <label key={n.id} className={`flex items-center gap-4 p-2.5 rounded-2xl cursor-pointer border transition-all ${catalogSelection.has(n.id) ? 'bg-emerald-400/10 border-emerald-400/30 shadow-[0_0_15px_rgba(16,185,129,0.05)]' : 'border-transparent hover:bg-white/[0.03]'}`}>
-                             <input type="checkbox" checked={catalogSelection.has(n.id)} onChange={() => { const s = new Set(catalogSelection); if (s.has(n.id)) s.delete(n.id); else s.add(n.id); setCatalogSelection(s); }} className="w-4.5 h-4.5 rounded-lg border-slate-800 bg-black text-emerald-400 focus:ring-0" />
+                             <input type="checkbox" checked={catalogSelection.has(n.id)} onChange={() => { const s = new Set(catalogSelection); if (s.has(n.id)) s.delete(n.id); else s.add(n.id); setCatalogSelection(s); }} className="w-4.5 h-4.5 rounded-lg border-slate-700/80 bg-black text-emerald-400 focus:ring-0" />
                              <span className={`text-[13px] font-bold uppercase truncate ${catalogSelection.has(n.id) ? 'text-white' : 'text-slate-400'}`}>{n.name}</span>
                           </label>
                         ))}
@@ -445,9 +445,9 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
         </div>
       )}
 
-      <nav className="flex-none bg-[#0a0a0a] border-b border-slate-800 h-16 flex items-center px-8 gap-10 z-[100] shadow-2xl relative">
+      <nav className="flex-none bg-[#0a0a0a] border-b border-slate-700/80 h-16 flex items-center px-8 gap-10 z-[100] shadow-2xl relative">
          <div className="flex items-center gap-4 shrink-0">
-            <button onClick={goHome} className="p-2.5 text-[#00D1FF] hover:bg-[#00D1FF]/10 rounded-2xl transition-all active:scale-90 bg-black/40 border border-slate-800 cursor-pointer">
+            <button onClick={goHome} className="p-2.5 text-[#00D1FF] hover:bg-[#00D1FF]/10 rounded-2xl transition-all active:scale-90 bg-black/40 border border-slate-700/80 cursor-pointer">
                <ArrowLeftIcon className="w-6 h-6" />
             </button>
             <button 
@@ -462,10 +462,10 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
          </div>
          <div className="w-px h-8 bg-slate-800 shrink-0" />
          <div className="flex items-center gap-6">
-            <button onClick={() => setShowCatalog(true)} className="flex items-center gap-3 text-[#00D1FF] hover:text-[#00D1FF]/80 text-[11px] font-black uppercase tracking-[0.2em] transition-all bg-black/40 px-5 py-2.5 rounded-2xl border border-slate-800">
+            <button onClick={() => setShowCatalog(true)} className="flex items-center gap-3 text-[#00D1FF] hover:text-[#00D1FF]/80 text-[11px] font-black uppercase tracking-[0.2em] transition-all bg-black/40 px-5 py-2.5 rounded-2xl border border-slate-700/80">
                <ZapIcon className="w-5 h-5" /> SELECTOR GLOBAL
             </button>
-            <div className="flex h-9 bg-black/80 rounded-[1.25rem] border border-slate-800 overflow-hidden shadow-2xl">
+            <div className="flex h-9 bg-black/80 rounded-[1.25rem] border border-slate-700/80 overflow-hidden shadow-2xl">
                <button onClick={() => setViewMode('limits')} className={`px-6 text-[11px] font-black uppercase transition-all ${viewMode === 'limits' ? 'bg-[#00D1FF] text-white' : 'text-slate-300 hover:text-slate-300'}`}>Límites</button>
                <button onClick={() => setViewMode('kg')} className={`px-6 text-[11px] font-black uppercase transition-all ${viewMode === 'kg' ? 'bg-[#00D1FF] text-white' : 'text-slate-300 hover:text-slate-300'}`}>Resultados</button>
             </div>
@@ -480,8 +480,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
       </nav>
 
       <main className="flex-1 flex overflow-hidden relative">
-        <aside className={`shrink-0 bg-[#080808] border-r border-slate-800 transition-all duration-300 flex flex-col overflow-hidden z-50 ${isSidebarCollapsed ? 'w-0' : 'w-64'}`}>
-           <div className="p-5 shrink-0 border-b border-slate-800 bg-black/40">
+        <aside className={`shrink-0 bg-[#080808] border-r border-slate-700/80 transition-all duration-300 flex flex-col overflow-hidden z-50 ${isSidebarCollapsed ? 'w-0' : 'w-64'}`}>
+           <div className="p-5 shrink-0 border-b border-slate-700/80 bg-black/40">
               <span className="text-[11px] font-black text-[#00D1FF] uppercase tracking-[0.3em] border-l-3 border-[#00D1FF] pl-4 italic opacity-90 font-mono">Dietas Disponibles</span>
            </div>
            <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3 bg-black/20">
@@ -497,7 +497,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                          <span className={`text-[10px] font-black uppercase italic truncate max-w-[130px] tracking-widest whitespace-normal break-words`} style={{ color: theme.accent }}>{cat}</span>
                        </div>
                        <div className="flex items-center gap-3">
-                         <input type="checkbox" checked={allSel} onClick={(e) => e.stopPropagation()} onChange={() => { const ids = list.map(d => d.id); setActiveDietIds(prev => allSel ? prev.filter(id => !ids.includes(id)) : Array.from(new Set([...prev, ...ids]))); }} className={`w-4 h-4 rounded-lg bg-black border-slate-800 focus:ring-0`} style={{ color: theme.accent }} />
+                         <input type="checkbox" checked={allSel} onClick={(e) => e.stopPropagation()} onChange={() => { const ids = list.map(d => d.id); setActiveDietIds(prev => allSel ? prev.filter(id => !ids.includes(id)) : Array.from(new Set([...prev, ...ids]))); }} className={`w-4 h-4 rounded-lg bg-black border-slate-700/80 focus:ring-0`} style={{ color: theme.accent }} />
                          <ChevronDownIcon className={`w-3.5 h-3.5 text-slate-300 transition-transform ${isExp ? 'rotate-180' : ''}`} />
                        </div>
                     </button>
@@ -517,7 +517,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
            </div>
         </aside>
 
-        <button onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} className={`absolute bottom-10 z-[60] p-3 bg-slate-900/90 hover:bg-[#00D1FF] hover:text-white text-slate-400 rounded-full shadow-2xl transition-all border border-slate-800 active:scale-95 ${isSidebarCollapsed ? 'left-10' : 'left-[15.2rem]'}`}>
+        <button onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} className={`absolute bottom-10 z-[60] p-3 bg-slate-900/90 hover:bg-[#00D1FF] hover:text-white text-slate-400 rounded-full shadow-2xl transition-all border border-slate-700/80 active:scale-95 ${isSidebarCollapsed ? 'left-10' : 'left-[15.2rem]'}`}>
            {isSidebarCollapsed ? <ChevronRightIcon className="w-6 h-6" /> : <ChevronLeftIcon className="w-6 h-6" />}
         </button>
 
@@ -543,7 +543,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                   </button>
                                 </div>
                                 <h3 className="text-[15px] font-black uppercase tracking-[0.1em] mb-3 font-mono drop-shadow-[0_0_10px_rgba(0,0,0,0.5)]" style={{ color: theme.accent }}>{diet.name}</h3>
-                                <div className="flex items-center gap-3 bg-black/40 px-4 py-2 rounded-full border border-slate-800/50 shadow-inner">
+                                <div className="flex items-center gap-3 bg-black/40 px-4 py-2 rounded-full border border-slate-700/80/50 shadow-inner">
                                   <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">LT:</span>
                                   <input
                                     type="number"
@@ -563,7 +563,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                </thead>
                
                <tbody className="divide-y divide-slate-800/20">
-                 <tr className="bg-[#030303] sticky top-[112px] z-50 border-b border-slate-800">
+                 <tr className="bg-[#030303] sticky top-[112px] z-50 border-b border-slate-700/80">
                                          <td className="sticky left-0 z-30 bg-[#080808] border-r-2 border-slate-700/80 border-b border-slate-700/50 w-[250px] min-w-[250px] p-0">
                         <div className="h-14 flex items-center justify-center text-center px-4">
                            <span className="text-[12px] font-black text-[#00D1FF] uppercase tracking-[0.4em] font-mono italic opacity-90">Sector I: Insumos</span>
@@ -590,8 +590,18 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                  {activeRows.filter(r => r.type === 'ing').map((row, rIdx) => (
                    <tr key={row.id} className="h-11 group hover:bg-[#00D1FF]/[0.02] transition-colors relative">
                                           <td className="sticky left-0 z-30 bg-[#080808] border-r-2 border-slate-700/80 border-b border-slate-700/50 w-[250px] min-w-[250px] p-0">
-                        <div className="h-14 flex items-center justify-center text-center px-4">
-                           <span className="text-[12px] font-black text-[#00D1FF] uppercase tracking-[0.4em] font-mono italic opacity-90">Sector II: Nutrientes</span>
+                        <div className="relative flex items-center justify-center h-full py-1.5 px-4 text-center">
+                           <div className="flex flex-col items-center justify-center">
+                              <span className="text-[13px] font-black text-white group-hover:text-cyan-400 uppercase tracking-tighter leading-tight whitespace-normal break-words">
+                                 {row.name}
+                              </span>
+                              <span className="text-[11px] text-slate-400 font-bold uppercase italic font-mono scale-95 tracking-widest opacity-80">
+                                 ${row.price?.toFixed(2)}
+                              </span>
+                           </div>
+                           <button onClick={() => handleRemoveRow(row.id)} className="absolute right-2 text-red-900/40 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all p-2 hover:bg-red-600/10 rounded-xl">
+                              <TrashIcon className="w-3.5 h-3.5" />
+                           </button>
                         </div>
                      </td>
                     {activeDiets.map((diet, idx) => {
@@ -639,7 +649,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                          return (
                            <React.Fragment key={diet.id}>
                              <td className="w-4 bg-[#030303] border-none" />
-                             <td className={`p-0 border-b border-slate-800/10 h-11`} style={{ backgroundColor: theme.cellSubtle }}>
+                             <td className={`p-0 border-b border-slate-700/80/10 h-11`} style={{ backgroundColor: theme.cellSubtle }}>
                                 <div className="grid grid-cols-3 h-full divide-x divide-white/[0.03]">
                                    <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={baseIdx + rIdx} />
                                    <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id]} feasible={true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={baseIdx + rIdx} />
@@ -655,7 +665,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                  })}
                </tbody>
 
-               <tfoot className="sticky bottom-0 z-[60] shadow-2xl border-t-2 border-slate-800">
+               <tfoot className="sticky bottom-0 z-[60] shadow-2xl border-t-2 border-slate-700/80">
                  <tr className="bg-[#050505] h-20">
                     <td className="p-0 sticky left-0 z-30 bg-[#0a0a0a] border-r-2 border-slate-700/80 border-b border-slate-700/50 w-[250px] min-w-[250px]">
                        <div className="flex flex-col justify-center items-center text-center h-full">
@@ -670,7 +680,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       return (
                         <React.Fragment key={`diag-${diet.id}`}>
                            <td className="w-4 bg-[#030303] border-none" />
-                           <td className={`p-6 border-b border-slate-800/60 align-top rounded-b-3xl ${theme.glow} border-b-2 ${theme.borderT.replace('border-t-', 'border-b-')}`} style={{ backgroundColor: theme.cellSubtle }}>
+                           <td className={`p-6 border-b border-slate-700/80/60 align-top rounded-b-3xl ${theme.glow} border-b-2 ${theme.borderT.replace('border-t-', 'border-b-')}`} style={{ backgroundColor: theme.cellSubtle }}>
                              {res && hasRun ? (
                                <div className="space-y-3">
                                  <div className={`text-[28px] font-black font-mono leading-none tracking-tighter ${res.feasible ? 'text-white' : 'text-rose-500'}`}>
