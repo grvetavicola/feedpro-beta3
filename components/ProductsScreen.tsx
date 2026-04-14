@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Product, Ingredient, Nutrient, ProductConstraint, Relationship, IngredientConstraint, NutritionalBase } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
-import { SparklesIcon, SaveIcon, DuplicateIcon, UploadIcon, SearchIcon, XCircleIcon, TrashIcon, FlaskIcon, PlusIcon, ChevronDownIcon, ChevronRightIcon, RatiosIcon } from './icons';
+import { SparklesIcon, SaveIcon, DuplicateIcon, UploadIcon, SearchIcon, XCircleIcon, TrashIcon, FlaskIcon, PlusIcon, ChevronDownIcon, ChevronRightIcon, ChevronDoubleRightIcon, RatiosIcon } from './icons';
 import { parseRequirementsWithGemini } from '../services/geminiService';
 
 interface ProductsScreenProps {
@@ -13,6 +13,7 @@ interface ProductsScreenProps {
   setBases?: React.Dispatch<React.SetStateAction<NutritionalBase[]>>;
   onOpenInNewWindow?: (data: any, name: string) => void;
   onNavigate: (view: any) => void;
+  onSelectDiets?: (ids: string[]) => void;
   setIsDirty?: (dirty: boolean) => void;
 }
 
