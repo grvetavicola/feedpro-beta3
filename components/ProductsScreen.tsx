@@ -79,6 +79,10 @@ const SelectionModal = ({
     disabled?: boolean;
 }) => {
     const { t } = useTranslations();
+    const [showIngredientsModal, setShowIngredientsModal] = useState(false);
+    const [showNutrientsModal, setShowNutrientsModal] = useState(false);
+    const [showBasesModal, setShowBasesModal] = useState(false);
+    const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -645,6 +649,82 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                     )}
                 </div>
             </div>
+            {/* Base Selection Modal */}
+            {showBasesModal && (
+                <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+                    <div className="bg-gray-800 border-2 border-cyan-500/30 rounded-2xl shadow-[0_0_50px_rgba(6,182,212,0.2)] w-full max-w-xl flex flex-col max-h-[85vh] animate-in fade-in zoom-in duration-300">
+                        <div className="p-6 border-b border-gray-700 flex justify-between items-center bg-gray-800/50">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-cyan-500/10 rounded-lg">
+                                    <DuplicateIcon className="w-6 h-6 text-cyan-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-white uppercase tracking-wider">Seleccionar Base Nutricional</h3>
+                                    <p className="text-gray-400 text-xs">Aplica requerimientos estandarizados a la dieta actual</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setShowBasesModal(false)} className="text-gray-500 hover:text-white transition-colors p-2 hover:bg-gray-700 rounded-full">
+                                <XCircleIcon className="w-6 h-6" />
+                            </button>
+                        </div>
+                        
+                        <div className="p-4 border-b border-gray-700 bg-gray-900/30">
+                            <div className="relative">
+                                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Buscar base por nombre..."
+                                    className="w-full bg-gray-950 border border-gray-700 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition-all"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
+                            {bases.length === 0 ? (
+                                <div className="text-center py-12 px-6">
+                                    <div className="w-16 h-16 bg-gray-700/30 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-600">
+                                        <FlaskIcon className="w-8 h-8 text-gray-500" />
+                                    </div>
+                                    <p className="text-gray-400 font-medium italic">No hay bases guardadas.</p>
+                                    <p className="text-gray-500 text-xs mt-2">Importa un Excel o guarda la dieta actual como base.</p>
+                                </div>
+                            ) : (
+                                bases.map(base => (
+                                    <button 
+                                        key={base.id}
+                                        onClick={() => {
+                                            applyBase(base);
+                                            setShowBasesModal(false);
+                                        }}
+                                        className="w-full p-4 rounded-xl border border-gray-700 bg-gray-800/40 hover:bg-gray-700/60 hover:border-cyan-500/50 hover:shadow-lg transition-all flex justify-between items-center group text-left"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center border border-gray-700 group-hover:bg-cyan-900/20 group-hover:border-cyan-500/30 transition-all">
+                                                <SparklesIcon className="w-5 h-5 text-gray-400 group-hover:text-cyan-400" />
+                                            </div>
+                                            <div>
+                                                <div className="text-sm font-bold text-gray-200 group-hover:text-white uppercase tracking-tight">{base.name}</div>
+                                                <div className="text-[10px] text-gray-500 uppercase font-mono mt-0.5">{base.description}</div>
+                                            </div>
+                                        </div>
+                                        <ChevronRightIcon className="w-5 h-5 text-gray-600 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all" />
+                                    </button>
+                                ))
+                            )}
+                        </div>
+                        
+                        <div className="p-6 border-t border-gray-700 bg-gray-800/50 flex justify-between items-center">
+                            <span className="text-[10px] text-gray-500 font-mono tracking-tighter uppercase">Total Bases: {bases.length}</span>
+                            <button 
+                                onClick={() => setShowBasesModal(false)}
+                                className="text-sm text-gray-400 hover:text-white font-bold px-4 py-2 hover:bg-gray-700 rounded-lg transition-all"
+                            >
+                                CERRAR
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
