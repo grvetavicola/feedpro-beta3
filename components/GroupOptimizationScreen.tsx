@@ -529,17 +529,19 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
               </thead>
               
               <tbody className="divide-y divide-slate-800/20">
-                <tr className="bg-[#060606] sticky top-[112px] z-50 backdrop-blur-2xl border-b border-slate-800 h-9">
-                   <td className="sticky left-0 bg-[#060606] z-[55] pl-8 pr-8 border-r border-slate-700 w-[250px] min-w-[250px]">
-                      <span className="text-[12px] font-black text-slate-300 uppercase tracking-[0.4em] font-mono italic opacity-90">Sector I: Componentes</span>
+                <tr className="bg-[#030303] sticky top-[112px] z-50 border-b border-slate-800">
+                   <td className="p-0 sticky left-0 z-[55] w-[250px] min-w-[250px]">
+                      <div className="bg-[#050505] h-14 flex items-center pl-8 border-r border-slate-700">
+                         <span className="text-[12px] font-black text-[#00D1FF] uppercase tracking-[0.4em] font-mono italic opacity-90">Sector I: Componentes</span>
+                      </div>
                    </td>
                    {activeDiets.map((diet, idx) => (
                       <React.Fragment key={`h1-${diet.id}`}>
                         <td className="w-4 bg-[#030303] border-none" />
-                        <td className="p-0 border-b border-slate-800/60 bg-[#0c0c0c]">
-                           <div className="grid grid-cols-3 h-9 divide-x divide-slate-800/20">
-                              <div className="flex items-center justify-center text-[11px] font-black text-[#00D1FF]/70 uppercase tracking-widest">MIN</div>
-                              <div className="flex items-center justify-center text-[11px] font-black text-[#00D1FF]/70 uppercase tracking-widest">MAX</div>
+                        <td className="p-0 border-b border-slate-800/60 bg-[#080808]">
+                           <div className="grid grid-cols-3 h-14 divide-x divide-slate-800/20">
+                              <div className="flex items-center justify-center text-[10px] font-black text-slate-500 uppercase tracking-widest">MIN</div>
+                              <div className="flex items-center justify-center text-[10px] font-black text-slate-500 uppercase tracking-widest">MAX</div>
                               <div className="flex items-center justify-center text-[11px] font-black text-[#00D1FF] uppercase tracking-widest">ACT</div>
                            </div>
                         </td>
@@ -586,17 +588,19 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                   </tr>
                 ))}
 
-                <tr className="bg-[#060606] sticky top-[112px] z-50 backdrop-blur-2xl border-b border-slate-800 h-9">
-                   <td className="sticky left-0 bg-[#060606] z-[55] pl-8 pr-8 border-r border-slate-700 w-[250px] min-w-[250px]">
-                      <span className="text-[12px] font-black text-slate-300 uppercase tracking-[0.4em] font-mono italic opacity-90">Sector II: Parámetros</span>
+                <tr className="bg-[#030303] sticky top-[112px] z-50 border-b border-slate-800">
+                   <td className="p-0 sticky left-0 z-[55] w-[250px] min-w-[250px]">
+                      <div className="bg-[#050505] h-14 flex items-center pl-8 border-r border-slate-700">
+                         <span className="text-[12px] font-black text-[#00D1FF] uppercase tracking-[0.4em] font-mono italic opacity-90">Sector II: Parámetros</span>
+                      </div>
                    </td>
                    {activeDiets.map((diet, idx) => (
                       <React.Fragment key={`h2-${diet.id}`}>
                         <td className="w-4 bg-[#030303] border-none" />
-                        <td className="p-0 border-b border-slate-800/60 bg-[#0c0c0c]">
-                           <div className="grid grid-cols-3 h-9 divide-x divide-slate-800/20">
-                              <div className="flex items-center justify-center text-[11px] font-black text-[#00D1FF]/70 uppercase tracking-widest">MIN</div>
-                              <div className="flex items-center justify-center text-[11px] font-black text-[#00D1FF]/70 uppercase tracking-widest">MAX</div>
+                        <td className="p-0 border-b border-slate-800/60 bg-[#080808]">
+                           <div className="grid grid-cols-3 h-14 divide-x divide-slate-800/20">
+                              <div className="flex items-center justify-center text-[10px] font-black text-slate-500 uppercase tracking-widest">MIN</div>
+                              <div className="flex items-center justify-center text-[10px] font-black text-slate-500 uppercase tracking-widest">MAX</div>
                               <div className="flex items-center justify-center text-[11px] font-black text-[#00D1FF] uppercase tracking-widest">ACT</div>
                            </div>
                         </td>
