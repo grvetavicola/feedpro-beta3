@@ -192,7 +192,6 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                 { id: `rel_${Date.now()}`, name: t('products.newRelation'), nutrientAId: nutrients[0]?.id, nutrientBId: nutrients[1]?.id, min: 0, max: 999 }
             ]
         }));
-        alert(`✓ Base "${base.name}" aplicada correctamente a ${currentProduct?.name}.`);
     };
 
     const removeRelation = (id: string) => {
@@ -208,6 +207,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                 relationships: [...base.relationships],
                 ingredientConstraints: base.ingredientConstraints ? [...base.ingredientConstraints] : []
             }));
+            alert(`✓ Base "${base.name}" aplicada correctamente a ${currentProduct?.name}.`);
         }
     };
 
@@ -520,7 +520,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                                         </button>
                                         <div className="w-px h-5 bg-purple-500/30" />
                                         <button 
-                                            onClick={handleSaveAsBase}
+                                            onClick={() => handleSaveAsBase()}
                                             className="flex items-center gap-2 hover:bg-emerald-900/40 text-emerald-400 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all group"
                                         >
                                             <SaveIcon className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
