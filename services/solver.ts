@@ -207,9 +207,21 @@ export const solveFeedFormulation = (
         };
     });
 
+    // Calculate final cost
+    let finalTotalCost = 0;
+    if (isBestEffort) {
+        // In best effort mode, results.result includes huge penalties. 
+        // We recalculate the REAL cost of the ingredients used.
+        items.forEach(item => {
+            finalTotalCost += item.cost;
+        });
+    } else {
+        finalTotalCost = (results.result / 100 * batchSize);
+    }
+
     return {
         status: isBestEffort ? 'INFEASIBLE' : 'OPTIMAL',
-        totalCost: Number((results.result / 100 * batchSize).toFixed(2)), 
+        totalCost: Number(finalTotalCost.toFixed(2)), 
         items: items.sort((a, b) => b.percentage - a.percentage),
         rejectedItems,
         nutrientAnalysis,
