@@ -5,7 +5,7 @@ import { marked } from 'marked';
 import { User, Ingredient, Nutrient, Product, ChatMessage } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
 import { chatWithAssistant } from '../services/geminiService';
-import { AIIcon, LockClosedIcon, UserIcon, PaperclipIcon, XCircleIcon, MicrophoneIcon, DuplicateIcon, DownloadIcon } from './icons';
+import { AIIcon, LockClosedIcon, UserIcon, PaperclipIcon, XCircleIcon, DuplicateIcon, DownloadIcon } from './icons';
 
 interface AIAssistantProps {
   ingredients: Ingredient[];
@@ -89,72 +89,12 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
-  const recognitionRef = useRef<any>(null);
-  const [isListening, setIsListening] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
 
-  const speak = (text: string) => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = language === 'en' ? 'en-US' : 'es-ES';
-      utterance.pitch = 1.0; 
-      utterance.rate = 1.0;  
-
-      const voices = window.speechSynthesis.getVoices();
-      const preferredVoice = voices.find(v => 
-        v.lang.startsWith(language === 'en' ? 'en' : 'es') && 
-        (v.name.includes('Natural') || v.name.includes('Neural') || v.name.includes('Google'))
-      );
-      if (preferredVoice) utterance.voice = preferredVoice;
-
-      utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
-      window.speechSynthesis.speak(utterance);
-    }
-  };
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-  
-  useEffect(() => {
-    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (SpeechRec) {
-      const recognition = new SpeechRec();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.lang = language === 'en' ? 'en-US' : 'es-ES';
-
-      recognition.onstart = () => setIsListening(true);
-      recognition.onend = () => setIsListening(false);
-      recognition.onerror = (e: any) => {
-        console.error("Speech recognition error:", e.error);
-        setIsListening(false);
-      };
-      recognition.onresult = (e: any) => {
-        const transcript = e.results[0][0].transcript;
-        if (transcript) setUserInput(prev => prev + (prev ? ' ' : '') + transcript);
-      };
-      
-      recognitionRef.current = recognition;
-    }
-  }, [language]);
-
-  const toggleListening = () => {
-    if (!recognitionRef.current) {
-        alert(t('common.error') || "Dictado por voz no soportado en este navegador. Usa Chrome o Edge.");
-        return;
-    }
-    if (isListening) {
-        recognitionRef.current.stop();
-    } else {
-        recognitionRef.current.start();
-    }
-  };
 
   const copyToClipboard = (text: string) => {
       navigator.clipboard.writeText(text);
@@ -262,9 +202,6 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
         const assistantMsg: ChatMessage = { role: 'assistant', content: response.text };
         setMessages(prev => [...prev, assistantMsg]);
         
-        // Voz: Hablar la respuesta
-        speak(response.text);
-
         if (response.toolCalls && response.toolCalls.length > 0) {
             setPendingActions(prev => [...prev, ...response.toolCalls!]);
         }
@@ -304,27 +241,13 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
   }
 
   return (
-    <div className="p-4 md:p-6 h-full flex flex-col relative overflow-hidden bg-gray-950/20">
-        {/* Animated Background Presence (Aura Premium) */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] pointer-events-none z-0">
-            <div className={`absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/5 to-emerald-500/10 rounded-full blur-[150px] transition-all duration-[2000ms] ${isSpeaking ? 'scale-150 opacity-60 animate-pulse' : 'scale-100 opacity-20'}`} />
-            <div className={`absolute inset-1/4 bg-cyan-400/5 rounded-full blur-[100px] transition-all duration-[3000ms] ${isListening ? 'scale-110 opacity-50 bg-emerald-500/10' : 'scale-100 opacity-10'}`} />
-            {isSpeaking && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-60 h-60 border-2 border-cyan-400/20 rounded-full animate-[ping_3s_linear_infinite]" />
-                    <div className="w-80 h-80 border border-cyan-400/10 rounded-full animate-[ping_4s_linear_infinite] delay-1000" />
-                </div>
-            )}
-        </div>
-
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-2 z-10">
             <div className="flex items-center gap-4">
-                <div className="relative">
-                    <div className={`w-4 h-4 rounded-full shadow-[0_0_15px_rgba(34,211,238,0.8)] transition-colors duration-500 ${isSpeaking ? 'bg-emerald-400' : isListening ? 'bg-red-400' : 'bg-cyan-500'}`} />
-                    <div className={`absolute -inset-1 rounded-full border border-cyan-500/30 animate-ping ${!isSpeaking && !isListening ? 'hidden' : ''}`} />
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center shrink-0">
+                    <AIIcon className="w-6 h-6 text-cyan-400" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">VetIA Interactive Assistant</h2>
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">VetIA Assistant</h2>
                   <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Nutritional Intelligence Engine</p>
                 </div>
             </div>
@@ -436,14 +359,6 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
                     aria-label="Attach file"
                 >
                     <PaperclipIcon />
-                </button>
-                <button
-                    type="button"
-                    onClick={toggleListening}
-                    className={`p-2 rounded-lg transition-all shadow-sm flex-shrink-0 ${isListening ? 'bg-red-500/20 text-red-500 border border-red-500/50 animate-pulse' : 'bg-gray-700 text-gray-400 hover:text-emerald-400'}`}
-                    aria-label="Dictate"
-                >
-                    <MicrophoneIcon />
                 </button>
                 <input
                     type="text"
