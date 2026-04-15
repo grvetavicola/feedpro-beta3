@@ -161,7 +161,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                 });
 
                 const nutrientMap: Record<number, string> = {};
-                let nameCol = -1, codeCol = -1, priceCol = -1, stockCol = -1, catCol = -1;
+                let nameCol = -1, codeCol = -1, priceCol = -1, stockCol = -1, catCol = -1, matrixCol = -1;
 
                 headers.forEach((h, idx) => {
                     if (!h) return;
@@ -185,6 +185,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                     }
                     else if (s.includes('categoria') || s.includes('category')) {
                         if (catCol === -1) catCol = idx;
+                    }
+                    else if (s === 'matriz' || s === 'matrix' || s === 'grupo' || s === 'group') {
+                        if (matrixCol === -1) matrixCol = idx;
                     }
                     else {
                         // 1. Busqueda por Código exacto (limpiando s)
@@ -227,6 +230,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                         code: finalCode,
                         name: row[nameCol].toString(),
                         category: row[catCol]?.toString() || 'Macro',
+                        matrix: row[matrixCol]?.toString() || undefined,
                         price: parseFloat(row[priceCol]) || 0,
                         stock: parseFloat(row[stockCol]) || 100000,
                         nutrients: nts
