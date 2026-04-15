@@ -13,6 +13,9 @@ interface AIAssistantProps {
   products: Product[];
   user?: User;
   onUpgradeRequest?: () => void;
+  onUpdateIngredientPrice?: (prices: Record<string, number>) => void;
+  onUpdateNutrientLimit?: (nutrientId: string, min?: number, max?: number) => void;
+  onTriggerOptimization?: (applySafety: boolean) => void;
 }
 
 const LoadingBubble: React.FC = () => (
@@ -174,8 +177,10 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ user = { name: 'Admin'
     }
   };
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const [pendingActions, setPendingActions] = useState<any[]>([]);
+
+  const handleSendMessage = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if ((!userInput.trim() && !attachedFile) || isLoading) return;
 
     const userMessage: ChatMessage = {
@@ -186,6 +191,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ user = { name: 'Admin'
     
     const newMessages: ChatMessage[] = [...messages, userMessage];
     setMessages(newMessages);
+    const sentInput = userInput;
     setUserInput('');
     setIsLoading(true);
 
@@ -194,22 +200,15 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ user = { name: 'Admin'
         try {
             if (attachedFile.type.startsWith('image/')) {
                 const base64Data = await compressImageToBase64(attachedFile);
-                imagePayload = {
-                    mimeType: 'image/jpeg',
-                    data: base64Data,
-                };
+                imagePayload = { mimeType: 'image/jpeg', data: base64Data };
             } else {
-                // Read as generic DataURL (PDF, CSV, etc)
                 const reader = new FileReader();
                 const base64Data = await new Promise<string>((resolve, reject) => {
                     reader.onload = () => resolve((reader.result as string).split(',')[1]);
                     reader.onerror = error => reject(error);
                     reader.readAsDataURL(attachedFile);
                 });
-                imagePayload = {
-                    mimeType: attachedFile.type || 'text/plain',
-                    data: base64Data,
-                };
+                imagePayload = { mimeType: attachedFile.type || 'text/plain', data: base64Data };
             }
         } catch (error) {
             console.error("Error converting file to base64:", error);
@@ -220,16 +219,38 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ user = { name: 'Admin'
     
     removeAttachment();
 
-    const assistantResponse = await chatWithAssistant(
-        messages, 
-        userInput, 
-        { ingredients, nutrients, products }, 
-        language,
-        imagePayload
-    );
+    try {
+        const response = await chatWithAssistant(
+            newMessages, 
+            sentInput, 
+            { ingredients, nutrients, products }, 
+            language,
+            imagePayload
+        );
 
-    setMessages([...newMessages, { role: 'assistant', content: assistantResponse }]);
-    setIsLoading(false);
+        const assistantMsg: ChatMessage = { role: 'assistant', content: response.text };
+        setMessages(prev => [...prev, assistantMsg]);
+
+        if (response.toolCalls && response.toolCalls.length > 0) {
+            setPendingActions(prev => [...prev, ...response.toolCalls!]);
+        }
+    } catch (err) {
+        console.error("Chat Error:", err);
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  const executeAction = (action: any) => {
+    console.log("Ejecutando acción confirmada:", action);
+    if (action.name === 'set_ingredient_price' && onUpdateIngredientPrice) {
+        onUpdateIngredientPrice({ [action.args.id]: action.args.price });
+    } else if (action.name === 'adjust_nutrient_limit' && onUpdateNutrientLimit) {
+        onUpdateNutrientLimit(action.args.nutrientId, action.args.min, action.args.max);
+    } else if (action.name === 'run_optimization' && onTriggerOptimization) {
+        onTriggerOptimization(action.args.applySafety ?? true);
+    }
+    setPendingActions(prev => prev.filter(a => a !== action));
   };
   
   if (user.subscription !== 'pro') {
