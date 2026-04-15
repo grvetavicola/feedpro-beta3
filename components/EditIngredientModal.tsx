@@ -8,6 +8,7 @@ interface EditIngredientModalProps {
     nutrients: Nutrient[];
     onSave: (updatedIngredient: Ingredient) => void;
     onClose: () => void;
+    availableMatrices?: string[];
 }
 
 // --- SMART INPUT FOR NUMBERS ---
@@ -54,7 +55,7 @@ const SmartInput = ({ value, onChange, placeholder, className, isMax = false }: 
     />;
 };
 
-export const EditIngredientModal: React.FC<EditIngredientModalProps> = ({ ingredient, nutrients, onSave, onClose }) => {
+export const EditIngredientModal: React.FC<EditIngredientModalProps> = ({ ingredient, nutrients, onSave, onClose, availableMatrices = [] }) => {
     const { t } = useTranslations();
     const [editedIngredient, setEditedIngredient] = useState<Ingredient>(ingredient);
 
@@ -275,17 +276,12 @@ export const EditIngredientModal: React.FC<EditIngredientModalProps> = ({ ingred
                     <button onClick={onClose} className="bg-gray-700 hover:bg-gray-600 text-gray-300 font-bold py-2 px-6 rounded-xl transition-all border border-gray-600">{t('common.cancel')}</button>
                     <button onClick={handleSave} className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-black uppercase tracking-widest text-[12px] py-2 px-8 rounded-xl shadow-lg transition-all transform hover:scale-[1.02]">{t('common.saveChanges')}</button>
                 </div>
-                </div>
-                <datalist id="matrices_list">
-                    {Array.from(new Set(nutrients.map(() => {
-                        // Nota: La modal no tiene acceso directo a 'ingredients', 
-                        // pero podemos inferir de lo que el usuario escriba o pasar matrices como prop.
-                        // Por ahora, el datalist se llenará con lo que el navegador recuerde 
-                        // o podemos dejarlo dinámico si pasamos la lista.
-                        return null;
-                    })))}
-                </datalist>
             </div>
+            <datalist id="matrices_list">
+                {availableMatrices.map(m => (
+                    <option key={m} value={m} />
+                ))}
+            </datalist>
         </div>
     );
 };

@@ -299,12 +299,13 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({
             </div>
 
             {editingIngredient && (
-                <EditIngredientModal 
-                    ingredient={editingIngredient} 
-                    nutrients={nutrients} 
-                    onSave={handleSaveIngredient} 
-                    onClose={() => setEditingIngredient(null)} 
-                />
+                    <EditIngredientModal 
+                        ingredient={editingIngredient} 
+                        nutrients={nutrients} 
+                        onSave={handleSaveIngredient} 
+                        onClose={() => setEditingIngredient(null)} 
+                        availableMatrices={matrices}
+                    />
             )}
 
             <BulkPriceEditorModal 
