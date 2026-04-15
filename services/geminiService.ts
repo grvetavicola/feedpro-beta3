@@ -112,13 +112,13 @@ export const chatWithAssistant = async (
     context: { ingredients: Ingredient[], nutrients: Nutrient[], products: Product[] },
     language: string,
     image?: { mimeType: string; data: string }
-): Promise<string> => {
-    const model = 'gemini-3-flash-preview';
+): Promise<{ text: string, toolCalls?: any[] }> => {
+    const model = 'gemini-2.0-flash'; // Actualizado para mejor soporte de FC
 
     const contextText = `
-      Ingredientes Disponibles y sus precios por kg: ${context.ingredients.filter(i => i.price > 0).map(i => `${i.name} ($${i.price}/kg)`).join(', ')}.
-      Nutrientes Base: ${context.nutrients.map(n => n.name).join(', ')}.
-      Productos Definidos: ${context.products.map(p => p.name).join(', ')}.
+      Ingredientes Disponibles (IDs y Precios): ${context.ingredients.filter(i => i.price > 0).map(i => `${i.name} (ID: ${i.id}, $${i.price}/kg)`).join(', ')}.
+      Nutrientes Base (IDs): ${context.nutrients.map(n => `${n.name} (ID: ${n.id})`).join(', ')}.
+      Productos Definidos: ${context.products.map(p => `${p.name} (ID: ${p.id})`).join(', ')}.
     `;
     
     const conversationHistory = history.map(m => `${m.role === 'user' ? 'Usuario' : 'Asistente'}: ${m.content}`).join('\n');
@@ -130,11 +130,90 @@ export const chatWithAssistant = async (
         hasImage: !!image
     });
 
+    const tools = [
+        {
+            functionDeclarations: [
+                {
+                    name: "set_ingredient_price",
+                    description: "Actualiza el precio de un ingrediente específico en la matriz.",
+                    parameters: {
+                        type: "object",
+                        properties: {
+                            id: { type: "string", description: "El ID del ingrediente (ej: CORN, SOY)." },
+                            price: { type: "number", description: "El nuevo precio por kg." }
+                        },
+                        required: ["id", "price"]
+                    }
+                },
+                {
+                    name: "adjust_nutrient_limit",
+                    description: "Ajusta los límites mínimos o máximos de un nutriente para la dieta actual.",
+                    parameters: {
+                        type: "object",
+                        properties: {
+                            nutrientId: { type: "string", description: "El ID del nutriente (ej: PROT, ME)." },
+                            min: { type: "number", description: "Valor mínimo (opcional)." },
+                            max: { type: "number", description: "Valor máximo (opcional)." }
+                        },
+                        required: ["nutrientId"]
+                    }
+                },
+                {
+                    name: "run_optimization",
+                    description: "Ejecuta el motor de optimización para encontrar la fórmula de menor costo.",
+                    parameters: {
+                        type: "object",
+                        properties: {
+                            applySafety: { type: "boolean", description: "Si se debe aplicar el escudo de seguridad." }
+                        }
+                    }
+                }
+            ]
+        }
+    ];
+
     try {
-        return await callServerlessAI('chatWithAssistant', { prompt, model, image });
+        const isProduction = import.meta.env.PROD || window.location.hostname !== 'localhost'; 
+        
+        if (isProduction || !localAiInstance) {
+            const res = await fetch('/api/gemini', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    action: 'chatWithAssistant', 
+                    payload: { prompt, model, image, tools } 
+                })
+            });
+            
+            if (!res.ok) throw new Error(`Serverless Error: ${res.statusText}`);
+            const data = await res.json();
+            return { text: data.text || '', toolCalls: data.toolCalls };
+        } else {
+            // Optimizado para Gemini 2.0 SDK local si está disponible
+            const genModel = localAiInstance.getGenerativeModel({ 
+                model,
+                tools: tools as any
+            });
+            
+            const chat = genModel.startChat({
+                history: history.map(h => ({
+                    role: h.role === 'user' ? 'user' : 'model',
+                    parts: [{ text: h.content }]
+                }))
+            });
+
+            const result = await chat.sendMessage(question);
+            const response = await result.response;
+            const calls = response.candidates[0].content.parts.filter(p => p.functionCall);
+            
+            return { 
+                text: response.text() || '', 
+                toolCalls: calls.length > 0 ? calls.map(c => c.functionCall) : undefined 
+            };
+        }
     } catch (error) {
-        console.error("Error contacting Serverless Gemini API:", error);
-        return getErrorMessage(language);
+        console.error("Error en chatWithAssistant:", error);
+        return { text: getErrorMessage(language) };
     }
 };
 
