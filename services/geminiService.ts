@@ -39,34 +39,39 @@ const callServerlessAI = async (action: string, payload: any): Promise<string> =
         const data = await res.json();
         return data.text || '';
     } else {
-        // LOCAL DEVELOPMENT FALLBACK
-        const activeModelName = payload.model === 'gemini-3-flash-preview' ? 'gemini-1.5-flash' : (payload.model || 'gemini-1.5-flash');
-        const model = localAiInstance.getGenerativeModel({ model: activeModelName });
+        // LOCAL DEVELOPMENT FALLBACK (Compatible con @google/genai 1.34.0)
+        const activeModel = payload.model === 'gemini-3-flash-preview' ? 'gemini-1.5-flash' : (payload.model || 'gemini-1.5-flash');
         
         if (action === 'chatWithAssistant') {
             const finalParts: any[] = [{ text: payload.prompt }];
             if (payload.image) {
                 finalParts.unshift({ inlineData: { mimeType: payload.image.mimeType, data: payload.image.data } });
             }
-            const result = await model.generateContent({ contents: [{ role: 'user', parts: finalParts }] });
-            const response = await result.response;
-            return response.text() || '';
+            const response = await localAiInstance.models.generateContent({ 
+                model: activeModel, 
+                contents: [{ role: 'user', parts: finalParts }] 
+            });
+            return response.text || '';
         }
         
         if (action === 'analyzeFormula') {
-            const result = await model.generateContent(payload.prompt);
-            const response = await result.response;
-            return response.text() || '';
+            const response = await localAiInstance.models.generateContent({ 
+                model: activeModel, 
+                contents: [{ role: 'user', parts: [{ text: payload.prompt }] }] 
+            });
+            return response.text || '';
         }
         
         if (action === 'parseRequirements' || action === 'parseIngredients') {
-            const result = await model.generateContent({
+            const response = await localAiInstance.models.generateContent({
+                model: activeModel,
                 contents: [{ role: 'user', parts: payload.parts }],
-                generationConfig: { responseMimeType: "application/json" },
-                systemInstruction: payload.systemInstruction
+                config: { 
+                    systemInstruction: payload.systemInstruction, 
+                    responseMimeType: "application/json" 
+                }
             });
-            const response = await result.response;
-            return response.text() || '';
+            return response.text || '';
         }
         return '';
     }
@@ -194,21 +199,23 @@ export const chatWithAssistant = async (
             return { text: data.text || '', toolCalls: data.toolCalls };
         } else {
             // Optimizado para Gemini SDK local (@google/genai)
-            const model = localAiInstance.getGenerativeModel({ 
-                model: modelName,
-                tools: tools as any
+            const activeModel = (modelName as string) === 'gemini-3-flash-preview' ? 'gemini-1.5-flash' : (modelName || 'gemini-1.5-flash');
+            
+            const response = await localAiInstance.models.generateContent({
+                model: activeModel,
+                contents: [
+                    ...history.map(h => ({
+                        role: h.role === 'user' ? 'user' : 'model',
+                        parts: [{ text: h.content }]
+                    })),
+                    { role: 'user', parts: [{ text: question }] }
+                ],
+                config: {
+                    tools: tools as any
+                }
             });
-
-            const chat = model.startChat({
-                history: history.map(h => ({
-                    role: h.role === 'user' ? 'user' : 'model',
-                    parts: [{ text: h.content }]
-                }))
-            });
-
-            const result = await chat.sendMessage(question);
-            const response = await result.response;
-            const text = response.text() || '';
+            
+            const text = response.text || '';
             const calls = response.candidates?.[0]?.content?.parts?.filter(p => p.functionCall) || [];
             
             return { 

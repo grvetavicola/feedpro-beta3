@@ -26,8 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         if (action === 'chatWithAssistant') {
             const { prompt, model: modelName, image } = payload;
-            const activeModel = modelName === 'gemini-3-flash-preview' ? 'gemini-1.5-flash' : (modelName || 'gemini-1.5-flash');
-            const model = ai.getGenerativeModel({ model: activeModel });
+            const activeModel = (modelName as string) === 'gemini-3-flash-preview' ? 'gemini-1.5-flash' : (modelName || 'gemini-1.5-flash');
             
             const parts: any[] = [{ text: prompt }];
             if (image) {
@@ -39,35 +38,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 });
             }
             
-            const result = await model.generateContent({ contents: [{ role: 'user', parts }] });
-            const response = await result.response;
-            return res.status(200).json({ text: response.text() });
+            const response = await ai.models.generateContent({
+                model: activeModel,
+                contents: [{ role: 'user', parts }],
+            });
+            return res.status(200).json({ text: response.text });
         }
 
         if (action === 'analyzeFormula') {
             const { prompt, model: modelName } = payload;
-            const activeModel = modelName === 'gemini-3-flash-preview' ? 'gemini-1.5-flash' : (modelName || 'gemini-1.5-flash');
-            const model = ai.getGenerativeModel({ model: activeModel });
+            const activeModel = (modelName as string) === 'gemini-3-flash-preview' ? 'gemini-1.5-flash' : (modelName || 'gemini-1.5-flash');
             
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            return res.status(200).json({ text: response.text() });
+            const response = await ai.models.generateContent({
+                model: activeModel,
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            });
+            return res.status(200).json({ text: response.text });
         }
 
         if (action === 'parseRequirements' || action === 'parseIngredients') {
             const { systemInstruction, parts, model: modelName } = payload;
-            const activeModel = modelName === 'gemini-3-flash-preview' ? 'gemini-1.5-flash' : (modelName || 'gemini-1.5-flash');
-            const model = ai.getGenerativeModel({ model: activeModel });
+            const activeModel = (modelName as string) === 'gemini-3-flash-preview' ? 'gemini-1.5-flash' : (modelName || 'gemini-1.5-flash');
             
-            const result = await model.generateContent({
+            const response = await ai.models.generateContent({
+                model: activeModel,
                 contents: [{ role: 'user', parts }],
-                generationConfig: {
+                config: {
+                    systemInstruction: systemInstruction,
                     responseMimeType: "application/json"
-                },
-                systemInstruction: systemInstruction
+                }
             });
-            const response = await result.response;
-            return res.status(200).json({ text: response.text() });
+            return res.status(200).json({ text: response.text });
         }
 
         return res.status(400).json({ error: 'Invalid action provided' });
