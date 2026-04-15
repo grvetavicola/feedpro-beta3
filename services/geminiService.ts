@@ -189,25 +189,27 @@ export const chatWithAssistant = async (
             const data = await res.json();
             return { text: data.text || '', toolCalls: data.toolCalls };
         } else {
-            // Optimizado para Gemini 2.0 SDK local si está disponible
-            const genModel = localAiInstance.getGenerativeModel({ 
+            // Optimizado para Gemini 2.0 SDK local (@google/genai)
+            const response = await localAiInstance.models.generateContent({
                 model,
-                tools: tools as any
+                contents: [
+                    ...history.map(h => ({
+                        role: h.role === 'user' ? 'user' : 'model',
+                        parts: [{ text: h.content }]
+                    })),
+                    { role: 'user', parts: [{ text: question }] }
+                ],
+                config: {
+                    tools: tools as any
+                }
             });
             
-            const chat = genModel.startChat({
-                history: history.map(h => ({
-                    role: h.role === 'user' ? 'user' : 'model',
-                    parts: [{ text: h.content }]
-                }))
-            });
-
-            const result = await chat.sendMessage(question);
-            const response = await result.response;
-            const calls = response.candidates[0].content.parts.filter(p => p.functionCall);
+            const text = response.text || '';
+            const parts = response.candidates?.[0]?.content?.parts || [];
+            const calls = parts.filter(p => p.functionCall);
             
             return { 
-                text: response.text() || '', 
+                text, 
                 toolCalls: calls.length > 0 ? calls.map(c => c.functionCall) : undefined 
             };
         }
