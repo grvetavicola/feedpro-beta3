@@ -11,7 +11,7 @@ Original file is located at
 Primero, instalaremos la librería `PuLP` para la programación lineal.
 """
 
-pip install pulp
+# pip install pulp (Este comando debe ejecutarse en la terminal, no dentro del script)
 
 """Ahora, definiremos las estructuras de datos (clases) que representan `Product`, `Ingredient` y `Nutrient` basándonos en tu código JavaScript. Estas son simplificadas y necesitarán ser ajustadas con la definición completa de tus datos.
 
