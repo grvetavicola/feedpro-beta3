@@ -304,22 +304,29 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
   }
 
   return (
-    <div className="p-4 md:p-6 h-full flex flex-col relative overflow-hidden">
-        {/* Animated Background Presence */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] pointer-events-none z-0 overflow-hidden opacity-20">
-            <div className={`absolute inset-0 bg-cyan-500/10 rounded-full blur-[120px] transition-all duration-1000 ${isSpeaking ? 'scale-125 opacity-40' : 'scale-100 opacity-20'}`} />
+    <div className="p-4 md:p-6 h-full flex flex-col relative overflow-hidden bg-gray-950/20">
+        {/* Animated Background Presence (Aura Premium) */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] pointer-events-none z-0">
+            <div className={`absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/5 to-emerald-500/10 rounded-full blur-[150px] transition-all duration-[2000ms] ${isSpeaking ? 'scale-150 opacity-60 animate-pulse' : 'scale-100 opacity-20'}`} />
+            <div className={`absolute inset-1/4 bg-cyan-400/5 rounded-full blur-[100px] transition-all duration-[3000ms] ${isListening ? 'scale-110 opacity-50 bg-emerald-500/10' : 'scale-100 opacity-10'}`} />
             {isSpeaking && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-40 h-40 border border-cyan-400/30 rounded-full animate-ping" />
-                    <div className="w-60 h-60 border border-cyan-400/20 rounded-full animate-ping delay-700" />
+                    <div className="w-60 h-60 border-2 border-cyan-400/20 rounded-full animate-[ping_3s_linear_infinite]" />
+                    <div className="w-80 h-80 border border-cyan-400/10 rounded-full animate-[ping_4s_linear_infinite] delay-1000" />
                 </div>
             )}
         </div>
 
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2 z-10">
-            <div className="flex items-center gap-3">
-                <div className={`w-3 h-3 rounded-full shadow-[0_0_10px_rgba(34,211,238,0.5)] ${isSpeaking ? 'bg-emerald-400 animate-pulse' : 'bg-cyan-500'}`} />
-                <h2 className="text-2xl font-bold text-cyan-400">{t('assistant.title')}</h2>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-2 z-10">
+            <div className="flex items-center gap-4">
+                <div className="relative">
+                    <div className={`w-4 h-4 rounded-full shadow-[0_0_15px_rgba(34,211,238,0.8)] transition-colors duration-500 ${isSpeaking ? 'bg-emerald-400' : isListening ? 'bg-red-400' : 'bg-cyan-500'}`} />
+                    <div className={`absolute -inset-1 rounded-full border border-cyan-500/30 animate-ping ${!isSpeaking && !isListening ? 'hidden' : ''}`} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">VetIA Interactive Assistant</h2>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Nutritional Intelligence Engine</p>
+                </div>
             </div>
             <button 
                 onClick={handleDownloadPDF} 
@@ -329,12 +336,12 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
                 <DownloadIcon className="w-4 h-4" /> Exportar PDF
             </button>
         </div>
-        <div className="flex-1 overflow-hidden relative border border-gray-700 bg-gray-800/50 rounded-lg">
-            <div ref={chatContainerRef} className="absolute inset-0 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+        <div className="flex-1 overflow-hidden relative border border-white/5 bg-gray-900/40 backdrop-blur-md rounded-2xl shadow-2xl z-10">
+            <div ref={chatContainerRef} className="absolute inset-0 overflow-y-auto p-6 space-y-6 custom-scrollbar">
             {messages.map((msg, index) => (
-                <div key={index} className={`flex items-end gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    {msg.role === 'assistant' && <div className="w-8 h-8 rounded-full bg-cyan-500/50 flex items-center justify-center flex-shrink-0"><AIIcon className="w-5 h-5 text-cyan-200" /></div>}
-                    <div className={`max-w-xl p-3 rounded-2xl relative group ${msg.role === 'user' ? 'bg-cyan-600 text-white rounded-br-none' : 'bg-gray-700 text-gray-300 rounded-bl-none'}`}>
+                <div key={index} className={`flex items-start gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}>
+                    {msg.role === 'assistant' && <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 shadow-lg backdrop-blur-sm"><AIIcon className="w-6 h-6 text-cyan-400" /></div>}
+                    <div className={`max-w-xl p-4 rounded-2xl relative group transition-all duration-300 ${msg.role === 'user' ? 'bg-gradient-to-br from-cyan-600 to-blue-700 text-white rounded-tr-none shadow-xl border border-white/10' : 'bg-gray-800/80 backdrop-blur-md text-gray-200 rounded-tl-none border border-white/5 shadow-lg'}`}>
                         {msg.image && <img src={msg.image} alt="Attachment" className="max-w-xs max-h-48 rounded-lg mb-2" />}
                         {msg.content && <div className="text-sm markdown-body [&_table]:w-full [&_table]:my-3 [&_table]:text-xs [&_table]:text-left [&_table]:border-collapse [&_table]:border [&_table]:border-gray-700 [&_th]:bg-gray-900 [&_th]:border [&_th]:border-gray-700/50 [&_th]:px-3 [&_th]:py-2 [&_th]:text-cyan-400 [&_th]:font-bold [&_th]:uppercase [&_td]:px-3 [&_td]:py-2 [&_td]:border [&_td]:border-gray-700/30 [&_strong]:text-cyan-300 [&_strong]:font-bold [&_ul]:list-disc [&_ul]:ml-5 [&_ul]:space-y-1 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-5 [&_ol]:space-y-1 [&_ol]:mb-2 [&_p]:mb-2 leading-relaxed" dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) as string }} />}
                         {msg.role === 'assistant' && (
