@@ -71,7 +71,16 @@ const compressImageToBase64 = (file: File): Promise<string> => {
     });
 };
 
-export const AIAssistant: React.FC<AIAssistantProps> = ({ user = { name: 'Admin', subscription: 'pro' }, ingredients, nutrients, products, onUpgradeRequest = () => {} }) => {
+export const AIAssistant: React.FC<AIAssistantProps> = ({ 
+    user = { name: 'Admin', subscription: 'pro' }, 
+    ingredients, 
+    nutrients, 
+    products, 
+    onUpgradeRequest = () => {},
+    onUpdateIngredientPrice,
+    onUpdateNutrientLimit,
+    onTriggerOptimization
+}) => {
   const { t, language } = useTranslations();
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: 'assistant', content: t('assistant.welcomeMessage') }
@@ -297,6 +306,39 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ user = { name: 'Admin'
                             >
                                 <DuplicateIcon className="w-4 h-4" />
                             </button>
+                        )}
+                        
+                        {/* Confirmation Cards for this message's actions (if it's the last assistant message) */}
+                        {msg.role === 'assistant' && index === messages.length - 1 && pendingActions.length > 0 && (
+                            <div className="mt-4 space-y-3 border-t border-gray-600 pt-3 animate-fade-in">
+                                <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest mb-2">Acciones Sugeridas:</p>
+                                {pendingActions.map((action, ai) => (
+                                    <div key={ai} className="bg-gray-900/50 border border-cyan-500/30 rounded-xl p-3 flex flex-col gap-2">
+                                        <div className="flex justify-between items-start">
+                                            <div className="text-[11px] font-bold text-gray-100">
+                                                {action.name === 'set_ingredient_price' && `Actualizar precio: ${ingredients.find(i => i.id === action.args.id)?.name || action.args.id} → $${action.args.price}`}
+                                                {action.name === 'adjust_nutrient_limit' && `Ajustar límite: ${nutrients.find(n => n.id === action.args.nutrientId)?.name || action.args.nutrientId} (${action.args.min || '-'} a ${action.args.max || '-'})`}
+                                                {action.name === 'run_optimization' && `Ejecutar Optimización ${action.args.applySafety ? '(Con Escudo)' : ''}`}
+                                            </div>
+                                            <AIIcon className="w-3 h-3 text-cyan-400" />
+                                        </div>
+                                        <div className="flex gap-2 mt-1">
+                                            <button 
+                                                onClick={() => executeAction(action)}
+                                                className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white text-[10px] font-bold py-1.5 rounded-lg transition-colors"
+                                            >
+                                                Confirmar y Guardar
+                                            </button>
+                                            <button 
+                                                onClick={() => setPendingActions(prev => prev.filter(a => a !== action))}
+                                                className="px-3 bg-gray-800 hover:bg-gray-700 text-gray-400 text-[10px] font-bold py-1.5 rounded-lg transition-colors"
+                                            >
+                                                Descartar
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         )}
                     </div>
                      {msg.role === 'user' && <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0"><UserIcon className="w-5 h-5 text-gray-300" /></div>}

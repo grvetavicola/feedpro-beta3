@@ -256,6 +256,29 @@ export default function App() {
     setIsDirty(true);
   };
 
+  const handleUpdateNutrientLimit = (nutrientId: string, min?: number, max?: number) => {
+    if (!selectedClientId) return;
+    setWorkspaces(prev => {
+        const workspace = prev[selectedClientId] || { clientId: selectedClientId, ingredientOverrides: {}, productConstraintsOverrides: {} };
+        const nextOverrides = { ...workspace.productConstraintsOverrides };
+        // Si no existe para este nutriente, lo inicializamos. 
+        // Nota: En una app real buscaríamos los constraints actuales del producto activo.
+        // Aquí asumimos ajustes globales para el cliente o los aplicamos a los productos del cliente.
+        setProducts(prevProducts => prevProducts.map(p => {
+            if (p.clientId !== selectedClientId) return p;
+            const nextConstraints = p.constraints.map(c => {
+                if (c.nutrientId === nutrientId) {
+                    return { ...c, min: min ?? c.min, max: max ?? c.max };
+                }
+                return c;
+            });
+            return { ...p, constraints: nextConstraints };
+        }));
+        return prev; // Mantenemos workspaces igual o podríamos guardar overrides ahí también
+    });
+    setIsDirty(true);
+  };
+
   return (
     <div 
         className="flex flex-col h-screen bg-gray-950 text-white overflow-hidden font-sans"
@@ -397,7 +420,22 @@ export default function App() {
                                         </div>;
                                     }
                                     return <ClientsScreen clients={clients} setClients={setClients} selectedClientId={selectedClientId} setSelectedClientId={setSelectedClientId} />;
-                                case 'ASSISTANT': return <AIAssistant user={user} ingredients={ingredients} nutrients={nutrients} products={products} />;
+                                case 'ASSISTANT': return <AIAssistant 
+                                    user={user} 
+                                    ingredients={ingredients} 
+                                    nutrients={nutrients} 
+                                    products={products} 
+                                    onUpdateIngredientPrice={handleUpdateIngredientPrices}
+                                    onUpdateNutrientLimit={handleUpdateNutrientLimit}
+                                    onTriggerOptimization={(safety) => {
+                                        if (selectedDietIds.length > 0) {
+                                            setView('OPTIMIZATION'); // Navegar a optimización
+                                            alert(`VetIA: Iniciando optimización para ${selectedDietIds.length} dietas seleccionadas...`);
+                                        } else {
+                                            alert("VetIA: Por favor, selecciona al menos una dieta en el panel lateral para optimizar.");
+                                        }
+                                    }}
+                                />;
                                 case 'SETTINGS': return <SettingsScreen 
                                     clients={clients} 
                                     setClients={setClients} 
