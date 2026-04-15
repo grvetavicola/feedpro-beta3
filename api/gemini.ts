@@ -25,7 +25,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const { action, payload } = req.body;
 
         if (action === 'chatWithAssistant') {
-            const { prompt, model: modelName, image } = payload;
+            const { prompt, model: modelName, image, tools } = payload;
             const activeModel = (modelName as string) === 'gemini-3-flash-preview' ? 'gemini-1.5-flash' : (modelName || 'gemini-1.5-flash');
             
             const parts: any[] = [{ text: prompt }];
@@ -41,8 +41,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const response = await ai.models.generateContent({
                 model: activeModel,
                 contents: [{ role: 'user', parts }],
+                config: { tools: tools as any }
             });
-            return res.status(200).json({ text: response.text });
+
+            const text = response.text || '';
+            const toolCalls = response.candidates?.[0]?.content?.parts?.filter(p => p.functionCall).map(p => p.functionCall) || undefined;
+
+            return res.status(200).json({ text, toolCalls });
         }
 
         if (action === 'analyzeFormula') {

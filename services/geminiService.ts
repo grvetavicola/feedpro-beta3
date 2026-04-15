@@ -190,7 +190,7 @@ export const chatWithAssistant = async (
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     action: 'chatWithAssistant', 
-                    payload: { prompt, model, image, tools } 
+                    payload: { prompt, model: modelName, image, tools } 
                 })
             });
             
