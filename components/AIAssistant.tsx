@@ -37,7 +37,6 @@ const compressImageToBase64 = (file: File): Promise<string> => {
                 let width = img.width;
                 let height = img.height;
                 
-                // Maximum viewport constraint for AI reading (crushes 4k screenshots)
                 const MAX_RESOLUTION = 1800;
                 
                 if (width > height && width > MAX_RESOLUTION) {
@@ -53,78 +52,10 @@ const compressImageToBase64 = (file: File): Promise<string> => {
                 const ctx = canvas.getContext('2d');
                 if (ctx) {
                     ctx.drawImage(img, 0, 0, width, height);
-                    // Compress to JPEG at 80% quality
                     const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
                     resolve(compressedBase64);
                 } else {
-                    resolve((event.target?.result as string).split(',')[1]); // Fallback if no contexts
-                }
-            };
-            img.onerror = (err) => reject(err);
-            if (event.target?.result) {
-                img.src = event.target.result as string;
-            } else {
-                reject(new Error("No file content"));
-import React, { useState, useRef, useEffect } from 'react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import { marked } from 'marked';
-import { User, Ingredient, Nutrient, Product, ChatMessage } from '../types';
-import { useTranslations } from '../lib/i18n/LangContext';
-import { chatWithAssistant } from '../services/geminiService';
-import { AIIcon, LockClosedIcon, UserIcon, PaperclipIcon, XCircleIcon, DuplicateIcon, DownloadIcon } from './icons';
-
-interface AIAssistantProps {
-  ingredients: Ingredient[];
-  nutrients: Nutrient[];
-  products: Product[];
-  user?: User;
-  onUpgradeRequest?: () => void;
-  onUpdateIngredientPrice?: (prices: Record<string, number>) => void;
-  onUpdateNutrientLimit?: (nutrientId: string, min?: number, max?: number) => void;
-  onTriggerOptimization?: (applySafety: boolean) => void;
-}
-
-const LoadingBubble: React.FC = () => (
-    <div className="flex items-center space-x-2">
-        <div className="w-2.5 h-2.5 bg-cyan-400 rounded-full animate-pulse"></div>
-        <div className="w-2.5 h-2.5 bg-cyan-400 rounded-full animate-pulse delay-200"></div>
-        <div className="w-2.5 h-2.5 bg-cyan-400 rounded-full animate-pulse delay-400"></div>
-    </div>
-);
-
-const compressImageToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
-                
-                // Maximum viewport constraint for AI reading (crushes 4k screenshots)
-                const MAX_RESOLUTION = 1800;
-                
-                if (width > height && width > MAX_RESOLUTION) {
-                    height *= MAX_RESOLUTION / width;
-                    width = MAX_RESOLUTION;
-                } else if (height > MAX_RESOLUTION) {
-                    width *= MAX_RESOLUTION / height;
-                    height = MAX_RESOLUTION;
-                }
-                
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                if (ctx) {
-                    ctx.drawImage(img, 0, 0, width, height);
-                    // Compress to JPEG at 80% quality
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-                    resolve(compressedBase64);
-                } else {
-                    resolve((event.target?.result as string).split(',')[1]); // Fallback if no contexts
+                    resolve((event.target?.result as string).split(',')[1]);
                 }
             };
             img.onerror = (err) => reject(err);
