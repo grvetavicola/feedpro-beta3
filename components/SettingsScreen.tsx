@@ -238,10 +238,17 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                 }).filter(Boolean) as Ingredient[];
 
                 if (newIngs.length > 0) {
-                    if (window.confirm(`Detectados ${newIngs.length} insumos. ¿Deseas COMBINAR con actuales? (Cancelar para REEMPLAZAR)`)) {
-                        setIngredients([...ingredients, ...newIngs]);
+                    const overrideMatrix = window.prompt("¿Deseas asignar estos insumos a una MATRIZ/GRUPO específico? (Escribe el nombre o deja vacío para usar el Excel):");
+                    
+                    const finalizedIngs = newIngs.map(ing => ({
+                        ...ing,
+                        matrix: overrideMatrix ? overrideMatrix : ing.matrix
+                    }));
+
+                    if (window.confirm(`Detectados ${finalizedIngs.length} insumos. ¿Deseas COMBINAR con actuales? (Cancelar para REEMPLAZAR)`)) {
+                        setIngredients([...ingredients, ...finalizedIngs]);
                     } else {
-                        setIngredients(newIngs);
+                        setIngredients(finalizedIngs);
                     }
                     alert("Importación Exitosa.");
                 }
