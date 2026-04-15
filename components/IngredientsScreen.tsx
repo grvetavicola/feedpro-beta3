@@ -50,6 +50,7 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({
 
     // Extraer matrices únicas
     const matrices = Array.from(new Set(ingredients.map(i => i.matrix).filter(Boolean))) as string[];
+    console.log("DEBUG: Matrices encontradas en ingredientes:", matrices);
     
     // Import States Removed (Transferred to SettingsScreen)
     const getNextCode = () => {
