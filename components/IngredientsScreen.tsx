@@ -46,6 +46,10 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({
     const [editingIngredient, setEditingIngredient] = useState<Ingredient | null>(null);
     const [viewMode, setViewMode] = useState<'list' | 'matrix'>('list');
     const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
+    const [selectedMatrix, setSelectedMatrix] = useState<string>('ALL');
+
+    // Extraer matrices únicas
+    const matrices = Array.from(new Set(ingredients.map(i => i.matrix).filter(Boolean))) as string[];
     
     // Import States Removed (Transferred to SettingsScreen)
     const getNextCode = () => {
@@ -69,7 +73,8 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({
             category: 'Macro',
             price: 0,
             stock: 0,
-            nutrients: {}
+            nutrients: {},
+            matrix: selectedMatrix === 'ALL' ? undefined : selectedMatrix
         };
         setIngredients([...ingredients, newIngredient]);
         setEditingIngredient(newIngredient);
@@ -84,10 +89,12 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({
 
     // Filtros y Orden
     const sortedIngredients = [...ingredients]
-        .filter(i => 
-            i.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-            (i.code && i.code.toString().includes(searchTerm))
-        )
+        .filter(i => {
+            const matchesSearch = i.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                (i.code && i.code.toString().includes(searchTerm));
+            const matchesMatrix = selectedMatrix === 'ALL' || i.matrix === selectedMatrix;
+            return matchesSearch && matchesMatrix;
+        })
         .sort((a,b) => (a.code || 0) - (b.code || 0));
     const sortedNutrients = [...nutrients].sort((a,b) => (a.code || 0) - (b.code || 0));
   
@@ -149,6 +156,29 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({
                     </button>
                 </div>
             </div>
+
+            {/* Matrix Tabs Selector */}
+            {matrices.length > 0 && (
+                <div className="flex items-center gap-2 px-1 overflow-x-auto pb-1 shrink-0 scrollbar-hide">
+                    <button 
+                        onClick={() => setSelectedMatrix('ALL')}
+                        className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border ${selectedMatrix === 'ALL' ? 'bg-cyan-500 text-white border-cyan-400 shadow-lg shadow-cyan-500/20' : 'bg-gray-900 text-gray-400 border-gray-700 hover:border-gray-500'}`}
+                    >
+                        Todas las Matrices
+                    </button>
+                    {matrices.sort().map(m => (
+                        <button 
+                            key={m}
+                            onClick={() => setSelectedMatrix(m)}
+                            className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border whitespace-nowrap ${selectedMatrix === m ? 'bg-cyan-500 text-white border-cyan-400 shadow-lg shadow-cyan-500/20' : 'bg-gray-900 text-gray-400 border-gray-700 hover:border-gray-500'}`}
+                        >
+                            {m}
+                        </button>
+                    ))}
+                    <div className="h-4 w-px bg-gray-800 mx-2"></div>
+                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-tighter italic">Filtrando por {selectedMatrix === 'ALL' ? 'todo el inventario' : selectedMatrix}</p>
+                </div>
+            )}
             
             <div className="bg-gray-800/50 p-2 rounded border border-gray-700 flex-1 overflow-hidden flex flex-col">
                 <div className="flex-1 overflow-auto custom-scrollbar">

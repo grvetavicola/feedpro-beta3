@@ -30,6 +30,7 @@ export interface Ingredient {
   processingCost?: number; // $/kg Processing cost
   nutrients: Record<string, number>; 
   dynamicNutrients?: Record<string, number>; // Dynamic precision matrix overrides
+  matrix?: string; // Grouping identifier (e.g. "Matriz A", "Matriz B")
 }
 
 export interface ProductConstraint {

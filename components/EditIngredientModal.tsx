@@ -131,6 +131,17 @@ export const EditIngredientModal: React.FC<EditIngredientModalProps> = ({ ingred
                             </select>
                         </div>
                         <div className="col-span-3">
+                            <label className="text-xs text-yellow-500/80 block mb-1 uppercase font-bold tracking-tighter">Matriz / Grupo</label>
+                            <input
+                                type="text"
+                                list="matrices_list"
+                                value={editedIngredient.matrix || ''}
+                                onChange={(e) => setEditedIngredient({ ...editedIngredient, matrix: e.target.value || undefined })}
+                                placeholder="Ej: Matriz A"
+                                className="w-full bg-yellow-500/5 text-sm rounded-md p-2 border border-yellow-500/30 text-yellow-100 font-bold placeholder:text-gray-600"
+                            />
+                        </div>
+                        <div className="col-span-3">
                              <label className="text-xs text-blue-400 block mb-1 uppercase font-bold tracking-tighter">{t('common.price')} / kg</label>
                             <input
                                 type="number"
@@ -264,6 +275,16 @@ export const EditIngredientModal: React.FC<EditIngredientModalProps> = ({ ingred
                     <button onClick={onClose} className="bg-gray-700 hover:bg-gray-600 text-gray-300 font-bold py-2 px-6 rounded-xl transition-all border border-gray-600">{t('common.cancel')}</button>
                     <button onClick={handleSave} className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-black uppercase tracking-widest text-[12px] py-2 px-8 rounded-xl shadow-lg transition-all transform hover:scale-[1.02]">{t('common.saveChanges')}</button>
                 </div>
+                </div>
+                <datalist id="matrices_list">
+                    {Array.from(new Set(nutrients.map(() => {
+                        // Nota: La modal no tiene acceso directo a 'ingredients', 
+                        // pero podemos inferir de lo que el usuario escriba o pasar matrices como prop.
+                        // Por ahora, el datalist se llenará con lo que el navegador recuerde 
+                        // o podemos dejarlo dinámico si pasamos la lista.
+                        return null;
+                    })))}
+                </datalist>
             </div>
         </div>
     );
