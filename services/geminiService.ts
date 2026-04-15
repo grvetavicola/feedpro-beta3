@@ -40,29 +40,33 @@ const callServerlessAI = async (action: string, payload: any): Promise<string> =
         return data.text || '';
     } else {
         // LOCAL DEVELOPMENT FALLBACK
-        const activeModel = payload.model || 'gemini-3-flash-preview';
+        const activeModelName = payload.model === 'gemini-3-flash-preview' ? 'gemini-1.5-flash' : (payload.model || 'gemini-1.5-flash');
+        const model = localAiInstance.getGenerativeModel({ model: activeModelName });
         
         if (action === 'chatWithAssistant') {
             const finalParts: any[] = [{ text: payload.prompt }];
             if (payload.image) {
                 finalParts.unshift({ inlineData: { mimeType: payload.image.mimeType, data: payload.image.data } });
             }
-            const response = await localAiInstance.models.generateContent({ model: activeModel, contents: finalParts });
-            return response.text || '';
+            const result = await model.generateContent({ contents: [{ role: 'user', parts: finalParts }] });
+            const response = await result.response;
+            return response.text() || '';
         }
         
         if (action === 'analyzeFormula') {
-            const response = await localAiInstance.models.generateContent({ model: activeModel, contents: payload.prompt });
-            return response.text || '';
+            const result = await model.generateContent(payload.prompt);
+            const response = await result.response;
+            return response.text() || '';
         }
         
         if (action === 'parseRequirements' || action === 'parseIngredients') {
-            const response = await localAiInstance.models.generateContent({
-                model: activeModel,
-                contents: payload.parts,
-                config: { systemInstruction: payload.systemInstruction, responseMimeType: "application/json" }
+            const result = await model.generateContent({
+                contents: [{ role: 'user', parts: payload.parts }],
+                generationConfig: { responseMimeType: "application/json" },
+                systemInstruction: payload.systemInstruction
             });
-            return response.text || '';
+            const response = await result.response;
+            return response.text() || '';
         }
         return '';
     }
@@ -113,7 +117,7 @@ export const chatWithAssistant = async (
     language: string,
     image?: { mimeType: string; data: string }
 ): Promise<{ text: string, toolCalls?: any[] }> => {
-    const model = 'gemini-2.0-flash'; // Actualizado para mejor soporte de FC
+    const modelName = 'gemini-1.5-flash'; // Cambiado de 2.0 a 1.5 para mayor estabilidad si es necesario, o mantener 2.0 si se prefiere
 
     const contextText = `
       Ingredientes Disponibles (IDs y Precios): ${context.ingredients.filter(i => i.price > 0).map(i => `${i.name} (ID: ${i.id}, $${i.price}/kg)`).join(', ')}.
@@ -189,24 +193,23 @@ export const chatWithAssistant = async (
             const data = await res.json();
             return { text: data.text || '', toolCalls: data.toolCalls };
         } else {
-            // Optimizado para Gemini 2.0 SDK local (@google/genai)
-            const response = await localAiInstance.models.generateContent({
-                model,
-                contents: [
-                    ...history.map(h => ({
-                        role: h.role === 'user' ? 'user' : 'model',
-                        parts: [{ text: h.content }]
-                    })),
-                    { role: 'user', parts: [{ text: question }] }
-                ],
-                config: {
-                    tools: tools as any
-                }
+            // Optimizado para Gemini SDK local (@google/genai)
+            const model = localAiInstance.getGenerativeModel({ 
+                model: modelName,
+                tools: tools as any
             });
-            
-            const text = response.text || '';
-            const parts = response.candidates?.[0]?.content?.parts || [];
-            const calls = parts.filter(p => p.functionCall);
+
+            const chat = model.startChat({
+                history: history.map(h => ({
+                    role: h.role === 'user' ? 'user' : 'model',
+                    parts: [{ text: h.content }]
+                }))
+            });
+
+            const result = await chat.sendMessage(question);
+            const response = await result.response;
+            const text = response.text() || '';
+            const calls = response.candidates?.[0]?.content?.parts?.filter(p => p.functionCall) || [];
             
             return { 
                 text, 
@@ -226,7 +229,7 @@ export const parseRequirementsWithGemini = async (
     nutrientConstraints: { [key: string]: { min?: number, max?: number } }, 
     productName?: string 
 }> => {
-  const model = 'gemini-3-flash-preview';
+  const modelName = 'gemini-1.5-flash';
 
   const nutrientMap = nutrients.map(n => `${n.id}: ${n.name} (${n.unit})`).join('\n');
 
@@ -270,7 +273,7 @@ export const parseRequirementsWithGemini = async (
   }
 
   try {
-      const text = await callServerlessAI('parseRequirements', { systemInstruction, parts, model });
+      const text = await callServerlessAI('parseRequirements', { systemInstruction, parts, model: modelName });
       if (!text) return { nutrientConstraints: {} };
       return JSON.parse(text);
   } catch (error) {
@@ -286,7 +289,7 @@ export const parseIngredientsWithGemini = async (
       ingredients: { name: string; price?: number; nutrients: { [nutrientId: string]: number } }[],
       newNutrients: { tempId: string; name: string; unit: string }[]
   }> => {
-    const model = 'gemini-3-flash-preview';
+    const modelName = 'gemini-1.5-flash';
   
     const nutrientMap = nutrients.map(n => `ID: ${n.id} = ${n.name} (${n.unit})`).join('\n');
   
@@ -345,7 +348,7 @@ export const parseIngredientsWithGemini = async (
     }
   
     try {
-        const text = await callServerlessAI('parseIngredients', { systemInstruction, parts, model });
+        const text = await callServerlessAI('parseIngredients', { systemInstruction, parts, model: modelName });
         if (!text) return { ingredients: [], newNutrients: [] };
         return JSON.parse(text);
     } catch (error) {
