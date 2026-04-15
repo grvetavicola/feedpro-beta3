@@ -94,6 +94,28 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  const speak = (text: string) => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = language === 'en' ? 'en-US' : 'es-ES';
+      utterance.pitch = 1.0; 
+      utterance.rate = 1.0;  
+
+      const voices = window.speechSynthesis.getVoices();
+      const preferredVoice = voices.find(v => 
+        v.lang.startsWith(language === 'en' ? 'en' : 'es') && 
+        (v.name.includes('Natural') || v.name.includes('Neural') || v.name.includes('Google'))
+      );
+      if (preferredVoice) utterance.voice = preferredVoice;
+
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      window.speechSynthesis.speak(utterance);
+    }
+  };
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -239,6 +261,9 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
 
         const assistantMsg: ChatMessage = { role: 'assistant', content: response.text };
         setMessages(prev => [...prev, assistantMsg]);
+        
+        // Voz: Hablar la respuesta
+        speak(response.text);
 
         if (response.toolCalls && response.toolCalls.length > 0) {
             setPendingActions(prev => [...prev, ...response.toolCalls!]);
@@ -279,9 +304,23 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
   }
 
   return (
-    <div className="p-4 md:p-6 h-full flex flex-col">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-            <h2 className="text-2xl font-bold text-cyan-400">{t('assistant.title')}</h2>
+    <div className="p-4 md:p-6 h-full flex flex-col relative overflow-hidden">
+        {/* Animated Background Presence */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] pointer-events-none z-0 overflow-hidden opacity-20">
+            <div className={`absolute inset-0 bg-cyan-500/10 rounded-full blur-[120px] transition-all duration-1000 ${isSpeaking ? 'scale-125 opacity-40' : 'scale-100 opacity-20'}`} />
+            {isSpeaking && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-40 h-40 border border-cyan-400/30 rounded-full animate-ping" />
+                    <div className="w-60 h-60 border border-cyan-400/20 rounded-full animate-ping delay-700" />
+                </div>
+            )}
+        </div>
+
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2 z-10">
+            <div className="flex items-center gap-3">
+                <div className={`w-3 h-3 rounded-full shadow-[0_0_10px_rgba(34,211,238,0.5)] ${isSpeaking ? 'bg-emerald-400 animate-pulse' : 'bg-cyan-500'}`} />
+                <h2 className="text-2xl font-bold text-cyan-400">{t('assistant.title')}</h2>
+            </div>
             <button 
                 onClick={handleDownloadPDF} 
                 disabled={isLoading}
