@@ -89,8 +89,9 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
-
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -131,7 +132,6 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
       if (file.type.startsWith('image/')) {
           setFilePreview(URL.createObjectURL(file));
       } else {
-          // It's a document, just show the filename later
           setFilePreview(file.name);
       }
     }
@@ -213,7 +213,6 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
   };
 
   const executeAction = (action: any) => {
-    console.log("Ejecutando acción confirmada:", action);
     if (action.name === 'set_ingredient_price' && onUpdateIngredientPrice) {
         onUpdateIngredientPrice({ [action.args.id]: action.args.price });
     } else if (action.name === 'adjust_nutrient_limit' && onUpdateNutrientLimit) {
@@ -241,6 +240,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
   }
 
   return (
+    <div className="p-4 md:p-6 h-full flex flex-col relative overflow-hidden bg-gray-950/20">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-2 z-10">
             <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center shrink-0">
@@ -277,7 +277,6 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
                             </button>
                         )}
                         
-                        {/* Confirmation Cards for this message's actions (if it's the last assistant message) */}
                         {msg.role === 'assistant' && index === messages.length - 1 && pendingActions.length > 0 && (
                             <div className="mt-4 space-y-3 border-t border-gray-600 pt-3 animate-fade-in">
                                 <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest mb-2">Acciones Sugeridas:</p>
