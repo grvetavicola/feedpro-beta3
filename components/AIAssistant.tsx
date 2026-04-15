@@ -65,6 +65,73 @@ const compressImageToBase64 = (file: File): Promise<string> => {
                 img.src = event.target.result as string;
             } else {
                 reject(new Error("No file content"));
+import React, { useState, useRef, useEffect } from 'react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { marked } from 'marked';
+import { User, Ingredient, Nutrient, Product, ChatMessage } from '../types';
+import { useTranslations } from '../lib/i18n/LangContext';
+import { chatWithAssistant } from '../services/geminiService';
+import { AIIcon, LockClosedIcon, UserIcon, PaperclipIcon, XCircleIcon, DuplicateIcon, DownloadIcon } from './icons';
+
+interface AIAssistantProps {
+  ingredients: Ingredient[];
+  nutrients: Nutrient[];
+  products: Product[];
+  user?: User;
+  onUpgradeRequest?: () => void;
+  onUpdateIngredientPrice?: (prices: Record<string, number>) => void;
+  onUpdateNutrientLimit?: (nutrientId: string, min?: number, max?: number) => void;
+  onTriggerOptimization?: (applySafety: boolean) => void;
+}
+
+const LoadingBubble: React.FC = () => (
+    <div className="flex items-center space-x-2">
+        <div className="w-2.5 h-2.5 bg-cyan-400 rounded-full animate-pulse"></div>
+        <div className="w-2.5 h-2.5 bg-cyan-400 rounded-full animate-pulse delay-200"></div>
+        <div className="w-2.5 h-2.5 bg-cyan-400 rounded-full animate-pulse delay-400"></div>
+    </div>
+);
+
+const compressImageToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                
+                // Maximum viewport constraint for AI reading (crushes 4k screenshots)
+                const MAX_RESOLUTION = 1800;
+                
+                if (width > height && width > MAX_RESOLUTION) {
+                    height *= MAX_RESOLUTION / width;
+                    width = MAX_RESOLUTION;
+                } else if (height > MAX_RESOLUTION) {
+                    width *= MAX_RESOLUTION / height;
+                    height = MAX_RESOLUTION;
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    ctx.drawImage(img, 0, 0, width, height);
+                    // Compress to JPEG at 80% quality
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+                    resolve(compressedBase64);
+                } else {
+                    resolve((event.target?.result as string).split(',')[1]); // Fallback if no contexts
+                }
+            };
+            img.onerror = (err) => reject(err);
+            if (event.target?.result) {
+                img.src = event.target.result as string;
+            } else {
+                reject(new Error("No file content"));
             }
         };
         reader.onerror = (error) => reject(error);
@@ -89,6 +156,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -259,70 +327,72 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
                 <DownloadIcon className="w-4 h-4" /> Exportar PDF
             </button>
         </div>
+        
         <div className="flex-1 overflow-hidden relative border border-white/5 bg-gray-900/40 backdrop-blur-md rounded-2xl shadow-2xl z-10">
             <div ref={chatContainerRef} className="absolute inset-0 overflow-y-auto p-6 space-y-6 custom-scrollbar">
-            {messages.map((msg, index) => (
-                <div key={index} className={`flex items-start gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}>
-                    {msg.role === 'assistant' && <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 shadow-lg backdrop-blur-sm"><AIIcon className="w-6 h-6 text-cyan-400" /></div>}
-                    <div className={`max-w-xl p-4 rounded-2xl relative group transition-all duration-300 ${msg.role === 'user' ? 'bg-gradient-to-br from-cyan-600 to-blue-700 text-white rounded-tr-none shadow-xl border border-white/10' : 'bg-gray-800/80 backdrop-blur-md text-gray-200 rounded-tl-none border border-white/5 shadow-lg'}`}>
-                        {msg.image && <img src={msg.image} alt="Attachment" className="max-w-xs max-h-48 rounded-lg mb-2" />}
-                        {msg.content && <div className="text-sm markdown-body [&_table]:w-full [&_table]:my-3 [&_table]:text-xs [&_table]:text-left [&_table]:border-collapse [&_table]:border [&_table]:border-gray-700 [&_th]:bg-gray-900 [&_th]:border [&_th]:border-gray-700/50 [&_th]:px-3 [&_th]:py-2 [&_th]:text-cyan-400 [&_th]:font-bold [&_th]:uppercase [&_td]:px-3 [&_td]:py-2 [&_td]:border [&_td]:border-gray-700/30 [&_strong]:text-cyan-300 [&_strong]:font-bold [&_ul]:list-disc [&_ul]:ml-5 [&_ul]:space-y-1 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-5 [&_ol]:space-y-1 [&_ol]:mb-2 [&_p]:mb-2 leading-relaxed" dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) as string }} />}
-                        {msg.role === 'assistant' && (
-                            <button 
-                                onClick={() => copyToClipboard(msg.content)} 
-                                className="absolute -right-8 top-1 p-1 bg-gray-800 border border-gray-600 rounded-md text-gray-400 hover:text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                                title="Copiar mensaje"
-                            >
-                                <DuplicateIcon className="w-4 h-4" />
-                            </button>
-                        )}
-                        
-                        {msg.role === 'assistant' && index === messages.length - 1 && pendingActions.length > 0 && (
-                            <div className="mt-4 space-y-3 border-t border-gray-600 pt-3 animate-fade-in">
-                                <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest mb-2">Acciones Sugeridas:</p>
-                                {pendingActions.map((action, ai) => (
-                                    <div key={ai} className="bg-gray-900/50 border border-cyan-500/30 rounded-xl p-3 flex flex-col gap-2">
-                                        <div className="flex justify-between items-start">
-                                            <div className="text-[11px] font-bold text-gray-100">
-                                                {action.name === 'set_ingredient_price' && `Actualizar precio: ${ingredients.find(i => i.id === action.args.id)?.name || action.args.id} → $${action.args.price}`}
-                                                {action.name === 'adjust_nutrient_limit' && `Ajustar límite: ${nutrients.find(n => n.id === action.args.nutrientId)?.name || action.args.nutrientId} (${action.args.min || '-'} a ${action.args.max || '-'})`}
-                                                {action.name === 'run_optimization' && `Ejecutar Optimización ${action.args.applySafety ? '(Con Escudo)' : ''}`}
+                {messages.map((msg, index) => (
+                    <div key={index} className={`flex items-start gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}>
+                        {msg.role === 'assistant' && <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 shadow-lg backdrop-blur-sm"><AIIcon className="w-6 h-6 text-cyan-400" /></div>}
+                        <div className={`max-w-xl p-4 rounded-2xl relative group transition-all duration-300 ${msg.role === 'user' ? 'bg-gradient-to-br from-cyan-600 to-blue-700 text-white rounded-tr-none shadow-xl border border-white/10' : 'bg-gray-800/80 backdrop-blur-md text-gray-200 rounded-tl-none border border-white/5 shadow-lg'}`}>
+                            {msg.image && <img src={msg.image} alt="Attachment" className="max-w-xs max-h-48 rounded-lg mb-2" />}
+                            {msg.content && <div className="text-sm markdown-body [&_table]:w-full [&_table]:my-3 [&_table]:text-xs [&_table]:text-left [&_table]:border-collapse [&_table]:border [&_table]:border-gray-700 [&_th]:bg-gray-900 [&_th]:border [&_th]:border-gray-700/50 [&_th]:px-3 [&_th]:py-2 [&_th]:text-cyan-400 [&_th]:font-bold [&_th]:uppercase [&_td]:px-3 [&_td]:py-2 [&_td]:border [&_td]:border-gray-700/30 [&_strong]:text-cyan-300 [&_strong]:font-bold [&_ul]:list-disc [&_ul]:ml-5 [&_ul]:space-y-1 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-5 [&_ol]:space-y-1 [&_ol]:mb-2 [&_p]:mb-2 leading-relaxed" dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) as string }} />}
+                            {msg.role === 'assistant' && (
+                                <button 
+                                    onClick={() => copyToClipboard(msg.content)} 
+                                    className="absolute -right-8 top-1 p-1 bg-gray-800 border border-gray-600 rounded-md text-gray-400 hover:text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                    title="Copiar mensaje"
+                                >
+                                    <DuplicateIcon className="w-4 h-4" />
+                                </button>
+                            )}
+                            
+                            {msg.role === 'assistant' && index === messages.length - 1 && pendingActions.length > 0 && (
+                                <div className="mt-4 space-y-3 border-t border-gray-600 pt-3 animate-fade-in">
+                                    <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest mb-2">Acciones Sugeridas:</p>
+                                    {pendingActions.map((action, ai) => (
+                                        <div key={ai} className="bg-gray-900/50 border border-cyan-500/30 rounded-xl p-3 flex flex-col gap-2">
+                                            <div className="flex justify-between items-start">
+                                                <div className="text-[11px] font-bold text-gray-100">
+                                                    {action.name === 'set_ingredient_price' && `Actualizar precio: ${ingredients.find(i => i.id === action.args.id)?.name || action.args.id} → $${action.args.price}`}
+                                                    {action.name === 'adjust_nutrient_limit' && `Ajustar límite: ${nutrients.find(n => n.id === action.args.nutrientId)?.name || action.args.nutrientId} (${action.args.min || '-'} a ${action.args.max || '-'})`}
+                                                    {action.name === 'run_optimization' && `Ejecutar Optimización ${action.args.applySafety ? '(Con Escudo)' : ''}`}
+                                                </div>
+                                                <AIIcon className="w-3 h-3 text-cyan-400" />
                                             </div>
-                                            <AIIcon className="w-3 h-3 text-cyan-400" />
+                                            <div className="flex gap-2 mt-1">
+                                                <button 
+                                                    onClick={() => executeAction(action)}
+                                                    className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white text-[10px] font-bold py-1.5 rounded-lg transition-colors"
+                                                >
+                                                    Confirmar y Guardar
+                                                </button>
+                                                <button 
+                                                    onClick={() => setPendingActions(prev => prev.filter(a => a !== action))}
+                                                    className="px-3 bg-gray-800 hover:bg-gray-700 text-gray-400 text-[10px] font-bold py-1.5 rounded-lg transition-colors"
+                                                >
+                                                    Descartar
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div className="flex gap-2 mt-1">
-                                            <button 
-                                                onClick={() => executeAction(action)}
-                                                className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white text-[10px] font-bold py-1.5 rounded-lg transition-colors"
-                                            >
-                                                Confirmar y Guardar
-                                            </button>
-                                            <button 
-                                                onClick={() => setPendingActions(prev => prev.filter(a => a !== action))}
-                                                className="px-3 bg-gray-800 hover:bg-gray-700 text-gray-400 text-[10px] font-bold py-1.5 rounded-lg transition-colors"
-                                            >
-                                                Descartar
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        {msg.role === 'user' && <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0"><UserIcon className="w-5 h-5 text-gray-300" /></div>}
                     </div>
-                     {msg.role === 'user' && <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0"><UserIcon className="w-5 h-5 text-gray-300" /></div>}
-                </div>
-            ))}
-            {isLoading && (
-                <div className="flex items-end gap-3 justify-start">
-                    <div className="w-8 h-8 rounded-full bg-cyan-500/50 flex items-center justify-center flex-shrink-0"><AIIcon className="w-5 h-5 text-cyan-200" /></div>
-                    <div className="max-w-xl p-3 rounded-2xl bg-gray-700 text-gray-300 rounded-bl-none">
-                        <LoadingBubble />
+                ))}
+                {isLoading && (
+                    <div className="flex items-end gap-3 justify-start">
+                        <div className="w-8 h-8 rounded-full bg-cyan-500/50 flex items-center justify-center flex-shrink-0"><AIIcon className="w-5 h-5 text-cyan-200" /></div>
+                        <div className="max-w-xl p-3 rounded-2xl bg-gray-700 text-gray-300 rounded-bl-none">
+                            <LoadingBubble />
+                        </div>
                     </div>
-                </div>
-            )}
-            <div ref={chatEndRef} />
+                )}
+                <div ref={chatEndRef} />
             </div>
         </div>
+
         <div className="mt-4">
             {attachedFile && (
                 <div className="relative inline-block mb-2">
