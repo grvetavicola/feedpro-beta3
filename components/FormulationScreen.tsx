@@ -50,6 +50,7 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
   const [selectedProductId, setSelectedProductId] = useState<string | null>(products[0]?.id || null);
   const [localResult, setLocalResult] = useState<FormulationResult | null>(forceResult || null);
   const [showResultsModal, setShowResultsModal] = useState(!!forceResult);
+  const [applySafetyMargins, setApplySafetyMargins] = useState(false);
 
   useEffect(() => {
       if (forceResult) {
@@ -86,7 +87,14 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
     setTimeout(() => {
         try {
             const previousCost = localResult?.totalCost || undefined;
-            const result = solveFeedFormulation(currentProductData, activeIngredients, nutrients, batchSize, isDynamicMatrix);
+            const result = solveFeedFormulation(
+                currentProductData, 
+                activeIngredients, 
+                nutrients, 
+                batchSize, 
+                isDynamicMatrix,
+                applySafetyMargins // Passing the senior validation flag
+            );
             if (previousCost) result.previousCost = previousCost;
             setLocalResult(result);
             if (result.status === 'OPTIMAL') {
@@ -138,7 +146,19 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
                 <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-1.5 line-clamp-1">Motor Táctico de Formulación de Precisión</p>
               </div>
           </div>
-          <div className="flex gap-2 bg-gray-900/50 p-1.5 rounded border border-gray-700/50">
+          <div className="flex gap-2 items-center bg-gray-900/50 p-1.5 rounded border border-gray-700/50">
+             <div className="flex items-center gap-2 mr-4 pr-4 border-r border-gray-700/50">
+                <button 
+                  onClick={() => setApplySafetyMargins(!applySafetyMargins)}
+                  className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors focus:outline-none ${applySafetyMargins ? 'bg-cyan-500' : 'bg-gray-700'}`}
+                >
+                  <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${applySafetyMargins ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
+                <div className="flex flex-col">
+                  <span className="text-[9px] text-white font-black uppercase leading-none">Escudo de Seguridad</span>
+                  <span className="text-[8px] text-cyan-400/70 font-bold uppercase tracking-tighter">Modo Validado</span>
+                </div>
+             </div>
              <div className="flex flex-col"><label className="text-[9px] text-gray-500 font-bold uppercase ml-1 mb-0.5">{t('common.diet')}</label><select value={selectedProductId || ''} onChange={e => setSelectedProductId(e.target.value)} className="bg-gray-800 text-[13px] text-white px-2 py-1 rounded border border-gray-700 outline-none focus:border-cyan-500 min-w-[150px]">{products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
              <div className="flex flex-col"><label className="text-[9px] text-gray-500 font-bold uppercase ml-1 mb-0.5">{t('optimization.batchSize')} (kg)</label><input type="number" value={batchSize} onChange={e => setBatchSize(Number(e.target.value))} className="bg-gray-800 text-[13px] text-white px-2 py-1 rounded border border-gray-700 outline-none focus:border-cyan-500 w-20 text-center" /></div>
           </div>
@@ -252,7 +272,7 @@ export const FormulationScreen: React.FC<FormulationScreenProps> = ({
                     try {
                         const previousCost = localResult?.totalCost || undefined;
                         const activeIngredients = ingredients.filter(i => availableIngredientIds.has(i.id) && i.price > 0);
-                        const result = solveFeedFormulation(updatedProduct, activeIngredients, nutrients, batchSize, isDynamicMatrix);
+                        const result = solveFeedFormulation(updatedProduct, activeIngredients, nutrients, batchSize, isDynamicMatrix, applySafetyMargins);
                         if (previousCost) result.previousCost = previousCost;
                         setLocalResult(result);
                         if (result.status !== 'OPTIMAL') {

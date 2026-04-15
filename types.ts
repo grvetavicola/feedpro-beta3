@@ -114,6 +114,7 @@ export interface FormulationResult {
     max: number;
     met: boolean;
   }[];
+  safetyAlerts?: string[]; // New: Informative alerts about auto-applied rules
 }
 
 export interface SavedFormula {

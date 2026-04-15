@@ -1,13 +1,33 @@
 import { Ingredient, Nutrient, Product, FormulationResult, Relationship, ProductConstraint, IngredientConstraint } from '../types';
 import solver from 'javascript-lp-solver';
 
+const applySafetyLimits = (ingredient: Ingredient): { max?: number, reason?: string } | null => {
+    const name = ingredient.name.toUpperCase();
+    
+    // Safety logic based on feedpro_validar_modelo(1).py
+    if (name.includes('SAL') && !name.includes('SALVADO')) {
+        return { max: 0.5, reason: 'Límite de seguridad para Sal (0.5% máx)' };
+    }
+    if (name.includes('BICARBONATO')) {
+        return { max: 0.3, reason: 'Límite de seguridad para Bicarbonato (0.3% máx)' };
+    }
+    if (name.includes('CARBONATO') || name.includes('CALIZA')) {
+        return { max: 12.0, reason: 'Límite físico para Carbonato/Caliza (12% máx)' };
+    }
+    
+    return null;
+};
+
 export const solveFeedFormulation = (
     product: Product,
     ingredients: Ingredient[],
     nutrients: Nutrient[],
     batchSize: number,
-    isDynamicMatrix: boolean = false
+    isDynamicMatrix: boolean = false,
+    applySafetyMargins: boolean = false // New parameter for Senior Validation
 ): FormulationResult => {
+    
+    const safetyAlerts: string[] = [];
     
     // 1. Setup the Model Object for javascript-lp-solver
     const model: any = {
@@ -22,8 +42,23 @@ export const solveFeedFormulation = (
     // 2. Add Nutrient Constraints from Product
     product.constraints.forEach(c => {
         const constraintObj: any = {};
-        if (c.min > 0) constraintObj.min = c.min * 100;
-        if (c.max < 999) constraintObj.max = c.max * 100; 
+        
+        // Nutritional Buffer logic (From Gemelo Digital Python)
+        let effectiveMin = c.min;
+        let effectiveMax = c.max;
+        
+        if (applySafetyMargins) {
+            const isEnergy = nutrients.find(n => n.id === c.nutrientId)?.name.toUpperCase().includes('ENERG');
+            const margin = isEnergy ? 1.10 : 1.05;
+            effectiveMax = c.min * margin; // Push the upper bound to allow a healthy surplus
+            
+            if (c.max < effectiveMax) effectiveMax = c.max; // Don't exceed user hard max if defined lower
+            
+            safetyAlerts.push(`Buffer aplicado a ${c.nutrientId}: Min ${c.min} -> Max ${effectiveMax.toFixed(2)}`);
+        }
+
+        if (effectiveMin > 0) constraintObj.min = effectiveMin * 100;
+        if (effectiveMax < 999) constraintObj.max = effectiveMax * 100; 
         
         if (Object.keys(constraintObj).length > 0) {
             model.constraints[`nut_${c.nutrientId}`] = constraintObj;
@@ -38,16 +73,26 @@ export const solveFeedFormulation = (
     });
 
     // 4. Add Ingredient Inclusion Constraints
-    product.ingredientConstraints.forEach(ic => {
-         model.constraints[`ing_limit_${ic.ingredientId}`] = { 
-            min: ic.min || 0, 
-            max: ic.max === undefined ? 100 : ic.max 
-        };
+    const activeIngIds = new Set(product.ingredientConstraints.map(c => c.ingredientId));
+    
+    ingredients.filter(ing => activeIngIds.has(ing.id)).forEach(ing => {
+        const ic = product.ingredientConstraints.find(c => c.ingredientId === ing.id)!;
+        let min = ic.min || 0;
+        let max = ic.max === undefined ? 100 : ic.max;
+
+        // Auto Safety Limits Injection
+        if (applySafetyMargins) {
+            const safety = applySafetyLimits(ing);
+            if (safety && safety.max !== undefined && max > safety.max) {
+                max = safety.max;
+                safetyAlerts.push(`${ing.name}: ${safety.reason}`);
+            }
+        }
+
+        model.constraints[`ing_limit_${ing.id}`] = { min, max };
     });
 
     // 5. Build Variables (Ingredients ONLY from active selection)
-    const activeIngIds = new Set(product.ingredientConstraints.map(c => c.ingredientId));
-    
     ingredients.filter(ing => activeIngIds.has(ing.id)).forEach(ing => {
         const effectivePrice = (ing.price / (1 - (ing.shrinkage || 0) / 100)) + (ing.processingCost || 0);
         const variable: any = {
@@ -225,7 +270,8 @@ export const solveFeedFormulation = (
         items: items.sort((a, b) => b.percentage - a.percentage),
         rejectedItems,
         nutrientAnalysis,
-        relationshipAnalysis
+        relationshipAnalysis,
+        safetyAlerts // New: Return the collected alerts
     };
 };
 

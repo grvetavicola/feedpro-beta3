@@ -227,6 +227,20 @@ export const OptimizationResults: React.FC<OptimizationResultsProps> = ({ result
         </div>
 
         <div id="pdf-content" className="p-3 overflow-y-auto flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 custom-scrollbar bg-gray-900/20">
+          
+          {/* Active Safety Alerts Section */}
+          {result.safetyAlerts && result.safetyAlerts.length > 0 && (
+            <div className="lg:col-span-12 bg-cyan-900/20 border border-cyan-500/30 rounded-xl p-3 flex flex-wrap gap-2 items-center">
+              <SparklesIcon className="w-5 h-5 text-cyan-400 animate-pulse" />
+              <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mr-2">Protecciones Activas:</span>
+              {result.safetyAlerts.map((alert, idx) => (
+                <span key={idx} className="bg-cyan-950 text-cyan-300 text-[9px] font-bold px-2 py-0.5 rounded border border-cyan-500/20">
+                  {alert}
+                </span>
+              ))}
+            </div>
+          )}
+
           <div className="lg:col-span-5 space-y-3">
             <div className="bg-gradient-to-br from-gray-800 to-gray-950 p-3 rounded border border-gray-700 shadow-sm relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-8 bg-cyan-500/5 rounded-full -mr-10 -mt-10 blur-2xl group-hover:bg-cyan-500/10 transition-colors"></div>
