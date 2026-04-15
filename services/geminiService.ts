@@ -19,7 +19,7 @@ const getErrorMessage = (language: string) => {
 const LOCAL_DEV_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 let localAiInstance: GoogleGenAI | null = null;
 if (LOCAL_DEV_API_KEY) {
-    localAiInstance = new GoogleGenAI({ apiKey: LOCAL_DEV_API_KEY });
+    localAiInstance = new GoogleGenAI(LOCAL_DEV_API_KEY);
 }
 
 const callServerlessAI = async (action: string, payload: any): Promise<string> => {
