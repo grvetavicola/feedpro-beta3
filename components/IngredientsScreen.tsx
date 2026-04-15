@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Ingredient, Nutrient, ClientWorkspace } from '../types';
 import { useTranslations } from '../lib/i18n/LangContext';
-import { PencilIcon, TrashIcon, PlusIcon, UploadIcon, SaveIcon, XCircleIcon, SparklesIcon, FlaskIcon, MenuIcon, ZapIcon } from './icons'; 
+import { PencilIcon, TrashIcon, PlusIcon, UploadIcon, SaveIcon, XCircleIcon, SparklesIcon, FlaskIcon, MenuIcon, ZapIcon, DownloadIcon } from './icons'; 
 import { parseIngredientsWithGemini } from '../services/geminiService';
 import { EditIngredientModal } from './EditIngredientModal';
 import { BulkPriceEditorModal } from './BulkPriceEditorModal';
@@ -88,6 +88,45 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({
         }
     };
 
+    const handleExportExcel = () => {
+        if (!window.XLSX) {
+            alert("Librería de exportación no cargada. Por favor, recarga la página.");
+            return;
+        }
+
+        const headers = ["CÓDIGO", "NOMBRE", "MATRIZ", "CATEGORÍA", "PRECIO", "STOCK"];
+        const nutrientHeaders = sortedNutrients.map(n => `${n.name} (${n.unit})`);
+        const allHeaders = [...headers, ...nutrientHeaders];
+
+        const dataRows = sortedIngredients.map(ing => {
+            const row = [
+                ing.code || '',
+                ing.name,
+                ing.matrix || '',
+                ing.category || 'Macro',
+                ing.price,
+                ing.stock || 0
+            ];
+            
+            // Añadir valores de nutrientes
+            sortedNutrients.forEach(n => {
+                row.push(ing.nutrients[n.id] || 0);
+            });
+            
+            return row;
+        });
+
+        const worksheet = window.XLSX.utils.aoa_to_sheet([allHeaders, ...dataRows]);
+        const workbook = window.XLSX.utils.book_new();
+        window.XLSX.utils.book_append_sheet(workbook, worksheet, "Matriz de Insumos");
+        
+        const fileName = selectedMatrix === 'ALL' 
+            ? "Catastro_Completo_Insumos.xlsx" 
+            : `Matriz_${selectedMatrix.replace(/\s+/g, '_')}.xlsx`;
+            
+        window.XLSX.writeFile(workbook, fileName);
+    };
+
     // Filtros y Orden
     const sortedIngredients = [...ingredients]
         .filter(i => {
@@ -151,6 +190,15 @@ export const IngredientsScreen: React.FC<IngredientsScreenProps> = ({
                     >
                         <SparklesIcon className="w-4 h-4" /> CAMBIAR PRECIOS MASIVO
                     </button>
+
+                    {viewMode === 'matrix' && (
+                        <button 
+                            onClick={handleExportExcel}
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 px-4 rounded-lg flex items-center gap-2 text-[13px] border border-emerald-400/30 transition-all shadow-lg active:scale-95"
+                        >
+                            <DownloadIcon className="w-4 h-4" /> EXPORTAR EXCEL
+                        </button>
+                    )}
 
                     <button onClick={handleAddNew} className="bg-cyan-600 hover:bg-cyan-500 text-white font-semibold py-1 px-3 rounded flex items-center gap-2 text-[13px]">
                         <PlusIcon className="w-3 h-3" /> {t('ingredients.addButton')}
