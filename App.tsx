@@ -29,6 +29,10 @@ const STORAGE_KEY = 'feedpro_pro_integrated_data';
 export default function App() {
   const [view, setView] = useState<ViewState>('DASHBOARD');
   const [user, setUser] = useState<User | null>(null);
+  
+  useEffect(() => {
+    console.log("🚀 FEEDPRO 360 - BUILD v1.1.2 LOADED");
+  }, []);
 
   // Core Data State
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
