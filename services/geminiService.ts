@@ -18,7 +18,7 @@ const getErrorMessage = (language: string) => {
 
 const LOCAL_DEV_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 let localAiInstance: GoogleGenAI | null = null;
-if (LOCAL_DEV_API_KEY) {
+if (LOCAL_DEV_API_KEY && LOCAL_DEV_API_KEY !== 'PLACEHOLDER_API_KEY') {
     localAiInstance = new GoogleGenAI({ apiKey: LOCAL_DEV_API_KEY });
 }
 
@@ -215,12 +215,9 @@ export const chatWithAssistant = async (
                 }
             });
             
-            const text = response.text || '';
-            const calls = response.candidates?.[0]?.content?.parts?.filter(p => p.functionCall) || [];
-            
             return { 
-                text, 
-                toolCalls: calls.length > 0 ? calls.map(c => c.functionCall) : undefined 
+                text: response.text || '', 
+                toolCalls: response.functionCalls
             };
         }
     } catch (error) {

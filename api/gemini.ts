@@ -44,10 +44,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 config: { tools: tools as any }
             });
 
-            const text = response.text || '';
-            const toolCalls = response.candidates?.[0]?.content?.parts?.filter(p => p.functionCall).map(p => p.functionCall) || undefined;
-
-            return res.status(200).json({ text, toolCalls });
+            return res.status(200).json({ 
+                text: response.text || '', 
+                toolCalls: response.functionCalls 
+            });
         }
 
         if (action === 'analyzeFormula') {
