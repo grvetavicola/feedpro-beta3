@@ -153,12 +153,101 @@ export const solveFeedFormulation = (
         results = solver.Solve(elasticModel);
     }
 
+    // 8. Format Results
+    if (!results.feasible) {
+        return {
+            status: 'INFEASIBLE',
+            totalCost: 0,
+            items: [],
+            nutrientAnalysis: [],
+            relationshipAnalysis: []
+        };
+    }
+
+    const rejectedItems: NonNullable<FormulationResult['rejectedItems']> = [];
+
+    const items = ingredients
+        .map(ing => {
+            const percentage = results[`ing_${ing.id}`] || 0;
+            const effectivePrice = (ing.price / (1 - (ing.shrinkage || 0) / 100)) + (ing.processingCost || 0);
+
+            if (percentage <= 0.0001) {
+                return null;
+            }
+
+            const weight = (percentage / 100) * batchSize;
+            
+            return {
+                ingredientId: ing.id,
+                percentage: Number(percentage.toFixed(4)),
+                weight: Number(weight.toFixed(4)),
+                cost: Number((weight * effectivePrice).toFixed(2)),
+                nutrients: ing.nutrients,
+                dynamicNutrients: ing.dynamicNutrients
+            };
+        })
+        .filter(Boolean) as FormulationResult['items'];
+
+    // Analysis
+    const calculatedNutrients: Record<string, number> = {};
+    nutrients.forEach(nut => {
+        let totalValue = 0;
+        items.forEach(item => {
+            const ing = ingredients.find(i => i.id === item.ingredientId);
+            if (ing) {
+                const activeNutrients = (isDynamicMatrix && Object.keys(ing.dynamicNutrients || {}).length > 0) ? ing.dynamicNutrients! : ing.nutrients;
+                if (activeNutrients[nut.id]) {
+                    totalValue += activeNutrients[nut.id] * item.percentage;
+                }
+            }
+        });
+        calculatedNutrients[nut.id] = totalValue / 100;
+    });
+
+    const nutrientAnalysis = nutrients.map(nut => {
+        const constraint = product.constraints.find(c => c.nutrientId === nut.id);
+        const val = calculatedNutrients[nut.id] || 0;
+        return {
+            nutrientId: nut.id,
+            value: Number(val.toFixed(3)),
+            min: constraint ? constraint.min : 0,
+            max: constraint ? constraint.max : 999,
+            met: constraint ? (val >= constraint.min - 0.001 && val <= constraint.max + 0.001) : true
+        };
+    });
+
+    const relationshipAnalysis = product.relationships.map(rel => {
+        const valA = calculatedNutrients[rel.nutrientAId] || 0;
+        const valB = calculatedNutrients[rel.nutrientBId] || 0;
+        const ratio = valB !== 0 ? valA / valB : 0;
+        return {
+            relationId: rel.id,
+            name: rel.name,
+            value: Number(ratio.toFixed(2)),
+            min: rel.min,
+            max: rel.max,
+            met: (rel.min > 0 ? ratio >= rel.min - 0.01 : true) && (rel.max < 999 ? ratio <= rel.max + 0.01 : true)
+        };
+    });
+
+    // Calculate final cost
+    let finalTotalCost = 0;
+    if (isBestEffort) {
+        items.forEach(item => {
+            finalTotalCost += item.cost;
+        });
+    } else {
+        finalTotalCost = (results.result / 100 * batchSize);
+    }
+
     const shadowPrices: Record<string, number> = {};
 
     // 9. Shadow Price Analysis (Opportunity Cost & Sensitivity)
     // For Ingredients
     ingredients.forEach(ing => {
         const percentage = results[`ing_${ing.id}`] || 0;
+        const effectivePrice = (ing.price / (1 - (ing.shrinkage || 0) / 100)) + (ing.processingCost || 0);
+
         if (percentage <= 0.0001) {
             const oppModel = JSON.parse(JSON.stringify(model));
             oppModel.constraints[`ing_limit_${ing.id}`] = { 
@@ -169,6 +258,14 @@ export const solveFeedFormulation = (
             if (oppResult.feasible) {
                 const costDiff = oppResult.result - results.result;
                 shadowPrices[ing.id] = Number(costDiff.toFixed(4));
+                
+                const oppPrice = effectivePrice - costDiff;
+                rejectedItems.push({
+                    ingredientId: ing.id,
+                    effectivePrice: Number(effectivePrice.toFixed(2)),
+                    opportunityPrice: Number(oppPrice.toFixed(2)),
+                    viabilityGap: Number(costDiff.toFixed(2))
+                });
             }
         }
     });
@@ -177,7 +274,6 @@ export const solveFeedFormulation = (
     nutrientAnalysis.forEach(na => {
         if (na.min > 0) {
             const sensModel = JSON.parse(JSON.stringify(model));
-            // Relax the minimum by a small epsilon (0.1% or 0.1 of unit)
             const epsilon = 0.1;
             const originalMin = sensModel.constraints[`nut_${na.nutrientId}`].min;
             sensModel.constraints[`nut_${na.nutrientId}`].min = originalMin - epsilon;
@@ -199,7 +295,7 @@ export const solveFeedFormulation = (
         rejectedItems,
         nutrientAnalysis,
         relationshipAnalysis,
-        shadowPrices, // Return the consolidated shadow prices
+        shadowPrices,
         safetyAlerts 
     };
 };
