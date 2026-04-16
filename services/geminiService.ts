@@ -25,22 +25,43 @@ if (LOCAL_DEV_API_KEY && !isKeyPlaceholder(LOCAL_DEV_API_KEY)) {
     localAiInstance = new GoogleGenAI({ apiKey: LOCAL_DEV_API_KEY });
 }
 
+const simulateNutritionalAdvice = (question: string, language: string): string => {
+    const q = question.toLowerCase();
+    if (language === 'en') {
+        if (q.includes('price') || q.includes('cost')) return "As a local simulation, I suggest reviewing the ingredient prices in the matrix. Generally, corn and soy are the main cost drivers.";
+        if (q.includes('protein')) return "I recommend maintaining protein levels based on the specific species' requirements. Check the nutritional limits in the sidebar.";
+        return "I am operating in **Local Simulation Mode** because no API Key was detected. I can provide general nutritional guidance, but for full AI analysis, please configure your Gemini API Key.";
+    }
+    // Spanish Default
+    if (q.includes('precio') || q.includes('costo')) return "En modo de simulación local, te sugiero revisar los precios de los ingredientes en la matriz. Recuerda que el maíz y la soya suelen ser los principales factores de variabilidad de costo.";
+    if (q.includes('proteina') || q.includes('proteína')) return "Te recomiendo mantener los niveles de proteína según los requerimientos específicos de la etapa productiva. Puedes ajustar los límites en la barra lateral.";
+    return "Estoy operando en **Modo de Simulación Local** (Sin API Key). Puedo darte guías generales sobre nutrición, pero para un análisis completo de IA, por favor configura tu Gemini API Key en el archivo .env.local.";
+};
+
 const callServerlessAI = async (action: string, payload: any): Promise<string> => {
     const isProduction = import.meta.env.PROD || window.location.hostname !== 'localhost'; 
     
     if (isProduction || !localAiInstance) {
-        const res = await fetch('/api/gemini', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action, payload })
-        });
-        
-        if (!res.ok) {
-            throw new Error(`Serverless Error: ${res.statusText}`);
+        try {
+            const res = await fetch('/api/gemini', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action, payload })
+            });
+            
+            if (!res.ok) {
+                throw new Error(`Serverless Error: ${res.statusText}`);
+            }
+            
+            const data = await res.json();
+            return data.text || '';
+        } catch (err) {
+            console.error("AI Call Failed:", err);
+            if (!import.meta.env.PROD) {
+                return simulateNutritionalAdvice(action, 'es'); 
+            }
+            throw err;
         }
-        
-        const data = await res.json();
-        return data.text || '';
     } else {
         // LOCAL DEVELOPMENT FALLBACK (Compatible con @google/genai 1.34.0)
         const activeModel = payload.model === 'gemini-3-flash-preview' ? 'gemini-1.5-flash' : (payload.model || 'gemini-1.5-flash');
@@ -113,6 +134,9 @@ export const analyzeFormulaWithGemini = async (result: FormulationResult, produc
     return await callServerlessAI('analyzeFormula', { prompt, model });
   } catch (error) {
     console.error("Error contacting Serverless Gemini API:", error);
+    if (!import.meta.env.PROD) {
+        return "Análisis de Simulación: La fórmula parece balanceada. Revisa los costos marginales para optimizar el precio final.";
+    }
     return getErrorMessage(language);
   }
 };
@@ -225,6 +249,15 @@ export const chatWithAssistant = async (
         }
     } catch (error) {
         console.error("Error en chatWithAssistant:", error);
+        
+        // MODO RETORNO (Simulación local si falla o no hay key)
+        const isOfflineAllowed = !import.meta.env.PROD;
+        if (isOfflineAllowed) {
+            return { 
+                text: simulateNutritionalAdvice(question, language) 
+            };
+        }
+        
         return { text: getErrorMessage(language) };
     }
 };
