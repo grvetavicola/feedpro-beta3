@@ -52,8 +52,8 @@ export const ConsolidatedExportTable: React.FC<Props> = ({
     <div className="mt-20 mb-32 p-10 bg-[#0a0a0a]/80 backdrop-blur-xl border border-slate-800 rounded-[3rem] shadow-2xl mx-auto max-w-[98%] ring-1 ring-white/5">
       <div className="flex items-center justify-between mb-8 border-b-2 border-slate-200 pb-6">
         <div>
-          <h2 className="text-3xl font-black uppercase text-black font-serif">Reporte de Formulación Grupal</h2>
-          <p className="text-sm text-slate-600 mt-1 uppercase tracking-tighter">Versión para Exportación Directa a Excel (Planilla Plana v3.0)</p>
+          <h2 className="text-3xl font-black uppercase text-white font-serif tracking-tight">Reporte de Formulación Grupal</h2>
+          <p className="text-sm text-slate-400 mt-1 uppercase tracking-tighter">Versión para Exportación Directa a Excel (Planilla Plana v3.0)</p>
         </div>
         <div className="flex items-center gap-3">
           <button 
