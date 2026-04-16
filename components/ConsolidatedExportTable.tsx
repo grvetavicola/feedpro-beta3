@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { DownloadIcon } from './icons';
+import React, { useRef, useState } from 'react';
+import { DownloadIcon, EyeIcon, SearchIcon } from './icons';
 
 interface Props {
   activeDiets: any[];
@@ -15,6 +15,7 @@ export const ConsolidatedExportTable: React.FC<Props> = ({
   batchSizes
 }) => {
   const tableRef = useRef<HTMLTableElement>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const downloadExcel = () => {
     if (!tableRef.current) return;
@@ -54,16 +55,34 @@ export const ConsolidatedExportTable: React.FC<Props> = ({
           <h2 className="text-3xl font-black uppercase text-black font-serif">Reporte de Formulación Grupal</h2>
           <p className="text-sm text-slate-600 mt-1 uppercase tracking-tighter">Versión para Exportación Directa a Excel (Planilla Plana v3.0)</p>
         </div>
-        <button 
-          onClick={downloadExcel}
-          className="flex items-center gap-3 bg-emerald-600 hover:bg-emerald-700 text-white px-10 py-5 rounded-none font-black uppercase tracking-widest transition-all active:scale-95 shadow-xl border-b-4 border-emerald-900"
-        >
-          <DownloadIcon className="w-6 h-6" />
-          Descargar Excel (.XLS)
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setShowPreview(!showPreview)}
+            className={`flex items-center gap-3 px-8 py-5 font-black uppercase tracking-widest transition-all active:scale-95 shadow-xl border-b-4 ${showPreview ? 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-900' : 'bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-400'}`}
+          >
+            <EyeIcon className="w-5 h-5" />
+            {showPreview ? 'Cerrar Vista' : 'Vista Previa'}
+          </button>
+          
+          <button 
+            onClick={downloadExcel}
+            className="flex items-center gap-3 bg-emerald-600 hover:bg-emerald-700 text-white px-10 py-5 font-black uppercase tracking-widest transition-all active:scale-95 shadow-xl border-b-4 border-emerald-900"
+          >
+            <DownloadIcon className="w-6 h-6" />
+            Descargar Excel (.XLS)
+          </button>
+        </div>
       </div>
 
-      <div className="overflow-auto border border-black p-1 bg-white">
+      {!showPreview && (
+        <div className="py-20 text-center flex flex-col items-center opacity-30 bg-slate-50 border-2 border-dashed border-slate-200">
+           <SearchIcon className="w-12 h-12 text-slate-400 mb-4" />
+           <p className="text-sm font-serif italic text-slate-500 uppercase tracking-widest">Presione "VISTA PREVIA" para visualizar la planilla plana antes de exportar</p>
+        </div>
+      )}
+
+      {showPreview && (
+        <div className="overflow-auto border border-black p-1 bg-white animate-fade-in">
         <table ref={tableRef} style={{ borderCollapse: 'collapse', width: '100%', color: 'black', backgroundColor: 'white', fontFamily: 'Calibri, Arial, sans-serif' }}>
           <thead>
             <tr>
@@ -164,7 +183,8 @@ export const ConsolidatedExportTable: React.FC<Props> = ({
             ))}
           </tbody>
         </table>
-      </div>
+        </div>
+      )}
     </div>
   );
 };

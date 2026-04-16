@@ -120,22 +120,31 @@ export const BulkPriceEditorModal: React.FC<BulkPriceEditorModalProps> = ({
               const isModified = localPrices[ing.id] !== undefined;
 
               return (
-                <div key={ing.id} className={`flex items-center justify-between p-4 rounded-3xl border transition-all ${isModified ? 'bg-indigo-500/5 border-indigo-500/30' : 'bg-white/[0.02] border-white/5 hover:border-white/10'}`}>
+                <div key={ing.id} className={`flex items-center justify-between p-2.5 px-4 rounded-2xl border transition-all ${isModified ? 'bg-indigo-500/5 border-indigo-500/30' : 'bg-white/[0.02] border-white/5 hover:border-white/10'}`}>
                   <div className="flex flex-col min-w-0 flex-1 pr-4">
-                    <span className="text-[13px] font-black text-white uppercase tracking-tight truncate">{ing.name}</span>
-                    <span className="text-[10px] text-slate-500 font-bold font-mono tracking-widest uppercase mt-0.5">REF-{ing.code}</span>
+                    <span className="text-[12px] font-black text-white uppercase tracking-tight truncate leading-none">{ing.name}</span>
+                    <span className="text-[9px] text-slate-500 font-bold font-mono tracking-widest uppercase mt-1 opacity-70">REF-{ing.code}</span>
                   </div>
                   
                   <div className="flex items-center gap-4 shrink-0">
-                    <div className="flex flex-col items-end">
-                      <span className="text-[9px] text-slate-600 font-bold uppercase tracking-widest mb-1">Precio Unit.</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[9px] text-slate-600 font-black uppercase tracking-widest">Precio Unit.</span>
                       <div className="relative flex items-center">
-                        <span className="absolute left-4 text-indigo-400 font-black text-sm">$</span>
+                        <span className="absolute left-3.5 text-indigo-400 font-black text-[12px]">$</span>
                         <input 
                           type="number"
                           value={currentPrice === null ? '' : currentPrice}
+                          data-index={filteredIngredients.indexOf(ing)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const next = document.querySelector(`input[data-index="${filteredIngredients.indexOf(ing) + 1}"]`) as HTMLInputElement;
+                              if (next) next.focus();
+                              else handleSave();
+                            }
+                          }}
                           onChange={e => handlePriceChange(ing.id, e.target.value)}
-                          className={`w-36 h-11 bg-black rounded-2xl border border-white/10 pl-8 pr-4 text-right text-base font-black font-mono transition-all ${isModified ? 'text-indigo-400 border-indigo-500/50 ring-1 ring-indigo-500/20' : 'text-white border-white/5 focus:border-indigo-500/50'}`}
+                          className={`w-36 h-9 bg-black rounded-xl border border-white/10 pl-8 pr-4 text-right text-[14px] font-black font-mono transition-all ${isModified ? 'text-indigo-400 border-indigo-500/50 ring-1 ring-indigo-500/20' : 'text-white border-white/5 focus:border-indigo-500/50'}`}
                         />
                       </div>
                     </div>
