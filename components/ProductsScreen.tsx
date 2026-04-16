@@ -162,7 +162,7 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
     const { t } = useTranslations();
     const [selectedProductId, setSelectedProductId] = useState<string | null>(products[0]?.id || null);
     const [newProductName, setNewProductName] = useState('');
-    const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set([products[0]?.category || t('common.uncategorized')]));
+    const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
     // Homologation State
     const [isHomologating, setIsHomologating] = useState(false);
     const [unmappedNutrients, setUnmappedNutrients] = useState<string[]>([]);

@@ -497,7 +497,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
            </div>
            <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3 bg-black/20">
               {Object.entries(dietsByCategory).map(([cat, list]) => {
-                 const isExp = expandedCats[cat] ?? true;
+                 const isExp = expandedCats[cat] ?? false;
                  const allSel = list.length > 0 && list.every(d => activeDietIds.includes(d.id));
                  const theme = getDietTheme(cat);
                  return (
