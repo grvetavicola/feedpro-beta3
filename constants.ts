@@ -1,7 +1,7 @@
 import { Ingredient, Nutrient, Product, Client, NutritionalBase, Relationship } from './types';
 
 export const APP_NAME = "FeedPro 360";
-export const APP_VERSION = "v1.1.0";
+export const APP_VERSION = "v1.1.1";
 
 export const INITIAL_CLIENTS: Client[] = [
   { id: 'c1', name: 'CLIENTE GENERAL', logo: 'https://cdn-icons-png.flaticon.com/512/2662/2662503.png' }
