@@ -324,7 +324,19 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
             </div>
         </div>
 
-        <div className="mt-4">
+        <div className="mt-4 relative">
+            {/* VetIA Static Avatar */}
+            <div className="absolute -top-20 right-4 z-20 animate-bounce-slow">
+                <div className="relative">
+                    <div className="absolute inset-0 rounded-full bg-cyan-500/20 blur-xl animate-pulse"></div>
+                    <img 
+                        src="/VETIA.png" 
+                        alt="VetIA Avatar" 
+                        className="w-16 h-16 rounded-full border-2 border-cyan-500 shadow-[0_0_15px_rgba(34,211,238,0.5)] bg-gray-900 object-cover relative z-10"
+                    />
+                </div>
+            </div>
+
             {attachedFile && (
                 <div className="relative inline-block mb-2">
                     {attachedFile.type.startsWith('image/') && filePreview?.startsWith('blob:') ? (
