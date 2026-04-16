@@ -153,116 +153,44 @@ export const solveFeedFormulation = (
         results = solver.Solve(elasticModel);
     }
 
-    // 8. Format Results
-    if (!results.feasible) {
-        return {
-            status: 'INFEASIBLE',
-            totalCost: 0,
-            items: [],
-            nutrientAnalysis: [],
-            relationshipAnalysis: []
-        };
-    }
+    const shadowPrices: Record<string, number> = {};
 
-    const rejectedItems: NonNullable<FormulationResult['rejectedItems']> = [];
-
-    const items = ingredients
-        .map(ing => {
-            const percentage = results[`ing_${ing.id}`] || 0;
-            const effectivePrice = (ing.price / (1 - (ing.shrinkage || 0) / 100)) + (ing.processingCost || 0);
-
-            if (percentage <= 0.0001) {
-                // Shadow Price Analysis (Opportunity Cost)
-                const oppModel = JSON.parse(JSON.stringify(model));
-                // Force 1% inclusion to calculate marginal cost penalty
-                oppModel.constraints[`ing_limit_${ing.id}`] = { 
-                    min: 1, 
-                    max: oppModel.constraints[`ing_limit_${ing.id}`]?.max || 100 
-                };
-                const oppResult = solver.Solve(oppModel);
-                
-                if (oppResult.feasible) {
-                    const costDiff = oppResult.result - results.result; // Delta Cost for 1%
-                    const oppPrice = effectivePrice - costDiff;
-                    rejectedItems.push({
-                        ingredientId: ing.id,
-                        effectivePrice: Number(effectivePrice.toFixed(2)),
-                        opportunityPrice: Number(oppPrice.toFixed(2)),
-                        viabilityGap: Number(costDiff.toFixed(2))
-                    });
-                }
-                return null;
-            }
-
-            const weight = (percentage / 100) * batchSize;
-            
-            return {
-                ingredientId: ing.id,
-                percentage: Number(percentage.toFixed(4)),
-                weight: Number(weight.toFixed(4)),
-                cost: Number((weight * effectivePrice).toFixed(2)),
-                nutrients: ing.nutrients,
-                dynamicNutrients: ing.dynamicNutrients
+    // 9. Shadow Price Analysis (Opportunity Cost & Sensitivity)
+    // For Ingredients
+    ingredients.forEach(ing => {
+        const percentage = results[`ing_${ing.id}`] || 0;
+        if (percentage <= 0.0001) {
+            const oppModel = JSON.parse(JSON.stringify(model));
+            oppModel.constraints[`ing_limit_${ing.id}`] = { 
+                min: 1, 
+                max: oppModel.constraints[`ing_limit_${ing.id}`]?.max || 100 
             };
-        })
-        .filter(Boolean) as FormulationResult['items'];
+            const oppResult = solver.Solve(oppModel);
+            if (oppResult.feasible) {
+                const costDiff = oppResult.result - results.result;
+                shadowPrices[ing.id] = Number(costDiff.toFixed(4));
+            }
+        }
+    });
 
-    // Sort rejected items: closest to entering the diet first (lowest viability gap)
-    rejectedItems.sort((a, b) => a.viabilityGap - b.viabilityGap);
-
-    // Analysis
-    const calculatedNutrients: Record<string, number> = {};
-    nutrients.forEach(nut => {
-        let totalValue = 0;
-        items.forEach(item => {
-            const ing = ingredients.find(i => i.id === item.ingredientId);
-            if (ing) {
-                const activeNutrients = (isDynamicMatrix && Object.keys(ing.dynamicNutrients || {}).length > 0) ? ing.dynamicNutrients! : ing.nutrients;
-                if (activeNutrients[nut.id]) {
-                    totalValue += activeNutrients[nut.id] * item.percentage;
+    // For Nutrients (Duals) - Sensibilidad de restricciones
+    nutrientAnalysis.forEach(na => {
+        if (na.min > 0) {
+            const sensModel = JSON.parse(JSON.stringify(model));
+            // Relax the minimum by a small epsilon (0.1% or 0.1 of unit)
+            const epsilon = 0.1;
+            const originalMin = sensModel.constraints[`nut_${na.nutrientId}`].min;
+            sensModel.constraints[`nut_${na.nutrientId}`].min = originalMin - epsilon;
+            
+            const sensResult = solver.Solve(sensModel);
+            if (sensResult.feasible) {
+                const saving = results.result - sensResult.result;
+                if (saving > 0.001) {
+                    shadowPrices[na.nutrientId] = Number((saving / epsilon).toFixed(4));
                 }
             }
-        });
-        calculatedNutrients[nut.id] = totalValue / 100;
+        }
     });
-
-    const nutrientAnalysis = nutrients.map(nut => {
-        const constraint = product.constraints.find(c => c.nutrientId === nut.id);
-        const val = calculatedNutrients[nut.id] || 0;
-        return {
-            nutrientId: nut.id,
-            value: Number(val.toFixed(3)),
-            min: constraint ? constraint.min : 0,
-            max: constraint ? constraint.max : 999,
-            met: constraint ? (val >= constraint.min - 0.001 && val <= constraint.max + 0.001) : true
-        };
-    });
-
-    const relationshipAnalysis = product.relationships.map(rel => {
-        const valA = calculatedNutrients[rel.nutrientAId] || 0;
-        const valB = calculatedNutrients[rel.nutrientBId] || 0;
-        const ratio = valB !== 0 ? valA / valB : 0;
-        return {
-            relationId: rel.id,
-            name: rel.name,
-            value: Number(ratio.toFixed(2)),
-            min: rel.min,
-            max: rel.max,
-            met: (rel.min > 0 ? ratio >= rel.min - 0.01 : true) && (rel.max < 999 ? ratio <= rel.max + 0.01 : true)
-        };
-    });
-
-    // Calculate final cost
-    let finalTotalCost = 0;
-    if (isBestEffort) {
-        // In best effort mode, results.result includes huge penalties. 
-        // We recalculate the REAL cost of the ingredients used.
-        items.forEach(item => {
-            finalTotalCost += item.cost;
-        });
-    } else {
-        finalTotalCost = (results.result / 100 * batchSize);
-    }
 
     return {
         status: isBestEffort ? 'INFEASIBLE' : 'OPTIMAL',
@@ -271,7 +199,8 @@ export const solveFeedFormulation = (
         rejectedItems,
         nutrientAnalysis,
         relationshipAnalysis,
-        safetyAlerts // New: Return the collected alerts
+        shadowPrices, // Return the consolidated shadow prices
+        safetyAlerts 
     };
 };
 
