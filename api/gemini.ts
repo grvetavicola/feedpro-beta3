@@ -18,7 +18,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
         const { action, payload = {} } = req.body || {};
         const modelName = payload.model || 'gemini-1.5-flash';
-        // Volvemos a v1beta que es más robusta para function calling
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${API_KEY}`;
 
         let geminiPayload: any = {};
@@ -27,12 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const { prompt, image, tools } = payload;
             const parts: any[] = [];
             if (image?.data) {
-                parts.push({
-                    inlineData: {
-                        mimeType: image.mimeType || 'image/jpeg',
-                        data: image.data
-                    }
-                });
+                parts.push({ inlineData: { mimeType: image.mimeType || 'image/jpeg', data: image.data } });
             }
             if (prompt) parts.push({ text: prompt });
             
@@ -40,25 +34,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 contents: [{ role: 'user', parts }]
             };
 
-            // Solo incluimos tools si realmente hay declaraciones
-            if (tools && tools.length > 0 && tools[0].function_declarations?.length > 0) {
+            // Solo incluimos tools si el prompt NO es una simple charla corta
+            // Esto evita el error de "Unknown name tools" en saludos simples
+            const isSimpleChat = prompt && prompt.length < 20 && !prompt.includes('precio') && !prompt.includes('maiz');
+            
+            if (!isSimpleChat && tools && tools.length > 0) {
                 geminiPayload.tools = tools;
             }
-        } else if (action === 'analyzeFormula') {
+        } else {
+            // Simplificación absoluta para otros casos
             geminiPayload = {
-                contents: [{ role: 'user', parts: [{ text: payload.prompt }] }]
-            };
-        } else if (action === 'parseRequirements' || action === 'parseIngredients') {
-            geminiPayload = {
-                systemInstruction: payload.systemInstruction ? {
-                    parts: [{ text: payload.systemInstruction }]
-                } : undefined,
-                contents: [{ role: 'user', parts: payload.parts }],
-                generationConfig: {
-                    responseMimeType: "application/json"
-                }
+                contents: [{ role: 'user', parts: [{ text: payload.prompt || 'hola' }] }]
             };
         }
+
+        console.log("SENDING TO GOOGLE:", JSON.stringify({ ...geminiPayload, tools: geminiPayload.tools ? 'PRESENT' : 'NONE' }));
 
         const resp = await fetch(url, {
             method: 'POST',
@@ -76,7 +66,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const candidate = data.candidates?.[0];
         const text = candidate?.content?.parts?.find((p: any) => p.text)?.text || '';
         
-        // Mapear function_call (Google REST) a toolCalls (esperado por el frontend)
         const functionCalls = candidate?.content?.parts
             ?.filter((p: any) => p.function_call)
             ?.map((p: any) => ({
