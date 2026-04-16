@@ -4,13 +4,14 @@ export const APP_NAME = "FeedPro 360";
 export const APP_VERSION = "v1.1.0";
 
 export const INITIAL_CLIENTS: Client[] = [
-  { id: 'c1', name: 'Cliente General', logo: 'https://cdn-icons-png.flaticon.com/512/2662/2662503.png' },
-  { id: 'c2', name: 'Granja Avícola El Sol', logo: 'https://cdn-icons-png.flaticon.com/512/3248/3248141.png' }
+  { id: 'c1', name: 'CLIENTE GENERAL', logo: 'https://cdn-icons-png.flaticon.com/512/2662/2662503.png' }
 ];
 
 export const INITIAL_NUTRIENTS: Nutrient[] = [
   { id: 'n200020', code: 200020, name: 'E Metabolizable A', unit: 'KCAL/KG', group: 'Energia' },
   { id: 'n300100', code: 300100, name: 'E. Etereo', unit: '%', group: 'Grasa' },
+  { id: 'n300200', code: 300200, name: 'A Linoleico (N-6)', unit: '%', group: 'Grasa' },
+  { id: 'n400100', code: 400100, name: 'Fibra Cruda', unit: '%', group: 'Fibra' },
   { id: 'n500015', code: 500015, name: 'Proteína Cruda', unit: '%', group: 'Proteina' },
   { id: 'n510010', code: 510010, name: 'Lys total %', unit: '%', group: 'AA totales' },
   { id: 'n510030', code: 510030, name: 'Tre total %', unit: '%', group: 'AA totales' },
@@ -31,7 +32,9 @@ export const INITIAL_NUTRIENTS: Nutrient[] = [
   { id: 'n521130', code: 521130, name: 'Arg Dig A %', unit: '%', group: 'AA Digestible Aves' },
   { id: 'n541010', code: 541010, name: 'Calcio', unit: '%', group: 'Minerales' },
   { id: 'n541020', code: 541020, name: 'Fosforo Total', unit: '%', group: 'Minerales' },
-  { id: 'n541050', code: 541050, name: 'Fosforo Disponible A', unit: '%', group: 'Minerales' }
+  { id: 'n541050', code: 541050, name: 'Fosforo Disponible A', unit: '%', group: 'Minerales' },
+  { id: 'n551020', code: 551020, name: 'Sodio', unit: '%', group: 'Micro-Minerales' },
+  { id: 'n551030', code: 551030, name: 'Cloro', unit: '%', group: 'Micro-Minerales' }
 ];
 
 export const INITIAL_INGREDIENTS: Ingredient[] = [
@@ -54,14 +57,54 @@ export const INITIAL_INGREDIENTS: Ingredient[] = [
   { id: 'i10', code: 602010, name: 'Conchuela (36%)', category: 'MICRO', price: 0, stock: 100000, nutrients: { 'n541010': 36 } },
   { id: 'i11', code: 602020, name: 'Carbonato de Calcio', category: 'MICRO', price: 0, stock: 100000, nutrients: { 'n541010': 33 } },
   { id: 'i12', code: 603010, name: 'Fosbic (Bical 18%)', category: 'MICRO', price: 0, stock: 100000, nutrients: { 'n541010': 26, 'n541050': 18 } },
-  { id: 'i13', code: 701010, name: 'NUCLEO CRIANZA', category: 'MICRO', price: 0, stock: 100000, nutrients: {} },
-  { id: 'i14', code: 701020, name: 'POSTURA', category: 'MICRO', price: 0, stock: 100000, nutrients: {} }
+  { id: 'i13', code: 701050, name: 'Metionina', category: 'MICRO', price: 0, stock: 100000, nutrients: { 'n510040': 99, 'n521030': 99 } },
+  { id: 'i14', code: 701060, name: 'Treonina', category: 'MICRO', price: 0, stock: 100000, nutrients: { 'n510030': 98, 'n521020': 98 } }
 ];
 
-export const INITIAL_PRODUCTS: Product[] = [
-  { id: 'p1', clientId: 'c1', code: 101, name: 'CRIANZA EXCELLENCE', category: 'Crianza', constraints: [ { nutrientId: 'n200020', min: 2950, max: 3100 }, { nutrientId: 'n500015', min: 18, max: 21 }, { nutrientId: 'n541010', min: 0.9, max: 1.1 } ], ingredientConstraints: [ { ingredientId: 'i1', min: 20, max: 70 }, { ingredientId: 'i3', min: 15, max: 40 } ], relationships: [] },
-  { id: 'p2', clientId: 'c1', code: 102, name: 'POSTURA GOLD', category: 'Postura', constraints: [ { nutrientId: 'n200020', min: 2750, max: 2900 }, { nutrientId: 'n500015', min: 15, max: 17 }, { nutrientId: 'n541010', min: 3.5, max: 4.2 } ], ingredientConstraints: [ { ingredientId: 'i1', min: 30, max: 75 }, { ingredientId: 'i10', min: 6, max: 11 } ], relationships: [] }
+const DEFAULT_NUTRIENT_CONSTRAINTS = [
+  { nutrientId: 'n200020', min: 0, max: 999 }, { nutrientId: 'n300100', min: 0, max: 999 },
+  { nutrientId: 'n300200', min: 0, max: 999 }, { nutrientId: 'n400100', min: 0, max: 999 },
+  { nutrientId: 'n500015', min: 0, max: 999 }, { nutrientId: 'n510010', min: 0, max: 999 },
+  { nutrientId: 'n510030', min: 0, max: 999 }, { nutrientId: 'n510040', min: 0, max: 999 },
+  { nutrientId: 'n510060', min: 0, max: 999 }, { nutrientId: 'n510070', min: 0, max: 999 },
+  { nutrientId: 'n510080', min: 0, max: 999 }, { nutrientId: 'n510090', min: 0, max: 999 },
+  { nutrientId: 'n510140', min: 0, max: 999 }, { nutrientId: 'n541010', min: 0, max: 999 },
+  { nutrientId: 'n541050', min: 0, max: 999 }, { nutrientId: 'n551020', min: 0, max: 999 },
+  { nutrientId: 'n551030', min: 0, max: 999 }
 ];
+
+const DEFAULT_INGREDIENT_CONSTRAINTS = [
+  { ingredientId: 'i1', min: 0, max: 100 }, { ingredientId: 'i3', min: 0, max: 100 },
+  { ingredientId: 'i5', min: 0, max: 100 }, { ingredientId: 'i11', min: 0, max: 100 },
+  { ingredientId: 'i10', min: 0, max: 100 }, { ingredientId: 'i9', min: 0, max: 100 },
+  { ingredientId: 'i13', min: 0, max: 100 }, { ingredientId: 'i14', min: 0, max: 100 },
+  { ingredientId: 'i12', min: 0, max: 100 }
+];
+
+const BREEDS = ['HY-LINE', 'LOHMANN', 'H&N', 'NOVOGEN'];
+const STAGES = ['INICIACION 1', 'INICIACION 2', 'CRECIMIENTO', 'DESARROLLO', 'PREPOSTURA', 'POSTURA 1', 'POSTURA 2', 'POSTURA 3', 'POSTURA 4'];
+
+const generateInitialProducts = (): Product[] => {
+  const products: Product[] = [];
+  let code = 1000;
+  BREEDS.forEach(breed => {
+    STAGES.forEach(stage => {
+      products.push({
+        id: `p_${breed.toLowerCase()}_${stage.toLowerCase().replace(/ /g, '_')}`,
+        clientId: 'c1',
+        code: code++,
+        name: `${stage}`,
+        category: breed,
+        constraints: [...DEFAULT_NUTRIENT_CONSTRAINTS],
+        ingredientConstraints: [...DEFAULT_INGREDIENT_CONSTRAINTS],
+        relationships: []
+      });
+    });
+  });
+  return products;
+};
+
+export const INITIAL_PRODUCTS: Product[] = generateInitialProducts();
 
 export const INITIAL_BASES: NutritionalBase[] = [];
 
@@ -74,6 +117,5 @@ export const NUTRIENT_SYNONYMS: Record<string, string[]> = {
   'n200020': ['E METABOLIZABLE A', 'EMA', 'ME', 'ENERGIA MET.'],
   'n500015': ['PROTEINA CRUDA', 'PC', 'CP', 'PROTEINA'],
   'n541010': ['CALCIO', 'CA'],
-  'n541020': ['FOSFORO TOTAL', 'PT', 'PHOSPHORUS'],
   'n541050': ['FOSFORO DISPONIBLE A', 'PDA', 'AVP', 'P DISP']
 };
