@@ -8,7 +8,12 @@ export const config = {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
-    if (!API_KEY) return res.status(500).json({ error: 'API_KEY_ERR' });
+    
+    if (!API_KEY) {
+        console.error("DEBUG: API_KEY is MISSING.");
+        console.error("Available Env Vars (Keys only):", Object.keys(process.env).filter(k => k.includes('GEMINI') || k.includes('VITE')));
+        return res.status(500).json({ error: 'API_KEY_ERR', details: "Clave no encontrada en el servidor" });
+    }
 
     try {
         const { action, payload = {} } = req.body || {};
