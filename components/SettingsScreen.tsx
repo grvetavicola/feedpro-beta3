@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslations } from '../lib/i18n/LangContext';
 import { GlobeIcon, MonitorIcon, DatabaseIcon, ShieldCheckIcon, SaveIcon, PlusIcon, UserIcon, TrashIcon, SearchIcon } from './icons';
 import { Client, ViewState, Ingredient, Nutrient, Product } from '../types';
-import { APP_NAME } from '../constants';
+import { APP_NAME, INITIAL_INGREDIENTS } from '../constants';
 
 interface SettingsScreenProps {
     clients: Client[];
@@ -20,14 +20,53 @@ interface SettingsScreenProps {
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClients, onNavigate, uiScale, setUiScale, ingredients, setIngredients, nutrients, setNutrients, products, setProducts }) => {
     const { t, language, setLanguage } = useTranslations();
-    const [newClientName, setNewClientName] = React.useState('');
     const [isSaving, setIsSaving] = React.useState(false);
+    const [showClientForm, setShowClientForm] = React.useState(false);
+    const [clientForm, setClientForm] = React.useState({
+        name: '',
+        matrixSource: 'EMPTY' as 'EMPTY' | 'STANDARD' | string,
+        initialGroup: 'Matriz Base'
+    });
     
+    // Lista de matrices únicas existentes para clonación
+    const availableMatrices = Array.from(new Set(ingredients.map(i => i.matrix).filter(Boolean))) as string[];
+
     const handleAddClient = () => {
-        if (!newClientName) return;
-        const newClient = { id: `c${Date.now()}`, name: newClientName };
+        if (!clientForm.name) return;
+        
+        const newClientId = `c${Date.now()}`;
+        const newClient = { id: newClientId, name: clientForm.name };
+        
+        // --- Lógica de Inicialización de Matriz ---
+        let ingredientsToAdd: Ingredient[] = [];
+        const targetMatrixName = clientForm.initialGroup || clientForm.name;
+
+        if (clientForm.matrixSource === 'STANDARD') {
+            // Usar Matriz Estándar (INITIAL_INGREDIENTS)
+            ingredientsToAdd = INITIAL_INGREDIENTS.map((ing, idx) => ({
+                ...ing,
+                id: `i-std-${newClientId}-${idx}`,
+                matrix: targetMatrixName
+            }));
+        } else if (clientForm.matrixSource !== 'EMPTY') {
+            // Clonar de matriz existente
+            const sourceMatrix = clientForm.matrixSource;
+            ingredientsToAdd = ingredients
+                .filter(ing => ing.matrix === sourceMatrix)
+                .map((ing, idx) => ({
+                    ...ing,
+                    id: `i-clone-${newClientId}-${idx}`,
+                    matrix: targetMatrixName
+                }));
+        }
+
+        if (ingredientsToAdd.length > 0) {
+            setIngredients(prev => [...prev, ...ingredientsToAdd]);
+        }
+        
         setClients([...clients, newClient]);
-        setNewClientName('');
+        setClientForm({ name: '', matrixSource: 'EMPTY', initialGroup: 'Matriz Base' });
+        setShowClientForm(false);
     };
 
     const handleExportMatrix = () => {
@@ -326,19 +365,76 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                                 <p className="text-[10px] text-gray-500 mt-1 uppercase font-bold tracking-widest">Editar identidades y logotipos</p>
                             </div>
                         </div>
-                        <div className="flex gap-2">
-                             <input 
-                                value={newClientName}
-                                onChange={(e) => setNewClientName(e.target.value)}
-                                placeholder="Nombre del nuevo cliente..."
-                                className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-xs text-white focus:border-cyan-500 outline-none w-48"
-                             />
-                             <button 
-                                onClick={handleAddClient}
-                                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl flex items-center gap-2 transition-all shadow-lg text-xs"
-                             >
-                                 <PlusIcon className="w-4 h-4" /> Añadir
-                             </button>
+                        <div className="flex flex-col gap-2 relative">
+                             {!showClientForm ? (
+                                <button 
+                                    onClick={() => setShowClientForm(true)}
+                                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg text-xs"
+                                >
+                                     <PlusIcon className="w-4 h-4" /> Crear Nuevo Cliente
+                                </button>
+                             ) : (
+                                <div className="bg-gray-950 border border-emerald-500/30 p-4 rounded-2xl shadow-2xl space-y-3 w-[320px] absolute right-0 top-0 z-50 animate-in fade-in zoom-in duration-200">
+                                    <h4 className="text-[11px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                                        <DatabaseIcon className="w-3 h-3" /> Nuevo Cliente & Matriz
+                                    </h4>
+                                    
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] font-bold text-gray-500 uppercase">Nombre del Cliente</label>
+                                        <input 
+                                            autoFocus
+                                            value={clientForm.name}
+                                            onChange={(e) => setClientForm({...clientForm, name: e.target.value})}
+                                            placeholder="Ej: Granja Avícola..."
+                                            className="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-xs text-white focus:border-emerald-500 outline-none transition-all"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] font-bold text-gray-500 uppercase">Inicializar Matriz desde:</label>
+                                        <select 
+                                            value={clientForm.matrixSource}
+                                            onChange={(e) => setClientForm({...clientForm, matrixSource: e.target.value})}
+                                            className="w-full bg-gray-900 border border-gray-800 rounded-lg px-2 py-2 text-xs text-cyan-400 font-bold outline-none focus:border-emerald-500 cursor-pointer"
+                                        >
+                                            <option value="EMPTY">Matriz Vacía (En Blanco)</option>
+                                            <option value="STANDARD">Matriz Estándar (Base Sistema)</option>
+                                            {availableMatrices.length > 0 && <optgroup label="Copiar de Existente:">
+                                                {availableMatrices.map(m => (
+                                                    <option key={m} value={m}>{m}</option>
+                                                ))}
+                                            </optgroup>}
+                                        </select>
+                                    </div>
+
+                                    {clientForm.matrixSource !== 'EMPTY' && (
+                                        <div className="space-y-1 animate-in slide-in-from-top-2 duration-200">
+                                            <label className="text-[9px] font-bold text-gray-500 uppercase">Nombre de Grupo de Matriz</label>
+                                            <input 
+                                                value={clientForm.initialGroup}
+                                                onChange={(e) => setClientForm({...clientForm, initialGroup: e.target.value})}
+                                                className="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-[10px] text-white focus:border-emerald-500 outline-none"
+                                            />
+                                        </div>
+                                    )}
+
+                                    <div className="flex gap-2 pt-2">
+                                        <button 
+                                            onClick={() => setShowClientForm(false)}
+                                            className="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-400 py-2 rounded-lg text-[10px] font-bold uppercase transition-all"
+                                        >
+                                            Cancelar
+                                        </button>
+                                        <button 
+                                            onClick={handleAddClient}
+                                            disabled={!clientForm.name}
+                                            className="flex-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-all shadow-lg shadow-emerald-900/20 disabled:opacity-50"
+                                        >
+                                            Finalizar y Crear
+                                        </button>
+                                    </div>
+                                </div>
+                             )}
                         </div>
                     </div>
 
