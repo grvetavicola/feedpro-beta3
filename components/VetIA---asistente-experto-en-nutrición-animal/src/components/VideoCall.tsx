@@ -265,7 +265,7 @@ export default function VideoCall() {
     try {
       const response = await ai.models.generateContent({
         model: "gemini-2.0-flash",
-        contents: { parts: [{ text }] },
+        contents: [{ role: 'user', parts: [{ text }] }],
         config: {
           systemInstruction: VETIA_SYSTEM_PROMPT
         }

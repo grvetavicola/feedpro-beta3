@@ -12,7 +12,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     try {
         const { action, payload = {} } = req.body || {};
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+        const modelName = payload.model || 'gemini-1.5-flash';
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${API_KEY}`;
 
         let geminiPayload: any = {};
         if (action === 'chatWithAssistant') {
@@ -50,7 +51,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const candidate = data.candidates?.[0];
         const text = candidate?.content?.parts?.find((p: any) => p.text)?.text || '';
-        const functionCalls = candidate?.content?.parts?.filter((p: any) => p.functionCall)?.map((p: any) => p.functionCall) || [];
+        
+        // Mapear function_call (Google REST) a toolCalls (esperado por el frontend)
+        const functionCalls = candidate?.content?.parts
+            ?.filter((p: any) => p.function_call)
+            ?.map((p: any) => ({
+                name: p.function_call.name,
+                args: p.function_call.args
+            })) || [];
 
         return res.status(200).json({ text, toolCalls: functionCalls });
 

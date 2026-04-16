@@ -163,7 +163,7 @@ export const chatWithAssistant = async (
 
     const tools = [
         {
-            functionDeclarations: [
+            function_declarations: [
                 {
                     name: "set_ingredient_price",
                     description: "Actualiza el precio de un ingrediente específico en la matriz.",
