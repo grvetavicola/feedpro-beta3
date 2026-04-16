@@ -6,7 +6,7 @@ import { ConsolidatedExportTable } from './ConsolidatedExportTable';
 import { 
   CalculatorIcon, RefreshIcon, XCircleIcon, CheckIcon, 
   TrashIcon, SearchIcon, ChevronDownIcon, ChevronLeftIcon, 
-  ChevronRightIcon, ArrowLeftIcon, ZapIcon 
+  ChevronRightIcon, ArrowLeftIcon, ZapIcon, CubeIcon 
 } from './icons';
 import { ActiveTask, ClientWorkspace, IngredientDelta } from '../types';
 
@@ -186,6 +186,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
   const [batchSizes, setBatchSizes] = useState<Record<string, number>>({});
   const [results, setResults] = useState<Record<string, DietResult>>({});
   const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
+  const [isMatrixView, setIsMatrixView] = useState(false);
 
   const activeIngredientIds = useMemo(() => 
     activeRows.filter(r => r.type === 'ing').map(r => r.id),
@@ -480,6 +481,13 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                <button onClick={() => setViewMode('limits')} className={`px-6 text-[11px] font-black uppercase transition-all ${viewMode === 'limits' ? 'bg-[#00D1FF] text-white' : 'text-slate-300 hover:text-slate-300'}`}>Límites</button>
                <button onClick={() => setViewMode('kg')} className={`px-6 text-[11px] font-black uppercase transition-all ${viewMode === 'kg' ? 'bg-[#00D1FF] text-white' : 'text-slate-300 hover:text-slate-300'}`}>Resultados</button>
             </div>
+            <button 
+              onClick={() => setIsMatrixView(!isMatrixView)}
+              className={`flex items-center gap-3 h-9 px-6 rounded-[1.25rem] border font-black uppercase text-[10px] tracking-widest transition-all active:scale-95 ${isMatrixView ? 'bg-emerald-500 text-white border-emerald-400 border-b-2 shadow-[0_0_15px_rgba(16,185,129,0.3)]' : 'bg-black/40 text-slate-400 border-slate-700/80'}`}
+            >
+              <CubeIcon className="w-4 h-4" />
+              {isMatrixView ? 'VISTA ESTÁNDAR' : 'VISTA MATRIZ'}
+            </button>
          </div>
          <div className="flex-1 flex items-center justify-end gap-16">
             <div className="flex flex-col items-center"><span className="text-[12px] font-black text-[#00D1FF] font-mono leading-none tracking-tighter">{activeDiets.length}</span><span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">DIETAS</span></div>
@@ -545,8 +553,8 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       const theme = getDietTheme(diet.category || '');
                       return (
                         <React.Fragment key={diet.id}>
-                          <th className="w-4 min-w-[16px] bg-[#030303] border-none" />
-                          <th className={`p-0 text-center relative border-b-2 border-slate-700/80 w-[320px] min-w-[320px] rounded-t-3xl border-t-2`} style={{ borderTopColor: theme.borderT, boxShadow: theme.glow, backgroundColor: theme.cellSubtle }}>
+                          <th className="sticky top-0 w-4 min-w-[16px] bg-[#030303] border-none z-[60]" />
+                          <th className={`sticky top-0 p-0 text-center relative border-b-2 border-slate-700/80 ${isMatrixView ? 'w-[140px] min-w-[140px]' : 'w-[320px] min-w-[320px]'} rounded-t-3xl border-t-2 transition-all duration-500 z-[60]`} style={{ borderTopColor: theme.borderT, boxShadow: theme.glow, backgroundColor: '#0a0a0a' }}>
                              <div className="flex flex-col items-center justify-center h-28 relative pt-4">
                                 <div className="absolute top-2 right-2 flex gap-1">
                                    <button 
@@ -562,17 +570,19 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                      <span className="text-[9px] font-black uppercase">Quitar</span>
                                    </button>
                                 </div>
-                                <h3 className="text-[15px] font-black uppercase tracking-[0.15em] mb-3 font-mono px-8 leading-tight text-center" style={{ color: theme.accent }}>{diet.name}</h3>
-                                <div className="flex items-center gap-3 bg-black/40 px-4 py-2 rounded-full border border-slate-700/50 shadow-inner">
-                                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">LT:</span>
-                                  <input
-                                    type="number"
-                                    value={batchSizes[diet.id] || 1000}
-                                    onChange={(e) => setBatchSizes(prev => ({...prev, [diet.id]: Number(e.target.value)}))}
-                                    className="w-14 bg-transparent border-none text-[13px] font-black focus:outline-none focus:ring-0 p-0 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                    style={{ color: theme.accent }}
-                                  />
-                                </div>
+                                <h3 className={`${isMatrixView ? 'text-[11px]' : 'text-[15px]'} font-black uppercase tracking-[0.15em] mb-3 font-mono px-2 leading-tight text-center transition-all`} style={{ color: theme.accent }}>{diet.name}</h3>
+                                 {!isMatrixView && (
+                                   <div className="flex items-center gap-3 bg-black/40 px-4 py-2 rounded-full border border-slate-700/50 shadow-inner">
+                                     <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">LT:</span>
+                                     <input
+                                       type="number"
+                                       value={batchSizes[diet.id] || 1000}
+                                       onChange={(e) => setBatchSizes(prev => ({...prev, [diet.id]: Number(e.target.value)}))}
+                                       className="w-14 bg-transparent border-none text-[13px] font-black focus:outline-none focus:ring-0 p-0 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                       style={{ color: theme.accent }}
+                                     />
+                                   </div>
+                                 )}
                              </div>
                           </th>
                         </React.Fragment>
@@ -595,13 +605,13 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       return (
                         <React.Fragment key={`h1-${diet.id}`}>
                           <td className="w-4 bg-[#030303] border-none" />
-                          <td className={`p-0 border-b border-slate-700/50`} style={{ backgroundColor: theme.cellSubtle }}>
-                             <div className="grid grid-cols-5 h-14 divide-x divide-slate-700/20">
-                                <div className={`flex items-center justify-center text-[10px] font-black opacity-40 uppercase tracking-widest`} style={{ color: theme.accent }}>MIN</div>
-                                <div className={`flex items-center justify-center text-[10px] font-black opacity-40 uppercase tracking-widest`} style={{ color: theme.accent }}>MAX</div>
+                          <td className={`p-0 border-b border-slate-700/50 transition-all bg-[#0a0a0a]`}>
+                             <div className={`grid ${isMatrixView ? 'grid-cols-1' : 'grid-cols-5'} h-14 divide-x divide-slate-700/20`}>
+                                {!isMatrixView && <div className={`flex items-center justify-center text-[10px] font-black opacity-40 uppercase tracking-widest`} style={{ color: theme.accent }}>MIN</div>}
+                                {!isMatrixView && <div className={`flex items-center justify-center text-[10px] font-black opacity-40 uppercase tracking-widest`} style={{ color: theme.accent }}>MAX</div>}
                                 <div className={`flex items-center justify-center text-[10px] font-black uppercase tracking-widest`} style={{ color: theme.accent }}>ACT</div>
-                                <div className={`flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-purple-400 opacity-60`}>ANT</div>
-                                <div className={`flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-yellow-500 opacity-60`}>SOMBRA</div>
+                                {!isMatrixView && <div className={`flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-purple-400 opacity-60`}>ANT</div>}
+                                {!isMatrixView && <div className={`flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-yellow-500 opacity-60`}>SOMBRA</div>}
                              </div>
                           </td>
                         </React.Fragment>
@@ -636,13 +646,13 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                          return (
                            <React.Fragment key={diet.id}>
                              <td className="w-4 bg-[#030303] border-none" />
-                             <td className={`p-0 border-b border-slate-700/20 h-11`} style={{ backgroundColor: theme.cellSubtle }}>
-                                <div className="grid grid-cols-5 h-full divide-x divide-white/[0.03]">
-                                   <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id] || 1000} feasible={res?.feasible ?? true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={rIdx} />
-                                   <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id] || 1000} feasible={res?.feasible ?? true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={rIdx} />
+                             <td className={`p-0 border-b border-slate-700/20 h-11 transition-all`} style={{ backgroundColor: theme.cellSubtle }}>
+                                <div className={`grid ${isMatrixView ? 'grid-cols-1' : 'grid-cols-5'} h-full divide-x divide-white/[0.03]`}>
+                                   {!isMatrixView && <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id] || 1000} feasible={res?.feasible ?? true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={rIdx} />}
+                                   {!isMatrixView && <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id] || 1000} feasible={res?.feasible ?? true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={rIdx} />}
                                    <DiagnosticCell row={row} dietId={diet.id} value={sol} isResult resultValue={sol} viewMode={viewMode} batchSize={batchSizes[diet.id] || 1000} feasible={res?.feasible ?? true} shadowPrice={res?.shadowPrices[row.id]} hasRun={hasRun} cellIndex={2} rowIndex={rIdx} min={c?.min} max={c?.max} />
-                                   <DiagnosticCell row={row} dietId={diet.id} value={antSol} isResult resultValue={antSol} viewMode={viewMode} batchSize={batchSizes[diet.id] || 1000} feasible={true} hasRun={hasRun} cellIndex={3} rowIndex={rIdx} themeColor="text-purple-400 opacity-60" />
-                                   <DiagnosticCell row={row} dietId={diet.id} value={shadowPrice} isResult resultValue={shadowPrice} viewMode="limits" batchSize={batchSizes[diet.id] || 1000} feasible={true} hasRun={hasRun} cellIndex={4} rowIndex={rIdx} themeColor="text-yellow-500 opacity-60" />
+                                   {!isMatrixView && <DiagnosticCell row={row} dietId={diet.id} value={antSol} isResult resultValue={antSol} viewMode={viewMode} batchSize={batchSizes[diet.id] || 1000} feasible={true} hasRun={hasRun} cellIndex={3} rowIndex={rIdx} themeColor="text-purple-400 opacity-60" />}
+                                   {!isMatrixView && <DiagnosticCell row={row} dietId={diet.id} value={shadowPrice} isResult resultValue={shadowPrice} viewMode="limits" batchSize={batchSizes[diet.id] || 1000} feasible={true} hasRun={hasRun} cellIndex={4} rowIndex={rIdx} themeColor="text-yellow-500 opacity-60" />}
                                 </div>
                              </td>
                            </React.Fragment>
@@ -664,13 +674,13 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       return (
                         <React.Fragment key={`h2-${diet.id}`}>
                           <td className="w-4 bg-[#030303] border-none" />
-                          <td className={`p-0 border-b border-slate-700/80 bg-[#0a0a0a]`} style={{ backgroundColor: theme.cellSubtle }}>
-                             <div className="grid grid-cols-5 h-14 divide-x divide-slate-700/50">
-                                <div className={`flex items-center justify-center text-[10px] font-black opacity-40 uppercase tracking-widest`} style={{ color: theme.accent }}>MIN</div>
-                                <div className={`flex items-center justify-center text-[10px] font-black opacity-40 uppercase tracking-widest`} style={{ color: theme.accent }}>MAX</div>
+                          <td className={`p-0 border-b border-slate-700/80 bg-[#0a0a0a] transition-all`}>
+                             <div className={`grid ${isMatrixView ? 'grid-cols-1' : 'grid-cols-5'} h-14 divide-x divide-slate-700/50`}>
+                                {!isMatrixView && <div className={`flex items-center justify-center text-[10px] font-black opacity-40 uppercase tracking-widest`} style={{ color: theme.accent }}>MIN</div>}
+                                {!isMatrixView && <div className={`flex items-center justify-center text-[10px] font-black opacity-40 uppercase tracking-widest`} style={{ color: theme.accent }}>MAX</div>}
                                 <div className={`flex items-center justify-center text-[10px] font-black uppercase tracking-widest`} style={{ color: theme.accent }}>ACT</div>
-                                <div className={`flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-purple-400 opacity-60`}>ANT</div>
-                                <div className={`flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-yellow-500 opacity-60`}>SOMBRA</div>
+                                {!isMatrixView && <div className={`flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-purple-400 opacity-60`}>ANT</div>}
+                                {!isMatrixView && <div className={`flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-yellow-500 opacity-60`}>SOMBRA</div>}
                              </div>
                           </td>
                         </React.Fragment>
@@ -707,13 +717,13 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                           return (
                             <React.Fragment key={diet.id}>
                               <td className="w-4 bg-[#030303] border-none" />
-                              <td className={`p-0 border-b border-slate-700/20 h-11`} style={{ backgroundColor: theme.cellSubtle }}>
-                                 <div className="grid grid-cols-5 h-full divide-x divide-white/[0.03]">
-                                    <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id] || 1000} feasible={res?.feasible ?? true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={baseIdx + rIdx} />
-                                    <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id] || 1000} feasible={res?.feasible ?? true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={baseIdx + rIdx} />
+                              <td className={`p-0 border-b border-slate-700/20 h-11 transition-all`} style={{ backgroundColor: theme.cellSubtle }}>
+                                 <div className={`grid ${isMatrixView ? 'grid-cols-1' : 'grid-cols-5'} h-full divide-x divide-white/[0.03]`}>
+                                    {!isMatrixView && <DiagnosticCell row={row} dietId={diet.id} value={c?.min} viewMode={viewMode} batchSize={batchSizes[diet.id] || 1000} feasible={res?.feasible ?? true} onChange={v => updateConstraint(row.id, diet.id, 'min', v)} hasRun={hasRun} cellIndex={0} rowIndex={baseIdx + rIdx} />}
+                                    {!isMatrixView && <DiagnosticCell row={row} dietId={diet.id} value={c?.max} viewMode={viewMode} batchSize={batchSizes[diet.id] || 1000} feasible={res?.feasible ?? true} onChange={v => updateConstraint(row.id, diet.id, 'max', v)} hasRun={hasRun} cellIndex={1} rowIndex={baseIdx + rIdx} />}
                                     <DiagnosticCell row={row} dietId={diet.id} value={val} isResult resultValue={val} viewMode={viewMode} batchSize={batchSizes[diet.id] || 1000} feasible={res?.feasible ?? true} shadowPrice={res?.shadowPrices[row.id]} hasRun={hasRun} cellIndex={2} rowIndex={baseIdx + rIdx} min={c?.min} max={c?.max} />
-                                    <DiagnosticCell row={row} dietId={diet.id} value={antVal} isResult resultValue={antVal} viewMode={viewMode} batchSize={batchSizes[diet.id] || 1000} feasible={true} hasRun={hasRun} cellIndex={3} rowIndex={baseIdx + rIdx} themeColor="text-purple-400 opacity-60" />
-                                    <DiagnosticCell row={row} dietId={diet.id} value={shadowPrice} isResult resultValue={shadowPrice} viewMode="limits" batchSize={batchSizes[diet.id] || 1000} feasible={true} hasRun={hasRun} cellIndex={4} rowIndex={baseIdx + rIdx} themeColor="text-yellow-500 opacity-60" />
+                                    {!isMatrixView && <DiagnosticCell row={row} dietId={diet.id} value={antVal} isResult resultValue={antVal} viewMode={viewMode} batchSize={batchSizes[diet.id] || 1000} feasible={true} hasRun={hasRun} cellIndex={3} rowIndex={baseIdx + rIdx} themeColor="text-purple-400 opacity-60" />}
+                                    {!isMatrixView && <DiagnosticCell row={row} dietId={diet.id} value={shadowPrice} isResult resultValue={shadowPrice} viewMode="limits" batchSize={batchSizes[diet.id] || 1000} feasible={true} hasRun={hasRun} cellIndex={4} rowIndex={baseIdx + rIdx} themeColor="text-yellow-500 opacity-60" />}
                                  </div>
                               </td>
                             </React.Fragment>
@@ -740,7 +750,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       return (
                         <React.Fragment key={`diag-${diet.id}`}>
                            <td className="w-4 bg-[#030303] border-none" />
-                           <td className={`p-6 border-b border-slate-700/50 align-top rounded-b-3xl ${theme.glow} border-b-2`} style={{ backgroundColor: theme.cellSubtle }}>
+                           <td className={`p-6 border-b border-slate-700/50 align-top rounded-b-3xl ${theme.glow} border-b-2 bg-[#0a0a0a]`}>
                              {res && hasRun ? (
                                <div className="space-y-3">
                                  <div className={`text-[28px] font-black font-mono leading-none tracking-tighter ${res.feasible ? 'text-white' : 'text-rose-500'}`}>
@@ -749,7 +759,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                  <div className="flex items-center gap-2">
                                    <div className={`h-1.5 w-1.5 rounded-full ${res.feasible ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-rose-500'}`} />
                                    <div className={`text-[10px] uppercase tracking-[0.2em] font-black ${res.feasible ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                     {res.feasible ? 'Óptimo' : 'Infactible'}
+                                      {res.feasible ? 'Óptimo' : 'Infactible'}
                                    </div>
                                  </div>
                                </div>

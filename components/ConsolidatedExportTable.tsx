@@ -49,7 +49,7 @@ export const ConsolidatedExportTable: React.FC<Props> = ({
   const subHeaderStyle = { ...tdStyle, backgroundColor: '#f0f0f0', textAlign: 'center' as const, fontSize: '10px', fontWeight: 'bold' as const };
 
   return (
-    <div className="mt-20 mb-32 p-10 bg-white border-4 border-double border-slate-300 rounded-none shadow-2xl mx-auto max-w-[98%]">
+    <div className="mt-20 mb-32 p-10 bg-[#0a0a0a]/80 backdrop-blur-xl border border-slate-800 rounded-[3rem] shadow-2xl mx-auto max-w-[98%] ring-1 ring-white/5">
       <div className="flex items-center justify-between mb-8 border-b-2 border-slate-200 pb-6">
         <div>
           <h2 className="text-3xl font-black uppercase text-black font-serif">Reporte de Formulación Grupal</h2>
@@ -64,7 +64,7 @@ export const ConsolidatedExportTable: React.FC<Props> = ({
             {showPreview ? 'Cerrar Vista' : 'Vista Previa'}
           </button>
           
-          <button 
+            <button 
             onClick={downloadExcel}
             className="flex items-center gap-3 bg-emerald-600 hover:bg-emerald-700 text-white px-10 py-5 font-black uppercase tracking-widest transition-all active:scale-95 shadow-xl border-b-4 border-emerald-900"
           >
@@ -75,14 +75,17 @@ export const ConsolidatedExportTable: React.FC<Props> = ({
       </div>
 
       {!showPreview && (
-        <div className="py-20 text-center flex flex-col items-center opacity-30 bg-slate-50 border-2 border-dashed border-slate-200">
-           <SearchIcon className="w-12 h-12 text-slate-400 mb-4" />
-           <p className="text-sm font-serif italic text-slate-500 uppercase tracking-widest">Presione "VISTA PREVIA" para visualizar la planilla plana antes de exportar</p>
+        <div className="py-20 text-center flex flex-col items-center opacity-70 bg-black/40 border-2 border-dashed border-slate-700/50 rounded-[2rem] backdrop-blur-sm shadow-2xl">
+           <div className="w-20 h-20 bg-indigo-500/10 rounded-full flex items-center justify-center mb-6 border border-indigo-500/20">
+             <SearchIcon className="w-8 h-8 text-indigo-400" />
+           </div>
+           <p className="text-sm font-black text-indigo-300 uppercase tracking-[0.2em] mb-2 font-mono">Vista Previa Desactivada</p>
+           <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest max-w-sm leading-relaxed">Presione el botón de vista previa para generar la planilla de exportación antes de la descarga</p>
         </div>
       )}
 
       {showPreview && (
-        <div className="overflow-auto border border-black p-1 bg-white animate-fade-in">
+        <div className="overflow-auto border-2 border-slate-700/50 p-6 bg-white rounded-[2rem] shadow-[0_35px_60px_-15px_rgba(0,0,0,0.5)] animate-fade-in ring-1 ring-white/10">
         <table ref={tableRef} style={{ borderCollapse: 'collapse', width: '100%', color: 'black', backgroundColor: 'white', fontFamily: 'Calibri, Arial, sans-serif' }}>
           <thead>
             <tr>
