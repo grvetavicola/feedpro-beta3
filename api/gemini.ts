@@ -57,10 +57,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
 
         const data = await resp.json();
+        
+        // LOG PROFUNDO PARA DEPURACIÓN
+        console.log("--- DEBUG AI CALL ---");
+        console.log("Action:", action);
+        console.log("Model:", modelName);
+        console.log("Payload Sent Keys:", Object.keys(geminiPayload));
+        console.log("Response Status:", resp.status);
+        
         if (!resp.ok) {
-            console.error("Google API Error Response:", JSON.stringify(data));
+            console.error("GOOGLE API ERROR:", JSON.stringify(data, null, 2));
             return res.status(resp.status).json(data);
         }
+        console.log("--- DEBUG AI SUCCESS ---");
 
         const candidate = data.candidates?.[0];
         const text = candidate?.content?.parts?.find((p: any) => p.text)?.text || '';
