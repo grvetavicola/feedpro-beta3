@@ -72,12 +72,14 @@ const SelectionModal = ({
     onAdd,
     title,
     triggerLabel,
+    triggerClassName,
     disabled = false
 }: {
     options: { id: string; name: string; sub?: string; code?: number }[];
     onAdd: (ids: string[]) => void;
     title: string;
     triggerLabel: string;
+    triggerClassName?: string;
     disabled?: boolean;
 }) => {
     const { t } = useTranslations();
@@ -104,9 +106,13 @@ const SelectionModal = ({
     };
 
     if (!isOpen) return (
-        <button onClick={() => !disabled && setIsOpen(true)} disabled={disabled} className="w-full bg-gray-800 border border-gray-700 hover:border-cyan-500 rounded-lg px-4 py-2 text-sm text-gray-300 flex justify-between items-center transition-all">
-            <span>{triggerLabel}</span>
-            <PlusIcon className="w-4 h-4 text-cyan-400" />
+        <button 
+            onClick={() => !disabled && setIsOpen(true)} 
+            disabled={disabled} 
+            className={triggerClassName || "w-full bg-gray-800 border border-gray-700 hover:border-cyan-500 rounded-lg px-4 py-2 text-sm text-gray-300 flex justify-between items-center transition-all"}
+        >
+            <span className="font-black uppercase tracking-widest">{triggerLabel}</span>
+            <PlusIcon className="w-4 h-4" />
         </button>
     );
 
@@ -745,7 +751,15 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                                 <div className="w-[60%] flex flex-col bg-gray-800/40 rounded-xl border border-gray-700/80 shadow-inner overflow-hidden">
                                     <div className="flex justify-between items-center p-3 bg-green-900/20 border-b border-gray-700/80 shrink-0">
                                         <h3 className="font-black text-[14px] text-green-400 flex items-center gap-2 uppercase tracking-wide"><FlaskIcon className="w-4 h-4"/> {t('products.ingredientsInclusion')}</h3>
-                                        <div className="w-48"><SelectionModal title={t('products.selectIngredients')} triggerLabel={"+ " + t('common.inclusion')} options={ingredients.map(i => ({id: i.id, name: i.name, sub: '$' + i.price, code: i.code}))} onAdd={addIngredients} /></div>
+                                        <div className="w-44">
+                                            <SelectionModal 
+                                                title={t('products.selectIngredients')} 
+                                                triggerLabel="+ Insumos" 
+                                                triggerClassName="w-full bg-green-600 hover:bg-green-500 text-white rounded-xl px-4 py-2 text-[11px] font-black flex justify-between items-center transition-all shadow-lg shadow-green-900/20"
+                                                options={ingredients.map(i => ({id: i.id, name: i.name, sub: '$' + i.price, code: i.code}))} 
+                                                onAdd={addIngredients} 
+                                            />
+                                        </div>
                                     </div>
                                     <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
                                         <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-3">
@@ -772,7 +786,15 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({
                                 <div className="w-[40%] flex flex-col bg-gray-800/40 rounded-xl border border-gray-700/80 shadow-inner overflow-hidden">
                                     <div className="flex justify-between items-center p-3 bg-indigo-900/20 border-b border-gray-700/80 shrink-0">
                                         <h3 className="font-black text-[14px] text-indigo-400 flex items-center gap-2 uppercase tracking-wide"><FlaskIcon className="w-4 h-4"/> {t('nav.nutrients')}</h3>
-                                        <div className="w-48"><SelectionModal title={t('products.selectNutrients')} triggerLabel={"+ " + t('common.nutrient')} options={nutrients.map(n => ({id: n.id, name: n.name, sub: n.unit, code: n.code}))} onAdd={addNutrients} /></div>
+                                        <div className="w-44">
+                                            <SelectionModal 
+                                                title={t('products.selectNutrients')} 
+                                                triggerLabel="+ Nutrientes" 
+                                                triggerClassName="w-full bg-purple-600 hover:bg-purple-500 text-white rounded-xl px-4 py-2 text-[11px] font-black flex justify-between items-center transition-all shadow-lg shadow-purple-900/20"
+                                                options={nutrients.map(n => ({id: n.id, name: n.name, sub: n.unit, code: n.code}))} 
+                                                onAdd={addNutrients} 
+                                            />
+                                        </div>
                                     </div>
                                     <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
                                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
