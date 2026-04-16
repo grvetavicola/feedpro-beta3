@@ -38,7 +38,7 @@ const callServerlessAI = async (action: string, payload: any): Promise<string> =
     
     if (isProduction || !localAiInstance) {
         try {
-            const res = await fetch('/api/assistant', {
+            const res = await fetch('/api/gemini', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action, payload })
@@ -207,7 +207,7 @@ export const chatWithAssistant = async (
         const isProduction = import.meta.env.PROD || window.location.hostname !== 'localhost'; 
         
         if (isProduction || !localAiInstance) {
-            const res = await fetch('/api/assistant', {
+            const res = await fetch('/api/gemini', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
