@@ -638,11 +638,11 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                       </td>
                       {activeDiets.map((diet) => {
                          const c = (constraints[row.id]?.[diet.id] || {}) as any;
-                         const res = results[diet.id];
-                         const sol = res?.formula[row.id] ?? 0;
-                         const antSol = res?.previousFormula?.[row.id] ?? 0;
-                         const shadowPrice = res?.shadowPrices[row.id] ?? 0;
-                         const theme = getDietTheme(diet.category || '');
+                          const res = results[diet.id];
+                          const sol = res?.formula[row.id] ?? 0;
+                          const antSol = res?.previousFormula?.[row.id] ?? 0;
+                          const shadowPrice = (res?.shadowPrices && res.shadowPrices[row.id]) ?? 0;
+                          const theme = getDietTheme(diet.category || '');
                          return (
                            <React.Fragment key={diet.id}>
                              <td className="w-4 bg-[#030303] border-none" />
@@ -712,7 +712,7 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                           const res = results[diet.id];
                           const val = res?.nutrients[row.id] ?? 0;
                           const antVal = res?.previousNutrients?.[row.id] ?? 0;
-                          const shadowPrice = res?.shadowPrices[row.id] ?? 0;
+                          const shadowPrice = (res?.shadowPrices && res.shadowPrices[row.id]) ?? 0;
                           const theme = getDietTheme(diet.category || '');
                           return (
                             <React.Fragment key={diet.id}>
@@ -756,6 +756,11 @@ export const GroupOptimizationScreen: React.FC<GroupOptimizationScreenProps> = (
                                  <div className={`text-[28px] font-black font-mono leading-none tracking-tighter ${res.feasible ? 'text-white' : 'text-rose-500'}`}>
                                    ${res.costPerKg.toFixed(2)}
                                  </div>
+                                 {res.prevCostPerKg && (
+                                   <div className="text-[11px] font-black text-purple-400/80 font-mono uppercase tracking-widest bg-purple-500/5 px-2 py-1 rounded inline-block mt-2">
+                                     ANT: ${res.prevCostPerKg.toFixed(2)}
+                                   </div>
+                                 )}
                                  <div className="flex items-center gap-2">
                                    <div className={`h-1.5 w-1.5 rounded-full ${res.feasible ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-rose-500'}`} />
                                    <div className={`text-[10px] uppercase tracking-[0.2em] font-black ${res.feasible ? 'text-emerald-500' : 'text-rose-500'}`}>
