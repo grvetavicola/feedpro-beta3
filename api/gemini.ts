@@ -40,7 +40,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 return res.status(400).json({ error: 'BAD_REQUEST', message: 'El payload requiere un prompt o una imagen.' });
             }
 
-            const activeModel = (modelName as string) === 'gemini-3-flash-preview' ? 'gemini-1.5-flash' : (modelName || 'gemini-1.5-flash');
+            const activeModel = (modelName as string) === 'gemini-3-flash-preview' ? 'gemini-2.5-flash' : (modelName || 'gemini-2.5-flash');
 
             const parts: any[] = [];
             if (prompt) parts.push({ text: prompt });
@@ -82,7 +82,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const { prompt, model: modelName } = payload;
             if (!prompt) return res.status(400).json({ error: 'BAD_REQUEST', message: 'Falta el prompt para analizar.' });
 
-            const activeModel = (modelName as string) === 'gemini-3-flash-preview' ? 'gemini-1.5-flash' : (modelName || 'gemini-1.5-flash');
+            const activeModel = (modelName as string) === 'gemini-3-flash-preview' ? 'gemini-2.5-flash' : (modelName || 'gemini-2.5-flash');
 
             const response = await ai.models.generateContent({
                 model: activeModel,
@@ -95,7 +95,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const { systemInstruction, parts, model: modelName } = payload;
             if (!parts || !Array.isArray(parts)) return res.status(400).json({ error: 'BAD_REQUEST', message: 'Faltan las partes (parts) para el parseo.' });
 
-            const activeModel = (modelName as string) === 'gemini-3-flash-preview' ? 'gemini-1.5-flash' : (modelName || 'gemini-1.5-flash');
+            const activeModel = (modelName as string) === 'gemini-3-flash-preview' ? 'gemini-2.5-flash' : (modelName || 'gemini-2.5-flash');
 
             const aiConfig: any = {
                 responseMimeType: "application/json"
