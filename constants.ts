@@ -58,7 +58,8 @@ export const INITIAL_INGREDIENTS: Ingredient[] = [
   { id: 'i11', code: 602020, name: 'Carbonato de Calcio', category: 'MICRO', price: 0, stock: 100000, nutrients: { 'n541010': 33 } },
   { id: 'i12', code: 603010, name: 'Fosbic (Bical 18%)', category: 'MICRO', price: 0, stock: 100000, nutrients: { 'n541010': 26, 'n541050': 18 } },
   { id: 'i13', code: 701050, name: 'Metionina', category: 'MICRO', price: 0, stock: 100000, nutrients: { 'n510040': 99, 'n521030': 99 } },
-  { id: 'i14', code: 701060, name: 'Treonina', category: 'MICRO', price: 0, stock: 100000, nutrients: { 'n510030': 98, 'n521020': 98 } }
+  { id: 'i14', code: 701060, name: 'Treonina', category: 'MICRO', price: 0, stock: 100000, nutrients: { 'n510030': 98, 'n521020': 98 } },
+  { id: 'i15', code: 604010, name: 'Sal', category: 'MICRO', price: 0, stock: 100000, nutrients: { 'n551020': 39.3, 'n551030': 60.0 } }
 ];
 
 const DEFAULT_NUTRIENT_CONSTRAINTS = [
