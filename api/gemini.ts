@@ -18,7 +18,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
         const { action, payload = {} } = req.body || {};
         const modelName = payload.model || 'gemini-1.5-flash';
-        const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${API_KEY}`;
+        // Volvemos a v1beta que es más robusta para function calling
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${API_KEY}`;
 
         let geminiPayload: any = {};
         
@@ -36,9 +37,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             if (prompt) parts.push({ text: prompt });
             
             geminiPayload = {
-                contents: [{ role: 'user', parts }],
-                tools: tools?.length ? tools : undefined
+                contents: [{ role: 'user', parts }]
             };
+
+            // Solo incluimos tools si realmente hay declaraciones
+            if (tools && tools.length > 0 && tools[0].function_declarations?.length > 0) {
+                geminiPayload.tools = tools;
+            }
         } else if (action === 'analyzeFormula') {
             geminiPayload = {
                 contents: [{ role: 'user', parts: [{ text: payload.prompt }] }]
@@ -63,18 +68,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const data = await resp.json();
         
-        // LOG PROFUNDO PARA DEPURACIÓN
-        console.log("--- DEBUG AI CALL ---");
-        console.log("Action:", action);
-        console.log("Model:", modelName);
-        console.log("Payload Sent Keys:", Object.keys(geminiPayload));
-        console.log("Response Status:", resp.status);
-        
         if (!resp.ok) {
             console.error("GOOGLE API ERROR:", JSON.stringify(data, null, 2));
             return res.status(resp.status).json(data);
         }
-        console.log("--- DEBUG AI SUCCESS ---");
 
         const candidate = data.candidates?.[0];
         const text = candidate?.content?.parts?.find((p: any) => p.text)?.text || '';
