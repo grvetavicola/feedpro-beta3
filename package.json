@@ -27,7 +27,7 @@
     ]
   },
   "dependencies": {
-    "@google/genai": "^1.34.0",
+    "@google/genai": "^1.50.1",
     "ag-grid-community": "^35.2.0",
     "ag-grid-react": "^35.2.0",
     "glpk.js": "^5.0.0",
