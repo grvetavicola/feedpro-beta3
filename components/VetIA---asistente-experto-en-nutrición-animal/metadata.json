@@ -1,0 +1,6 @@
+{
+  "name": "VetIA - Asistente Experto en Nutrición Animal",
+  "description": "Un asistente interactivo con voz y animación para apoyo en terreno sobre nutrición animal. Analiza fórmulas, tablas y fotos con precisión.",
+  "requestFramePermissions": ["microphone", "camera"],
+  "majorCapabilities": []
+}

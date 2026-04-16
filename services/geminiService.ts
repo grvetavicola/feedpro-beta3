@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
+// Removed @google/genai dependency for stability
 import { FormulationResult, Product, Ingredient, Nutrient, ChatMessage } from '../types';
 import { getAssistantPrompt } from '../lib/i18n/translations';
 
@@ -17,13 +17,8 @@ const getErrorMessage = (language: string) => {
 }
 
 const LOCAL_DEV_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-let localAiInstance: GoogleGenAI | null = null;
-
-const isKeyPlaceholder = (key: string | undefined) => !key || key === 'PLACEHOLDER_API_KEY' || key.includes('YOUR_API_KEY');
-
-if (LOCAL_DEV_API_KEY && !isKeyPlaceholder(LOCAL_DEV_API_KEY)) {
-    localAiInstance = new GoogleGenAI({ apiKey: LOCAL_DEV_API_KEY });
-}
+let localAiInstance: any = null;
+// Local simulation disabled to favor REST consistency
 
 const simulateNutritionalAdvice = (question: string, language: string): string => {
     const q = question.toLowerCase();
@@ -43,7 +38,7 @@ const callServerlessAI = async (action: string, payload: any): Promise<string> =
     
     if (isProduction || !localAiInstance) {
         try {
-            const res = await fetch('/api/gemini', {
+            const res = await fetch('/api/assistant', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action, payload })
@@ -212,7 +207,7 @@ export const chatWithAssistant = async (
         const isProduction = import.meta.env.PROD || window.location.hostname !== 'localhost'; 
         
         if (isProduction || !localAiInstance) {
-            const res = await fetch('/api/gemini', {
+            const res = await fetch('/api/assistant', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
