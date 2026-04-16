@@ -16,30 +16,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${API_KEY}`;
 
         let geminiPayload: any = {};
-        // ... (resto del mapeo de payload)
         
-        // Re-mapeo rápido para asegurar que geminiPayload tenga el formato correcto
         if (action === 'chatWithAssistant') {
-            const { prompt, image, tools, history = [] } = payload;
+            const { prompt, image, tools } = payload;
             const parts: any[] = [];
-            if (image?.data) parts.push({ inlineData: { mimeType: image.mimeType || 'image/jpeg', data: image.data } });
+            if (image?.data) {
+                parts.push({
+                    inlineData: {
+                        mimeType: image.mimeType || 'image/jpeg',
+                        data: image.data
+                    }
+                });
+            }
             if (prompt) parts.push({ text: prompt });
-
-            const contents = [
-                ...history.map((h: any) => ({
-                    role: h.role === 'user' ? 'user' : 'model',
-                    parts: [{ text: h.content }]
-                })),
-                { role: 'user', parts }
-            ];
-            geminiPayload = { contents, tools: tools?.length ? tools : undefined };
+            
+            geminiPayload = {
+                contents: [{ role: 'user', parts }],
+                tools: tools?.length ? tools : undefined
+            };
         } else if (action === 'analyzeFormula') {
-            geminiPayload = { contents: [{ role: 'user', parts: [{ text: payload.prompt }] }] };
+            geminiPayload = {
+                contents: [{ role: 'user', parts: [{ text: payload.prompt }] }]
+            };
         } else if (action === 'parseRequirements' || action === 'parseIngredients') {
             geminiPayload = {
-                systemInstruction: payload.systemInstruction ? { parts: [{ text: payload.systemInstruction }] } : undefined,
+                systemInstruction: payload.systemInstruction ? {
+                    parts: [{ text: payload.systemInstruction }]
+                } : undefined,
                 contents: [{ role: 'user', parts: payload.parts }],
-                generationConfig: { responseMimeType: "application/json" }
+                generationConfig: {
+                    responseMimeType: "application/json"
+                }
             };
         }
 
