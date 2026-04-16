@@ -92,7 +92,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
         'mongin': 531080, 'dpb': 531080, 'deb meqkg': 531080,
         'energía met. ap.': 200020, 'e metabolizable a': 200020, 'em': 200020, 'me': 200020, 'e metabolizable a kcalkg': 200020,
         'energía cruda': 200040, 'energia cruda': 200040, 'energia bruta': 200010, 'energia real': 200020,
-        'e digestíble a': 200030, 'e digestible a': 200030,
+        'e digestible a': 200030,
         'lisina total lis': 510010, 'lys total %': 510010, 'lysine': 510010, 'lys total': 510010,
         'lisina disponible lda': 521010, 'lys dig a %': 521010, 'lys d': 521010, 'lys dig a': 521010,
         'metionina total': 510040, 'met total %': 510040, 'met': 510040, 'met total': 510040,
@@ -122,8 +122,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
         'xantofila': 531030, 'xan': 531030, 'xantofila mgkg': 531030,
         'ftu kg': 581020, 'ftu': 581020, 'endogena ukg': 581030,
         'biotina': 561010, 'colina': 561030, 'acido folico': 561040, 'niacina': 561050, 'ac pantotenico': 561060, 'riboflavina': 561070, 'vit a': 561120,
-        'nsp total': 571010, 'nsp insoluble': 571020, 'nsp soluble': 571030, 'betaglucanos': 571040, 'arabinoxilanos': 571050, 'celulosa': 571060, 'hemicelulosa': 571070, 'betamanano': 571080, 'pectinas': 571090, 'arabinosa': 571100, 'acido uronico': 571130,
-        'aa digestib': 521010, 'e digestible a': 200030
+        'nsp total': 571010, 'nsp insoluble': 571020, 'nsp soluble': 571030, 'betaglucanos': 571040, 'arabinoxilanos': 571050, 'celulosa': 571060, 'hemicelulosa': 571070, 'betamanano': 571080, 'pectinas': 571090, 'arabinosa': 571100, 'acido uronico': 571130
     };
 
     const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -217,9 +216,19 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
                         // 2. Busqueda por Nombre exacto (normalizado)
                         if (!n) n = nutrients.find(nt => nt.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim() === s);
                         
-                        // 3. Busqueda por Sinónimos (comparación parcial)
+                        // 3. Busqueda por Sinónimos (Comparación EXACTA para evitar colisiones como 'met' matching 'me')
                         if (!n) {
-                            const foundSynonymKey = Object.keys(NUTRIENT_SYNONYMS).find(key => s.includes(key) || key.includes(s));
+                            const targetCode = NUTRIENT_SYNONYMS[s];
+                            if (targetCode) {
+                                n = nutrients.find(nt => nt.code === targetCode);
+                            }
+                        }
+                        
+                        // 4. Fallback: Comparación por palabras clave si es muy necesario (pero evitamos colisiones simples)
+                        if (!n) {
+                            const foundSynonymKey = Object.keys(NUTRIENT_SYNONYMS).find(key => 
+                                (s.length > 2 && key.length > 2 && s === key) // Ya cubierto arriba, pero por si acaso
+                            );
                             if (foundSynonymKey) {
                                 const targetCode = NUTRIENT_SYNONYMS[foundSynonymKey];
                                 n = nutrients.find(nt => nt.code === targetCode);
