@@ -97,7 +97,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
         'lisina disponible lda': 521010, 'lys dig a %': 521010, 'lys d': 521010, 'lys dig a': 521010,
         'metionina total': 510040, 'met total %': 510040, 'met': 510040, 'met total': 510040,
         'metionina disponible': 521030, 'met dig a %': 521030, 'met d': 521030, 'met dig a': 521030,
-        'cistina total': 510050, 'cis total': 510050, 'cistina total %': 510050,
+        'cistina total': 510050, 'cis total': 510050, 'cistina total %': 510050, 'cis': 510050,
+        'cistina disponible': 521040, 'istina dig a': 521040, 'cistina dig a': 521040, 'cis dig a': 521040,
         'metionina + cistina total': 510060, 'm+c total %': 510060, 'm+c': 510060, 'm c total': 510060,
         'm+c disponible': 521050, 'm+c dig a %': 521050, 'm+c d': 521050, 'm c dig a': 521050,
         'triptófano total': 510070, 'trip total %': 510070, 'trp': 510070, 'trip total': 510070,
@@ -121,7 +122,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ clients, setClie
         'xantofila': 531030, 'xan': 531030, 'xantofila mgkg': 531030,
         'ftu kg': 581020, 'ftu': 581020, 'endogena ukg': 581030,
         'biotina': 561010, 'colina': 561030, 'acido folico': 561040, 'niacina': 561050, 'ac pantotenico': 561060, 'riboflavina': 561070, 'vit a': 561120,
-        'nsp total': 571010, 'nsp insoluble': 571020, 'nsp soluble': 571030, 'betaglucanos': 571040, 'arabinoxilanos': 571050, 'celulosa': 571060, 'hemicelulosa': 571070, 'betamanano': 571080, 'pectinas': 571090, 'arabinosa': 571100, 'acido uronico': 571130
+        'nsp total': 571010, 'nsp insoluble': 571020, 'nsp soluble': 571030, 'betaglucanos': 571040, 'arabinoxilanos': 571050, 'celulosa': 571060, 'hemicelulosa': 571070, 'betamanano': 571080, 'pectinas': 571090, 'arabinosa': 571100, 'acido uronico': 571130,
+        'aa digestib': 521010, 'e digestible a': 200030
     };
 
     const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
