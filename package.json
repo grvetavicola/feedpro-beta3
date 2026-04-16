@@ -1,5 +1,8 @@
 {
   "name": "feedpro-pro-integrated",
+  "engines": {
+    "node": "22.x"
+  },
   "private": true,
   "version": "1.1.0",
   "type": "module",
