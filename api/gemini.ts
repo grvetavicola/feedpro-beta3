@@ -13,9 +13,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
         const { action, payload = {} } = req.body || {};
         const modelName = payload.model || 'gemini-1.5-flash';
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${API_KEY}`;
+        const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${API_KEY}`;
 
         let geminiPayload: any = {};
+        // ... (resto del mapeo de payload)
+        
+        // Re-mapeo rápido para asegurar que geminiPayload tenga el formato correcto
         if (action === 'chatWithAssistant') {
             const { prompt, image, tools, history = [] } = payload;
             const parts: any[] = [];
@@ -47,7 +50,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
 
         const data = await resp.json();
-        if (!resp.ok) return res.status(resp.status).json(data);
+        if (!resp.ok) {
+            console.error("Google API Error Response:", JSON.stringify(data));
+            return res.status(resp.status).json(data);
+        }
 
         const candidate = data.candidates?.[0];
         const text = candidate?.content?.parts?.find((p: any) => p.text)?.text || '';
