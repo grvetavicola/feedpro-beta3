@@ -115,6 +115,7 @@ export interface FormulationResult {
     max: number;
     met: boolean;
   }[];
+  shadowPrices?: Record<string, number>; // New: Consolidated shadow prices for easy mapping
   safetyAlerts?: string[]; // New: Informative alerts about auto-applied rules
 }
 
