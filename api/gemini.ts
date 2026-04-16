@@ -16,8 +16,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    if (!API_KEY) {
-        return res.status(500).json({ error: 'API_KEY_NOT_CONFIGURED', message: 'The serverless environment is missing the Gemini API Key.' });
+    const isPlaceholder = !API_KEY || API_KEY === 'PLACEHOLDER_API_KEY' || API_KEY.includes('YOUR_API_KEY');
+
+    if (isPlaceholder) {
+        return res.status(500).json({ 
+            error: 'API_KEY_NOT_CONFIGURED', 
+            message: 'La API Key de Gemini no está configurada. Por favor, asegúrate de colocar una clave válida en el archivo .env.local o en las variables de entorno.' 
+        });
     }
 
     try {
