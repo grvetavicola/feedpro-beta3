@@ -79,7 +79,8 @@ const DEFAULT_INGREDIENT_CONSTRAINTS = [
   { ingredientId: 'i5', min: 0, max: 100 }, { ingredientId: 'i11', min: 0, max: 100 },
   { ingredientId: 'i10', min: 0, max: 100 }, { ingredientId: 'i9', min: 0, max: 100 },
   { ingredientId: 'i13', min: 0, max: 100 }, { ingredientId: 'i14', min: 0, max: 100 },
-  { ingredientId: 'i12', min: 0, max: 100 }
+  { ingredientId: 'i12', min: 0, max: 100 },
+  { ingredientId: 'i15', min: 0, max: 100 }
 ];
 
 const BREEDS = ['HY-LINE', 'LOHMANN', 'H&N', 'NOVOGEN'];
