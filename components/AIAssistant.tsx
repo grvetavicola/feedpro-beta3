@@ -10,6 +10,9 @@ interface AIAssistantProps {
   products: Product[];
   user?: User;
   onUpgradeRequest?: () => void;
+  onUpdateIngredientPrice?: (prices: Record<string, number>) => void;
+  onUpdateNutrientLimit?: (nutrientId: string, min?: number, max?: number) => void;
+  onTriggerOptimization?: (applySafety: boolean) => void;
 }
 
 const LoadingBubble: React.FC = () => (
