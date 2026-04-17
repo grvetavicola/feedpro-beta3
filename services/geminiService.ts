@@ -1,4 +1,4 @@
-// Removed @google/genai dependency for stability
+import { GoogleGenAI } from '@google/genai';
 import { FormulationResult, Product, Ingredient, Nutrient, ChatMessage } from '../types';
 import { getAssistantPrompt } from '../lib/i18n/translations';
 
@@ -17,78 +17,50 @@ const getErrorMessage = (language: string) => {
 }
 
 const LOCAL_DEV_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-let localAiInstance: any = null;
-// Local simulation disabled to favor REST consistency
-
-const simulateNutritionalAdvice = (question: string, language: string): string => {
-    const q = question.toLowerCase();
-    if (language === 'en') {
-        if (q.includes('price') || q.includes('cost')) return "As a local simulation, I suggest reviewing the ingredient prices in the matrix. Generally, corn and soy are the main cost drivers.";
-        if (q.includes('protein')) return "I recommend maintaining protein levels based on the specific species' requirements. Check the nutritional limits in the sidebar.";
-        return "I am operating in **Local Simulation Mode** because no API Key was detected. I can provide general nutritional guidance, but for full AI analysis, please configure your Gemini API Key.";
-    }
-    // Spanish Default
-    if (q.includes('precio') || q.includes('costo')) return "En modo de simulación local, te sugiero revisar los precios de los ingredientes en la matriz. Recuerda que el maíz y la soya suelen ser los principales factores de variabilidad de costo.";
-    if (q.includes('proteina') || q.includes('proteína')) return "Te recomiendo mantener los niveles de proteína según los requerimientos específicos de la etapa productiva. Puedes ajustar los límites en la barra lateral.";
-    return "Estoy operando en **Modo de Simulación Local** (Sin API Key). Puedo darte guías generales sobre nutrición, pero para un análisis completo de IA, por favor configura tu Gemini API Key en el archivo .env.local.";
-};
+let localAiInstance: GoogleGenAI | null = null;
+if (LOCAL_DEV_API_KEY) {
+    localAiInstance = new GoogleGenAI({ apiKey: LOCAL_DEV_API_KEY });
+}
 
 const callServerlessAI = async (action: string, payload: any): Promise<string> => {
     const isProduction = import.meta.env.PROD || window.location.hostname !== 'localhost'; 
     
     if (isProduction || !localAiInstance) {
-        try {
-            const res = await fetch('/api/gemini', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action, payload })
-            });
-            
-            if (!res.ok) {
-                throw new Error(`Serverless Error: ${res.statusText}`);
-            }
-            
-            const data = await res.json();
-            return data.text || '';
-        } catch (err) {
-            console.error("AI Call Failed:", err);
-            if (!import.meta.env.PROD) {
-                return simulateNutritionalAdvice(action, 'es'); 
-            }
-            throw err;
+        const res = await fetch('/api/gemini', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action, payload })
+        });
+        
+        if (!res.ok) {
+            throw new Error(`Serverless Error: ${res.statusText}`);
         }
+        
+        const data = await res.json();
+        return data.text || '';
     } else {
-        // LOCAL DEVELOPMENT FALLBACK (Compatible con @google/genai 1.34.0)
-        const activeModel = payload.model === 'gemini-3-flash-preview' ? 'gemini-1.5-flash' : (payload.model || 'gemini-1.5-flash');
+        // LOCAL DEVELOPMENT FALLBACK
+        const activeModel = payload.model || 'gemini-3-flash-preview';
         
         if (action === 'chatWithAssistant') {
             const finalParts: any[] = [{ text: payload.prompt }];
             if (payload.image) {
                 finalParts.unshift({ inlineData: { mimeType: payload.image.mimeType, data: payload.image.data } });
             }
-            const response = await localAiInstance.models.generateContent({ 
-                model: activeModel, 
-                contents: [{ role: 'user', parts: finalParts }] 
-            });
+            const response = await localAiInstance.models.generateContent({ model: activeModel, contents: finalParts });
             return response.text || '';
         }
         
         if (action === 'analyzeFormula') {
-            const response = await localAiInstance.models.generateContent({ 
-                model: activeModel, 
-                contents: [{ role: 'user', parts: [{ text: payload.prompt }] }] 
-            });
+            const response = await localAiInstance.models.generateContent({ model: activeModel, contents: payload.prompt });
             return response.text || '';
         }
         
         if (action === 'parseRequirements' || action === 'parseIngredients') {
             const response = await localAiInstance.models.generateContent({
                 model: activeModel,
-                contents: [{ role: 'user', parts: payload.parts }],
-                config: { 
-                    systemInstruction: payload.systemInstruction, 
-                    responseMimeType: "application/json" 
-                }
+                contents: payload.parts,
+                config: { systemInstruction: payload.systemInstruction, responseMimeType: "application/json" }
             });
             return response.text || '';
         }
@@ -129,9 +101,6 @@ export const analyzeFormulaWithGemini = async (result: FormulationResult, produc
     return await callServerlessAI('analyzeFormula', { prompt, model });
   } catch (error) {
     console.error("Error contacting Serverless Gemini API:", error);
-    if (!import.meta.env.PROD) {
-        return "Análisis de Simulación: La fórmula parece balanceada. Revisa los costos marginales para optimizar el precio final.";
-    }
     return getErrorMessage(language);
   }
 };
@@ -143,13 +112,13 @@ export const chatWithAssistant = async (
     context: { ingredients: Ingredient[], nutrients: Nutrient[], products: Product[] },
     language: string,
     image?: { mimeType: string; data: string }
-): Promise<{ text: string, toolCalls?: any[] }> => {
-    const modelName = 'gemini-1.5-flash'; // Cambiado de 2.0 a 1.5 para mayor estabilidad si es necesario, o mantener 2.0 si se prefiere
+): Promise<string> => {
+    const model = 'gemini-3-flash-preview';
 
     const contextText = `
-      Ingredientes Disponibles (IDs y Precios): ${context.ingredients.filter(i => i.price > 0).map(i => `${i.name} (ID: ${i.id}, $${i.price}/kg)`).join(', ')}.
-      Nutrientes Base (IDs): ${context.nutrients.map(n => `${n.name} (ID: ${n.id})`).join(', ')}.
-      Productos Definidos: ${context.products.map(p => `${p.name} (ID: ${p.id})`).join(', ')}.
+      Ingredientes Disponibles y sus precios por kg: ${context.ingredients.filter(i => i.price > 0).map(i => `${i.name} ($${i.price}/kg)`).join(', ')}.
+      Nutrientes Base: ${context.nutrients.map(n => n.name).join(', ')}.
+      Productos Definidos: ${context.products.map(p => p.name).join(', ')}.
     `;
     
     const conversationHistory = history.map(m => `${m.role === 'user' ? 'Usuario' : 'Asistente'}: ${m.content}`).join('\n');
@@ -161,99 +130,11 @@ export const chatWithAssistant = async (
         hasImage: !!image
     });
 
-    const tools = [
-        {
-            function_declarations: [
-                {
-                    name: "set_ingredient_price",
-                    description: "Actualiza el precio de un ingrediente específico en la matriz.",
-                    parameters: {
-                        type: "object",
-                        properties: {
-                            id: { type: "string", description: "El ID del ingrediente (ej: CORN, SOY)." },
-                            price: { type: "number", description: "El nuevo precio por kg." }
-                        },
-                        required: ["id", "price"]
-                    }
-                },
-                {
-                    name: "adjust_nutrient_limit",
-                    description: "Ajusta los límites mínimos o máximos de un nutriente para la dieta actual.",
-                    parameters: {
-                        type: "object",
-                        properties: {
-                            nutrientId: { type: "string", description: "El ID del nutriente (ej: PROT, ME)." },
-                            min: { type: "number", description: "Valor mínimo (opcional)." },
-                            max: { type: "number", description: "Valor máximo (opcional)." }
-                        },
-                        required: ["nutrientId"]
-                    }
-                },
-                {
-                    name: "run_optimization",
-                    description: "Ejecuta el motor de optimización para encontrar la fórmula de menor costo.",
-                    parameters: {
-                        type: "object",
-                        properties: {
-                            applySafety: { type: "boolean", description: "Si se debe aplicar el escudo de seguridad." }
-                        }
-                    }
-                }
-            ]
-        }
-    ];
-
     try {
-        const isProduction = import.meta.env.PROD || window.location.hostname !== 'localhost'; 
-        
-        if (isProduction || !localAiInstance) {
-            const res = await fetch('/api/gemini', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    action: 'chatWithAssistant', 
-                    payload: { prompt, model: modelName, image, tools } 
-                })
-            });
-            
-            if (!res.ok) throw new Error(`Serverless Error: ${res.statusText}`);
-            const data = await res.json();
-            return { text: data.text || '', toolCalls: data.toolCalls };
-        } else {
-            // Optimizado para Gemini SDK local (@google/genai)
-            const activeModel = (modelName as string) === 'gemini-3-flash-preview' ? 'gemini-1.5-flash' : (modelName || 'gemini-1.5-flash');
-            
-            const response = await localAiInstance.models.generateContent({
-                model: activeModel,
-                contents: [
-                    ...history.map(h => ({
-                        role: h.role === 'user' ? 'user' : 'model',
-                        parts: [{ text: h.content }]
-                    })),
-                    { role: 'user', parts: [{ text: question }] }
-                ],
-                config: {
-                    tools: tools as any
-                }
-            });
-            
-            return { 
-                text: response.text || '', 
-                toolCalls: response.functionCalls
-            };
-        }
+        return await callServerlessAI('chatWithAssistant', { prompt, model, image });
     } catch (error) {
-        console.error("Error en chatWithAssistant:", error);
-        
-        // MODO RETORNO (Simulación local si falla o no hay key)
-        const isOfflineAllowed = !import.meta.env.PROD;
-        if (isOfflineAllowed) {
-            return { 
-                text: simulateNutritionalAdvice(question, language) 
-            };
-        }
-        
-        return { text: getErrorMessage(language) };
+        console.error("Error contacting Serverless Gemini API:", error);
+        return getErrorMessage(language);
     }
 };
 
@@ -264,7 +145,7 @@ export const parseRequirementsWithGemini = async (
     nutrientConstraints: { [key: string]: { min?: number, max?: number } }, 
     productName?: string 
 }> => {
-  const modelName = 'gemini-1.5-flash';
+  const model = 'gemini-3-flash-preview';
 
   const nutrientMap = nutrients.map(n => `${n.id}: ${n.name} (${n.unit})`).join('\n');
 
@@ -308,7 +189,7 @@ export const parseRequirementsWithGemini = async (
   }
 
   try {
-      const text = await callServerlessAI('parseRequirements', { systemInstruction, parts, model: modelName });
+      const text = await callServerlessAI('parseRequirements', { systemInstruction, parts, model });
       if (!text) return { nutrientConstraints: {} };
       return JSON.parse(text);
   } catch (error) {
@@ -324,7 +205,7 @@ export const parseIngredientsWithGemini = async (
       ingredients: { name: string; price?: number; nutrients: { [nutrientId: string]: number } }[],
       newNutrients: { tempId: string; name: string; unit: string }[]
   }> => {
-    const modelName = 'gemini-1.5-flash';
+    const model = 'gemini-3-flash-preview';
   
     const nutrientMap = nutrients.map(n => `ID: ${n.id} = ${n.name} (${n.unit})`).join('\n');
   
@@ -383,7 +264,7 @@ export const parseIngredientsWithGemini = async (
     }
   
     try {
-        const text = await callServerlessAI('parseIngredients', { systemInstruction, parts, model: modelName });
+        const text = await callServerlessAI('parseIngredients', { systemInstruction, parts, model });
         if (!text) return { ingredients: [], newNutrients: [] };
         return JSON.parse(text);
     } catch (error) {
