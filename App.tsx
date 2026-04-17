@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { ViewState, Product, Ingredient, Nutrient, Client, SavedFormula, User, NutritionalBase } from './types';
 import { Dashboard } from './components/Dashboard';
 import { IngredientsScreen } from './components/IngredientsScreen';
@@ -703,6 +704,9 @@ export default function App() {
               </div>
           </div>
       )}
+
+      {/* Vercel Web Analytics */}
+      <Analytics />
     </div>
   );
 }
