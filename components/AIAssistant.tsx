@@ -162,7 +162,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ user = { name: 'Admin'
         imagePayload
     );
 
-    setMessages([...newMessages, { role: 'assistant', content: assistantResponse }]);
+    setMessages([...newMessages, { role: 'assistant', content: assistantResponse.text }]);
     setIsLoading(false);
   };
   
